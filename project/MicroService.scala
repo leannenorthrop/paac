@@ -1,7 +1,9 @@
 import sbt.Keys._
 import sbt.Tests.{SubProcess, Group}
 import sbt._
+import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin._
+import uk.gov.hmrc.versioning.SbtGitVersioning
 
 trait MicroService {
 
@@ -34,6 +36,8 @@ trait MicroService {
     .settings(scalaSettings: _*)
     .settings(publishingSettings: _*)
     .settings(defaultSettings(): _*)
+    .enablePlugins(SbtAutoBuildPlugin, SbtGitVersioning)
+    .enablePlugins(SbtDistributablesPlugin)
     .settings(
       targetJvm := "jvm-1.8",
       libraryDependencies ++= appDependencies,
@@ -50,7 +54,6 @@ trait MicroService {
       addTestReportOption(IntegrationTest, "int-test-reports"),
       testGrouping in IntegrationTest := oneForkedJvmPerTest((definedTests in IntegrationTest).value),
       parallelExecution in IntegrationTest := false)
-    .settings(SbtBuildInfo(): _*)
     .disablePlugins(sbt.plugins.JUnitXmlReportPlugin)
     .settings(resolvers += Resolver.bintrayRepo("hmrc", "releases"))
 }
