@@ -12,7 +12,6 @@ trait MicroService {
   import scoverage.ScoverageSbtPlugin._
 
   val appName: String
-  val appVersion: String
 
   lazy val appDependencies : Seq[ModuleID] = ???
   lazy val plugins : Seq[Plugins] = Seq(play.PlayScala)
@@ -32,13 +31,11 @@ trait MicroService {
   lazy val microservice = Project(appName, file("."))
     .enablePlugins(plugins : _*)
     .settings(playSettings ++ scoverageSettings : _*)
-    .settings(version := appVersion)
     .settings(scalaSettings: _*)
     .settings(publishingSettings: _*)
     .settings(defaultSettings(): _*)
     .settings(
       targetJvm := "jvm-1.8",
-      shellPrompt := ShellPrompt(appVersion),
       libraryDependencies ++= appDependencies,
       parallelExecution in Test := false,
       fork in Test := false,
