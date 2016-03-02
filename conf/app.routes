@@ -2,5 +2,5 @@
 
 # GET         /hello-world                   controllers.MicroserviceHelloWorld.hello
 
-POST        /paac/calculate                controllers.CalculatorController.index
-POST        /paac/results                  controllers.CalculatorController.results
+GET        /paac/calculate                controllers.CalculatorController.index
+GET        /paac/results                  controllers.CalculatorController.results
