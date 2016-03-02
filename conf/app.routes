@@ -1,6 +1,6 @@
 # microservice specific routes
 
-GET        /hello-world             controllers.MicroserviceHelloWorld.hello
+# GET         /hello-world                   controllers.MicroserviceHelloWorld.hello
 
-POST /paac/calculate                controllers.CalculatorController.index
-POST /paac/results                  controllers.CalculatorController.results
+POST        /paac/calculate                controllers.CalculatorController.index
+POST        /paac/results                  controllers.CalculatorController.results
