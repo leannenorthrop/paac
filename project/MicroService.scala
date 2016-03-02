@@ -3,14 +3,13 @@ import sbt.Tests.{SubProcess, Group}
 import sbt._
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin._
 
-
 trait MicroService {
 
-  import uk.gov.hmrc._
-  import DefaultBuildSettings._
   import uk.gov.hmrc.{SbtBuildInfo, ShellPrompt}
-
+  import uk.gov.hmrc.DefaultBuildSettings._
   import TestPhases._
+  import uk.gov.hmrc.SbtAutoBuildPlugin
+  import scoverage.ScoverageSbtPlugin._
 
   val appName: String
   val appVersion: String
@@ -19,9 +18,20 @@ trait MicroService {
   lazy val plugins : Seq[Plugins] = Seq(play.PlayScala)
   lazy val playSettings : Seq[Setting[_]] = Seq.empty
 
+  lazy val scoverageSettings = {
+    import scoverage.ScoverageKeys
+    Seq(
+      ScoverageKeys.coverageExcludedPackages :=  "<empty>;Reverse.*;.*Routes.*;routes_routing.*;uk.gov.hmrc;.*CCCalculator.*;.*EnumUtils.*;config.*;",
+      ScoverageKeys.coverageMinimum := 90,
+      ScoverageKeys.coverageFailOnMinimum := false,
+      ScoverageKeys.coverageHighlighting := true,
+      parallelExecution in Test := false
+    )
+  }
+
   lazy val microservice = Project(appName, file("."))
     .enablePlugins(plugins : _*)
-    .settings(playSettings : _*)
+    .settings(playSettings ++ scoverageSettings : _*)
     .settings(version := appVersion)
     .settings(scalaSettings: _*)
     .settings(publishingSettings: _*)
