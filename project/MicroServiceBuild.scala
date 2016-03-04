@@ -1,10 +1,8 @@
 import sbt._
 
 object MicroServiceBuild extends Build with MicroService {
-  import scala.util.Properties.envOrElse
 
   val appName = "paac"
-  val appVersion = envOrElse("PAAC_VERSION", "999-SNAPSHOT")
 
   override lazy val appDependencies: Seq[ModuleID] = AppDependencies()
 }
@@ -21,6 +19,8 @@ private object AppDependencies {
   private val playConfigVersion = "2.0.1"
   private val domainVersion = "3.3.0"
   private val hmrcTestVersion = "1.4.0"
+  private val scalaTestVersion = "2.2.2"
+  private val pegDownVersion = "1.4.2"
 
   val compile = Seq(
 
@@ -43,8 +43,8 @@ private object AppDependencies {
     def apply() = new TestDependencies {
       override lazy val test = Seq(
         "uk.gov.hmrc" %% "hmrctest" % hmrcTestVersion % scope,
-        "org.scalatest" %% "scalatest" % "2.2.2" % scope,
-        "org.pegdown" % "pegdown" % "1.4.2" % scope,        
+        "org.scalatest" %% "scalatest" % scalaTestVersion % scope,
+        "org.pegdown" % "pegdown" % pegDownVersion % scope,
         "com.typesafe.play" %% "play-test" % PlayVersion.current % scope
       )
     }.test
@@ -57,8 +57,8 @@ private object AppDependencies {
 
       override lazy val test = Seq(
         "uk.gov.hmrc" %% "hmrctest" % hmrcTestVersion % scope,
-        "org.scalatest" %% "scalatest" % "2.2.2" % scope,
-        "org.pegdown" % "pegdown" % "1.4.2" % scope,
+        "org.scalatest" %% "scalatest" % scalaTestVersion % scope,
+        "org.pegdown" % "pegdown" % pegDownVersion % scope,
         "com.typesafe.play" %% "play-test" % PlayVersion.current % scope
       )
     }.test
