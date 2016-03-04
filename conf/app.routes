@@ -1,6 +1,4 @@
 # microservice specific routes
 
-# GET         /hello-world                   controllers.MicroserviceHelloWorld.hello
-
-GET        /calculate                controllers.CalculatorController.index
+GET        /calculate                controllers.CalculatorController.calculate
 # GET        /results                  controllers.CalculatorController.results

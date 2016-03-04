@@ -16,9 +16,14 @@
 
 package controllers
 
+import models.{PensionInput}
 import play.api.mvc._
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
+import play.api.Logger
+import play.api.i18n.Messages
+import play.api.libs.json._
+import play.api.mvc.Action
 import scala.concurrent.Future
 
 /**
@@ -26,9 +31,18 @@ import scala.concurrent.Future
   */
 object CalculatorController extends CalculatorController
 
-  trait CalculatorController extends BaseController {
+  trait CalculatorController extends Controller {
 
-    def index() = Action.async { implicit request =>
-      Future.successful(Ok("Hi"))
+    def calculate = Action.async(parse.json) {
+      implicit request =>
+        request.body.validate[PensionInput].fold(
+          error => {
+           Future.successful(Ok("not OK"))
+          },
+          result => {
+            Future.successful(Ok("OK to json"))
+          }
+        )
     }
-}
+
+  }
