@@ -17,26 +17,24 @@
 package controllers
 
 import play.api.libs.json.{JsValue, Json}
-import play.api.test.FakeRequest
 import uk.gov.hmrc.play.test.UnitSpec
 
-import play.api.http.Status
-import play.api.libs.json.{JsValue, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import play.api.test.FakeApplication
 
+trait CalculatorControllerSpec extends FakeApplication {
 
-class CalculatorControllerSpec extends UnitSpec {
+  class CalculatorControllerSpec extends UnitSpec {
 
-//  implicit val request = FakeRequest()
-//
-//
-//  "CalculatorController" should {
-//
-//    "return result NOT_FOUND" in {
-//      val result = route(FakeRequest(GET, "/paac/calculate/"))
-//      result.isDefined shouldBe true
-//      status(result.get) should not be NOT_FOUND
-//    }
-//  }
+    implicit val request = FakeRequest()
+
+    "CalculatorController" should {
+      "not return result NOT_FOUND" in {
+        val result = route(FakeRequest(GET, "/paac/calculate/"))
+        result.isDefined shouldBe true
+        status(result.get) should not be NOT_FOUND
+      }
+    }
+  }
 }
