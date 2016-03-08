@@ -14,16 +14,24 @@
  * limitations under the License.
  */
 
-package controllers
+package models
 
 import uk.gov.hmrc.play.test.UnitSpec
+import play.api.libs.json._
 
-class PlaceholderSpec extends UnitSpec {
+object PensionsSpec extends UnitSpec {
 
-  "The Jenkins job" should {
-    "not require a test, but it does" in {
-      1 shouldBe 1
-    }
+
+  "PensionsSpec" should {
+
+
+    val json = Json.toJson[models.PensionInput]
+    json shouldBe Json.parse(
+      """
+      {
+        | "taxYear":"2012",
+        | "pensionInputAmout":"100.000"
+      }
+      """.stripMargin)
   }
-
 }

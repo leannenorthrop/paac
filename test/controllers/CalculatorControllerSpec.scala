@@ -16,14 +16,25 @@
 
 package controllers
 
+import play.api.libs.json.{JsValue, Json}
 import uk.gov.hmrc.play.test.UnitSpec
 
-class PlaceholderSpec extends UnitSpec {
+import play.api.test.FakeRequest
+import play.api.test.Helpers._
+import play.api.test.FakeApplication
 
-  "The Jenkins job" should {
-    "not require a test, but it does" in {
-      1 shouldBe 1
+trait CalculatorControllerSpec extends FakeApplication {
+
+  class CalculatorControllerSpec extends UnitSpec {
+
+    implicit val request = FakeRequest()
+
+    "CalculatorController" should {
+      "not return result NOT_FOUND" in {
+        val result = route(FakeRequest(GET, "/paac/calculate/"))
+        result.isDefined shouldBe true
+        status(result.get) should not be NOT_FOUND
+      }
     }
   }
-
 }
