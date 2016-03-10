@@ -1,4 +1,4 @@
 # microservice specific routes
 
-GET        /calculate                controllers.CalculatorController.calculate
+POST        /calculate                controllers.CalculatorController.calculate
 # GET        /results                  controllers.CalculatorController.results
