@@ -16,8 +16,8 @@
 
 package controllers
 
-import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import play.api.test._
 import concurrent._
 import play.api.libs.json._
 import play.api.mvc.{Result, Results, Controller, Action}
@@ -72,7 +72,7 @@ class CalculatorControllerSpec extends ControllerSpec {
           // check
           status(result) shouldBe status(BadRequest)
       }
-     "return error message" in {
+     "return error message" in {   
         //setup
         val requestBody = INVALID_CONTRIBUTION_JSON_BODY
 
@@ -81,8 +81,10 @@ class CalculatorControllerSpec extends ControllerSpec {
 
         //check 
         contentAsJson(result) shouldBe Json.obj("status" -> JsNumber(400),
-                                                "message" -> "Invalid JSON request object.")
-     }
+                                                "message" -> "Invalid JSON request object.",
+                                                "validationErrors" -> JsArray(Seq(Json.obj("/pensionInputAmount" -> " error.path.missing"),
+                                                                                  Json.obj("/taxYear" -> " error.path.missing"))))
+      }
     }
   }
 }

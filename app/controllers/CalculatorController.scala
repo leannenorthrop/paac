@@ -17,11 +17,12 @@
 package controllers
 
 import models.{PensionInput}
-import play.api.mvc._
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
+import play.api.mvc._
+import play.api.data.validation._
 import play.api.Logger
-import play.api.i18n.Messages
+import play.api.i18n.{ Messages, MessagesApi }
 import play.api.libs.json._
 import play.api.mvc.Action
 import scala.concurrent.Future
@@ -35,10 +36,17 @@ trait CalculatorController {
   def calculate() = Action.async(parse.json) { 
     implicit request =>
 
+    def mapValidationErrors(errors: Seq[(JsPath, Seq[ValidationError])]):Seq[JsObject] = {
+      errors.map {
+        case (path, seq) => Json.obj(path.toString() -> seq.map { e => Messages(e.message, e.args: _*) }.foldLeft("")(_ + " " + _))
+      }
+    }
+
     request.body.validate[PensionInput].fold(
-      error => {
+      errors => {
         Future.successful(BadRequest(Json.obj("status" -> JsNumber(400),
-                                              "message" -> JsString("Invalid JSON request object."))))
+                                              "message" -> JsString("Invalid JSON request object."),
+                                              "validationErrors" -> JsArray(mapValidationErrors(errors)))))
       },
       result => {
         Future.successful(Ok(Json.obj("status" -> JsNumber(200), 
