@@ -48,7 +48,7 @@ class CalculatorControllerSpec extends ControllerSpec {
           status(result) shouldBe OK
       }
 
-      "return appropriate message" in {
+      "return appropriate JSON message" in {
           // setup
           val requestBody = VALID_CONTRIBUTION_JSON_BODY
 
@@ -56,7 +56,8 @@ class CalculatorControllerSpec extends ControllerSpec {
           val result = execute(requestBody)
 
           // check
-          contentAsString(result) shouldBe "Valid pension calculation request received."
+          contentAsJson(result) shouldBe Json.obj("status" -> JsNumber(200), 
+                                                  "message" -> JsString("Valid pension calculation request received."))
       }
     }
 
@@ -79,7 +80,8 @@ class CalculatorControllerSpec extends ControllerSpec {
         val result = execute(requestBody)
 
         //check 
-        contentAsString(result) shouldBe "Bad"
+        contentAsJson(result) shouldBe Json.obj("status" -> JsNumber(400),
+                                                "message" -> "Invalid JSON request object.")
      }
     }
   }

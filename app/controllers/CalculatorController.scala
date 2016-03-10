@@ -37,10 +37,12 @@ trait CalculatorController {
 
     request.body.validate[PensionInput].fold(
       error => {
-        Future.successful(BadRequest("Bad"))
+        Future.successful(BadRequest(Json.obj("status" -> JsNumber(400),
+                                              "message" -> JsString("Invalid JSON request object."))))
       },
       result => {
-        Future.successful(Ok("Valid pension calculation request received."))
+        Future.successful(Ok(Json.obj("status" -> JsNumber(200), 
+                                      "message" -> JsString("Valid pension calculation request received."))))
       }
     )
   }
