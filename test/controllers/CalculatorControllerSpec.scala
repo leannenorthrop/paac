@@ -16,24 +16,60 @@
 
 package controllers
 
-import play.api.libs.json.{JsValue, Json}
-import uk.gov.hmrc.play.test.UnitSpec
-
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import play.api.test.FakeApplication
+import concurrent._
+import play.api.libs.json._
+import play.api.mvc.{Result, Results, Controller, Action}
+import play.api.mvc.Results._
 
-trait CalculatorControllerSpec extends FakeApplication {
+import uk.gov.hmrc.play.test.UnitSpec
 
-  class CalculatorControllerSpec extends UnitSpec {
+import org.scalatest._
+import org.scalatest.concurrent._
 
-    implicit val request = FakeRequest()
+class CalculatorControllerSpec extends ControllerSpec {
+  val ENDPOINT_PATH = "/paac/calculate/"
+  val VALID_CONTRIBUTION_JSON_BODY : JsObject = Json.obj("taxYear" -> JsString("2014/2015"), "pensionInputAmount" -> JsString("100.00"))
+  val INVALID_CONTRIBUTION_JSON_BODY : JsObject = Json.obj("blah" -> JsString("2014/2015"), "abcd" -> JsString("xuio"))
 
-    "CalculatorController" should {
-      "not return result NOT_FOUND" in {
-        val result = route(FakeRequest(GET, "/paac/calculate/"))
-        result.isDefined shouldBe true
-        status(result.get) should not be NOT_FOUND
+  def execute(body : JsObject) : Future[Result] = controllers.CalculatorController.calculate()(getRequestWithJsonBody(ENDPOINT_PATH, body))
+
+  "Calculator API" should {
+    "with valid json request body" must {
+      "return 200 OK" in {
+          // setup
+          val requestBody = VALID_CONTRIBUTION_JSON_BODY
+
+          // do it
+          val result = execute(requestBody)
+
+          // check
+          status(result) shouldBe OK
+      }
+
+      "return appropriate message" in {
+          // setup
+          val requestBody = VALID_CONTRIBUTION_JSON_BODY
+
+          // do it
+          val result = execute(requestBody)
+
+          // check
+          contentAsString(result) shouldBe "Valid pension calculation request received."
+      }
+    }
+
+    "with invalid json request body" must {
+      "return BadRequest" in {
+          // setup
+          val requestBody = INVALID_CONTRIBUTION_JSON_BODY
+
+          // do it
+          val result = execute(requestBody)
+
+          // check
+          status(result) shouldBe status(BadRequest)
       }
     }
   }

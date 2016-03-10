@@ -29,20 +29,22 @@ import scala.concurrent.Future
 /**
   * Created by peri on 02/03/16.
   */
-object CalculatorController extends CalculatorController
+trait CalculatorController {
+  this: Controller =>
 
-  trait CalculatorController extends Controller {
+  def calculate() = Action.async(parse.json) { 
+    implicit request =>
 
-    def calculate = Action.async(parse.json) {
-      implicit request =>
-        request.body.validate[PensionInput].fold(
-          error => {
-           Future.successful(Ok("not OK"))
-          },
-          result => {
-            Future.successful(Ok("OK to json"))
-          }
-        )
-    }
-
+    request.body.validate[PensionInput].fold(
+      error => {
+        Future.successful(BadRequest("Bad"))
+      },
+      result => {
+        Future.successful(Ok("Valid pension calculation request received."))
+      }
+    )
   }
+}
+
+object CalculatorController extends Controller with CalculatorController {
+}
