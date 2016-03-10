@@ -71,6 +71,16 @@ class CalculatorControllerSpec extends ControllerSpec {
           // check
           status(result) shouldBe status(BadRequest)
       }
+     "return error message" in {
+        //setup
+        val requestBody = INVALID_CONTRIBUTION_JSON_BODY
+
+        //do it
+        val result = execute(requestBody)
+
+        //check 
+        contentAsString(result) shouldBe "Bad"
+     }
     }
   }
 }
