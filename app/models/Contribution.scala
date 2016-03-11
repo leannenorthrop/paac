@@ -27,12 +27,12 @@ case class InputAmounts(definedBenefit: Long = 0, moneyPurchase: Long = 0) exten
 case class Contribution(taxYear: Short, amounts: InputAmounts) extends CalculationParam
 
 object InputAmounts {
-  implicit val contributionWrites: Writes[InputAmounts] = (
+  implicit val inputAmountsWrites: Writes[InputAmounts] = (
     (JsPath \ "definedBenefit").write[Long] and
     (JsPath \ "moneyPurchase").write[Long]
   )(unlift(InputAmounts.unapply))
 
-  implicit val contributionReads: Reads[InputAmounts] = (
+  implicit val inputAmountsReads: Reads[InputAmounts] = (
     (JsPath \ "definedBenefit").read[Long] and
     (JsPath \ "moneyPurchase").read[Long]
   )(InputAmounts.apply _)
