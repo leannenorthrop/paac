@@ -20,6 +20,7 @@ import models.{PensionInput}
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import play.api.mvc._
+import play.api.http.Status
 import play.api.data.validation._
 import play.api.Logger
 import play.api.i18n.{ Messages, MessagesApi }
@@ -44,12 +45,12 @@ trait CalculatorController {
 
     request.body.validate[PensionInput].fold(
       errors => {
-        Future.successful(BadRequest(Json.obj("status" -> JsNumber(400),
+        Future.successful(BadRequest(Json.obj("status" -> JsNumber(BAD_REQUEST),
                                               "message" -> JsString("Invalid JSON request object."),
                                               "validationErrors" -> JsArray(mapValidationErrors(errors)))))
       },
       result => {
-        Future.successful(Ok(Json.obj("status" -> JsNumber(200), 
+        Future.successful(Ok(Json.obj("status" -> JsNumber(OK), 
                                       "message" -> JsString("Valid pension calculation request received."))))
       }
     )
