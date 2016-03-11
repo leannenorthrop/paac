@@ -21,17 +21,31 @@ import play.api.libs.json.Reads._
 import play.api.libs.json._
 
 sealed trait CalculationParam
+sealed trait PensionCalculatorValue
 
-case class Contribution(taxYear: Short, amounts: Long) extends CalculationParam
+case class InputAmounts(definedBenefit: Long = 0, moneyPurchase: Long = 0) extends PensionCalculatorValue
+case class Contribution(taxYear: Short, amounts: InputAmounts) extends CalculationParam
+
+object InputAmounts {
+  implicit val contributionWrites: Writes[InputAmounts] = (
+    (JsPath \ "definedBenefit").write[Long] and
+    (JsPath \ "moneyPurchase").write[Long]
+  )(unlift(InputAmounts.unapply))
+
+  implicit val contributionReads: Reads[InputAmounts] = (
+    (JsPath \ "definedBenefit").read[Long] and
+    (JsPath \ "moneyPurchase").read[Long]
+  )(InputAmounts.apply _)
+}
 
 object Contribution {
   implicit val contributionWrites: Writes[Contribution] = (
     (JsPath \ "taxYear").write[Short] and
-    (JsPath \ "amounts").write[Long]
+    (JsPath \ "amounts").write[InputAmounts]
   )(unlift(Contribution.unapply))
 
   implicit val contributionReads: Reads[Contribution] = (
     (JsPath \ "taxYear").read[Short] and
-    (JsPath \ "amounts").read[Long]
+    (JsPath \ "amounts").read[InputAmounts]
   )(Contribution.apply _)
 }
