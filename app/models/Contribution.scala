@@ -33,19 +33,20 @@ object InputAmounts {
   )(unlift(InputAmounts.unapply))
 
   implicit val inputAmountsReads: Reads[InputAmounts] = (
-    (JsPath \ "definedBenefit").read[Long] and
-    (JsPath \ "moneyPurchase").read[Long]
+    (JsPath \ "definedBenefit").read[Long](min(0L)) and
+    (JsPath \ "moneyPurchase").read[Long](min(0L))
   )(InputAmounts.apply _)
 }
 
 object Contribution {
+  val EARLIEST_YEAR_SUPPORTED:Short = 2007
   implicit val contributionWrites: Writes[Contribution] = (
     (JsPath \ "taxYear").write[Short] and
     (JsPath \ "amounts").write[InputAmounts]
   )(unlift(Contribution.unapply))
 
   implicit val contributionReads: Reads[Contribution] = (
-    (JsPath \ "taxYear").read[Short] and
+    (JsPath \ "taxYear").read[Short](min(EARLIEST_YEAR_SUPPORTED)) and
     (JsPath \ "amounts").read[InputAmounts]
   )(Contribution.apply _)
 }

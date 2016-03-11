@@ -19,6 +19,7 @@ package models
 import play.api.test.Helpers._
 import play.api.test._
 import play.api.libs.json._
+import play.api.data.validation._
 
 import org.scalatest._
 import org.scalatest.Matchers._
@@ -77,9 +78,49 @@ class ContributionSpec extends ModelSpec {
       val json = Json.parse("""{"definedBenefit": 12345, "moneyPurchase": 67890}""")
 
       // do it
-      val inputAmountsOption : Option[InputAmounts] = json.validate[InputAmounts].fold(invalid = { _ => None }, valid = { inputAmounts => Some(inputAmounts)})
+      val inputAmountsOption : Option[InputAmounts] = json.validate[InputAmounts].fold(invalid = { _ => None }, valid = { inputAmounts => Some(inputAmounts) })
 
       inputAmountsOption shouldBe Some(InputAmounts(12345, 67890))
+    }
+
+    "unmarshall from JSON allows 0 amounts" in {
+      // setup
+      val json = Json.parse("""{"definedBenefit": 0, "moneyPurchase": 0}""")
+
+      // do it
+      val inputAmountsOption : Option[InputAmounts] = json.validate[InputAmounts].fold(invalid = { _ => None }, valid = { inputAmounts => Some(inputAmounts) })
+
+      inputAmountsOption shouldBe Some(InputAmounts(0, 0))
+    }
+
+    "unmashall from JSON ensuring defined benefit is not a negative value" in {
+      // setup
+      val json = Json.parse("""{"definedBenefit": -3, "moneyPurchase": 67890}""")
+
+      // do it
+      val option : Option[Seq[(play.api.libs.json.JsPath, Seq[play.api.data.validation.ValidationError])]] = json.validate[InputAmounts].fold(invalid = { errors => Some(errors) }, valid = { _ => None })
+      val firstValidationErrorPath = option.head(0)._1
+      val firstValidationError = option.head(0)._2(0)
+
+      // check
+      firstValidationErrorPath.toString shouldBe "/definedBenefit"
+      firstValidationError.message shouldBe "error.min"
+      firstValidationError.args(0) shouldBe 0
+    }
+
+    "unmashall from JSON ensuring money purchase is not a negative value" in {
+      // setup
+      val json = Json.parse("""{"definedBenefit": 3, "moneyPurchase": -67890}""")
+
+      // do it
+      val option : Option[Seq[(play.api.libs.json.JsPath, Seq[play.api.data.validation.ValidationError])]] = json.validate[InputAmounts].fold(invalid = { errors => Some(errors) }, valid = { _ => None })
+      val firstValidationErrorPath = option.head(0)._1
+      val firstValidationError = option.head(0)._2(0)
+
+      // check
+      firstValidationErrorPath.toString shouldBe "/moneyPurchase"
+      firstValidationError.message shouldBe "error.min"
+      firstValidationError.args(0) shouldBe 0
     }
   }
 
@@ -148,6 +189,31 @@ class ContributionSpec extends ModelSpec {
       val contributionOption : Option[Contribution] = json.validate[Contribution].fold(invalid = { _ => None }, valid = { contribution => Some(contribution)})
 
       contributionOption shouldBe Some(Contribution(2012, InputAmounts(12345, 67890)))
+    }
+
+    "unmarshall from JSON allows tax year of 2007" in {
+      // setup
+      val json = Json.parse("""{"taxYear": 2007, "amounts": {"definedBenefit": 12345, "moneyPurchase": 67890}}""")
+
+      // do it
+      val contributionOption : Option[Contribution] = json.validate[Contribution].fold(invalid = { _ => None }, valid = { contribution => Some(contribution)})
+
+      contributionOption shouldBe Some(Contribution(2007, InputAmounts(12345, 67890)))
+    }
+
+    "unmashall from JSON ensuring tax year must not be less than 2007" in {
+      // setup
+      val json = Json.parse("""{"taxYear": 1918, "amounts": {"definedBenefit": 12345, "moneyPurchase": 67890}}""")
+
+      // do it
+      val option : Option[Seq[(play.api.libs.json.JsPath, Seq[play.api.data.validation.ValidationError])]] = json.validate[Contribution].fold(invalid = { errors => Some(errors) }, valid = { _ => None })
+      val firstValidationErrorPath = option.head(0)._1
+      val firstValidationError = option.head(0)._2(0)
+
+      // check
+      firstValidationErrorPath.toString shouldBe "/taxYear"
+      firstValidationError.message shouldBe "error.min"
+      firstValidationError.args(0) shouldBe 2007
     }
   }
 
