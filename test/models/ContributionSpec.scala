@@ -25,7 +25,7 @@ import org.scalatest.Matchers._
 
 class ContributionSpec extends ModelSpec {
   "InputAmounts" can {
-    "have default value of 0 for defined benefit in pence and money purchase in pence" in {
+    "have default value of 0 for defined benefit and money purchase in pounds" in {
       // do it
       val amounts = InputAmounts()
 
@@ -34,42 +34,42 @@ class ContributionSpec extends ModelSpec {
       amounts.moneyPurchase shouldBe 0
     }
 
-    "have a defined benefit amount in pence" in {
+    "have a defined benefit amount in pounds" in {
       // setup
-      val definedBenefitInPence : Long = 246813579
+      val definedBenefitInPounds : Long = 246813579
 
       // do it
-      val amounts = InputAmounts(definedBenefitInPence)
+      val amounts = InputAmounts(definedBenefitInPounds)
 
       // check
-      amounts.definedBenefit shouldBe definedBenefitInPence
+      amounts.definedBenefit shouldBe definedBenefitInPounds
     }
 
-    "have a money purchase amount in pence" in {
+    "have a money purchase amount in pounds" in {
       // setup
-      val moneyPurchaseInPence : Long = 135792468
+      val moneyPurchaseInPounds : Long = 135792468
 
       // do it
-      val amounts = InputAmounts(moneyPurchase=moneyPurchaseInPence)
+      val amounts = InputAmounts(moneyPurchase=moneyPurchaseInPounds)
 
       // check
-      amounts.moneyPurchase shouldBe moneyPurchaseInPence
+      amounts.moneyPurchase shouldBe moneyPurchaseInPounds
     }
 
     "marshall to JSON" in {
       // setup
-      val definedBenefitInPence : Long = 2468
-      val moneyPurchaseInPence : Long = 13579
-      val inputAmounts = InputAmounts(definedBenefitInPence, moneyPurchaseInPence)
+      val definedBenefitInPounds : Long = 2468
+      val moneyPurchaseInPounds : Long = 13579
+      val inputAmounts = InputAmounts(definedBenefitInPounds, moneyPurchaseInPounds)
 
       // do it
       val json = Json.toJson(inputAmounts)
 
       // check
-      val jsonDefinedBenefitInPence = json \ "definedBenefit"
-      jsonDefinedBenefitInPence.as[Long] shouldBe definedBenefitInPence
-      val jsonMoneyPurchaseInPence = json \ "moneyPurchase"
-      jsonMoneyPurchaseInPence.as[Long] shouldBe moneyPurchaseInPence
+      val jsonDefinedBenefitInPounds = json \ "definedBenefit"
+      jsonDefinedBenefitInPounds.as[Long] shouldBe definedBenefitInPounds
+      val jsonMoneyPurchaseInPounds = json \ "moneyPurchase"
+      jsonMoneyPurchaseInPounds.as[Long] shouldBe moneyPurchaseInPounds
     }
 
     "unmarshall from JSON" in {
@@ -95,38 +95,38 @@ class ContributionSpec extends ModelSpec {
       contribution.taxYear shouldBe taxYear
     }
 
-    "have a defined benefit input amount in pence" in {
+    "have a defined benefit input amount in pounds" in {
       // setup
       val taxYear:Short = 2015
-      val dbAmountInPence = 39342
-      val amountsInPence:InputAmounts = InputAmounts(dbAmountInPence)
+      val dbAmountInPounds = 39342
+      val amountsInPounds:InputAmounts = InputAmounts(dbAmountInPounds)
 
       // do it
-      val contribution = Contribution(taxYear, amountsInPence)
+      val contribution = Contribution(taxYear, amountsInPounds)
 
       // check
-      contribution.amounts.definedBenefit shouldBe dbAmountInPence
+      contribution.amounts.definedBenefit shouldBe dbAmountInPounds
     }
 
-    "have a money purchase input amount in pence" in {
+    "have a money purchase input amount in pounds" in {
       // setup
       val taxYear:Short = 2015
-      val mpAmountInPence = 6789234
-      val amountsInPence:InputAmounts = InputAmounts(moneyPurchase=mpAmountInPence)
+      val mpAmountInPounds = 6789234
+      val amountsInPounds:InputAmounts = InputAmounts(moneyPurchase=mpAmountInPounds)
 
       // do it
-      val contribution = Contribution(taxYear, amountsInPence)
+      val contribution = Contribution(taxYear, amountsInPounds)
 
       // check
-      contribution.amounts.moneyPurchase shouldBe mpAmountInPence
+      contribution.amounts.moneyPurchase shouldBe mpAmountInPounds
     }
 
     "marshall to JSON" in {
       // setup
       val taxYear:Short = 2013
-      val dbAmountInPence = 39342
-      val mpAmountInPence = 6789234
-      val contribution = Contribution(taxYear, InputAmounts(dbAmountInPence,mpAmountInPence))
+      val dbAmountInPounds = 39342
+      val mpAmountInPounds = 6789234
+      val contribution = Contribution(taxYear, InputAmounts(dbAmountInPounds,mpAmountInPounds))
 
       // do it
       val json = Json.toJson(contribution)
@@ -134,10 +134,10 @@ class ContributionSpec extends ModelSpec {
       // check
       val jsonTaxYear = json \ "taxYear"
       jsonTaxYear.as[Short] shouldBe taxYear
-      val jsonDefinedBenfitInPence = json \ "amounts" \ "definedBenefit"
-      jsonDefinedBenfitInPence.as[Long] shouldBe dbAmountInPence
-      val jsonMoneyPurchaseInPence = json \ "amounts" \ "moneyPurchase"
-      jsonMoneyPurchaseInPence.as[Long] shouldBe mpAmountInPence
+      val jsonDefinedBenfitInPounds = json \ "amounts" \ "definedBenefit"
+      jsonDefinedBenfitInPounds.as[Long] shouldBe dbAmountInPounds
+      val jsonMoneyPurchaseInPounds = json \ "amounts" \ "moneyPurchase"
+      jsonMoneyPurchaseInPounds.as[Long] shouldBe mpAmountInPounds
     }
 
     "unmarshall from JSON" in {
@@ -148,6 +148,35 @@ class ContributionSpec extends ModelSpec {
       val contributionOption : Option[Contribution] = json.validate[Contribution].fold(invalid = { _ => None }, valid = { contribution => Some(contribution)})
 
       contributionOption shouldBe Some(Contribution(2012, InputAmounts(12345, 67890)))
+    }
+  }
+
+  "Array of contributions" can {
+    "marshall to JSON" in {
+      // setup
+      val contributions = Seq(Contribution(2011, InputAmounts(1,2)),
+                              Contribution(2012, InputAmounts(3,4)),
+                              Contribution(2013, InputAmounts(5,6)),
+                              Contribution(2014, InputAmounts(7,8)))
+
+      // do it
+      val json = Json.toJson(contributions)
+
+      // check
+      Json.stringify(json) shouldBe """[{"taxYear":2011,"amounts":{"definedBenefit":1,"moneyPurchase":2}},{"taxYear":2012,"amounts":{"definedBenefit":3,"moneyPurchase":4}},{"taxYear":2013,"amounts":{"definedBenefit":5,"moneyPurchase":6}},{"taxYear":2014,"amounts":{"definedBenefit":7,"moneyPurchase":8}}]"""
+    }
+
+    "unmarshall from JSON" in {
+      // setup
+      val expectedContributions = Seq(Contribution(2011, InputAmounts(1,2)),
+                              Contribution(2012, InputAmounts(3,4)),
+                              Contribution(2013, InputAmounts(5,6)),
+                              Contribution(2014, InputAmounts(7,8)))
+      val json = Json.parse("""[{"taxYear":2011,"amounts":{"definedBenefit":1,"moneyPurchase":2}},{"taxYear":2012,"amounts":{"definedBenefit":3,"moneyPurchase":4}},{"taxYear":2013,"amounts":{"definedBenefit":5,"moneyPurchase":6}},{"taxYear":2014,"amounts":{"definedBenefit":7,"moneyPurchase":8}}]""")
+
+      // do it
+      val contributionsOption : Option[Contribution] = (json(0)).validate[Contribution].fold(invalid = { _ => None }, valid = { contribution => Some(contribution)})
+      contributionsOption shouldBe Some(expectedContributions(0))
     }
   }
 }
