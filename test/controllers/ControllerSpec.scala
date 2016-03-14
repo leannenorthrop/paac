@@ -18,6 +18,7 @@ package controllers
 
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import play.api.mvc.{AnyContentAsJson,Request}
 import concurrent._
 import play.api.libs.json._
 import play.api.mvc.{Result, Results, Controller, Action}
@@ -28,7 +29,7 @@ import org.scalatest._
 import org.scalatest.concurrent._
 
 class ControllerSpec extends UnitSpec {
-  def getRequestWithJsonBody(path :String, json :JsObject) : FakeRequest[JsObject] = {
+  def getRequestWithJsonBody(path :String, json :JsValue) : Request[JsValue] = {
     FakeRequest(GET, path).withBody(json)
   }
 } 

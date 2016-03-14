@@ -16,6 +16,7 @@
 
 package controllers
 
+import models._
 import play.api.test.Helpers._
 import play.api.test._
 import concurrent._
@@ -30,10 +31,10 @@ import org.scalatest.concurrent._
 
 class CalculatorControllerSpec extends ControllerSpec {
   val ENDPOINT_PATH = "/paac/calculate/"
-  val VALID_CONTRIBUTION_JSON_BODY : JsObject = Json.obj("taxYear" -> JsString("2014/2015"), "pensionInputAmount" -> JsString("100.00"))
-  val INVALID_CONTRIBUTION_JSON_BODY : JsObject = Json.obj("blah" -> JsString("2014/2015"), "abcd" -> JsString("xuio"))
+  val VALID_CONTRIBUTION_JSON_BODY : List[Contribution] = List[Contribution](Contribution(taxYear=2009, amounts=InputAmounts(90000L,0L)))
+  val INVALID_CONTRIBUTION_JSON_BODY : List[Contribution] = List[Contribution](Contribution(taxYear=2004, amounts=InputAmounts(-2000L,0L)))
 
-  def execute(body : JsObject) : Future[Result] = controllers.CalculatorController.calculate()(getRequestWithJsonBody(ENDPOINT_PATH, body))
+  def execute(body : List[Contribution]) : Future[Result] = controllers.CalculatorController.calculate()(getRequestWithJsonBody(ENDPOINT_PATH, Json.toJson(body)))
 
   "Calculator API" should {
     "with valid json request body" must {
@@ -72,7 +73,8 @@ class CalculatorControllerSpec extends ControllerSpec {
           // check
           status(result) shouldBe status(BadRequest)
       }
-     "return error message" in {   
+
+      "return error message" in {   
         //setup
         val requestBody = INVALID_CONTRIBUTION_JSON_BODY
 
@@ -80,10 +82,9 @@ class CalculatorControllerSpec extends ControllerSpec {
         val result = execute(requestBody)
 
         //check 
-        contentAsJson(result) shouldBe Json.obj("status" -> JsNumber(400),
-                                                "message" -> "Invalid JSON request object.",
-                                                "validationErrors" -> JsArray(Seq(Json.obj("/pensionInputAmount" -> " error.path.missing"),
-                                                                                  Json.obj("/taxYear" -> " error.path.missing"))))
+        val obj : JsObject = contentAsJson(result).as[JsObject]
+        (obj \ "status") shouldBe JsNumber(400)
+        (obj \ "message") shouldBe JsString("Invalid JSON request object.")
       }
     }
   }

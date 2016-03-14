@@ -16,7 +16,7 @@
 
 package controllers
 
-import models.{PensionInput}
+import models._
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import play.api.mvc._
@@ -37,17 +37,11 @@ trait CalculatorController {
   def calculate() = Action.async(parse.json) { 
     implicit request =>
 
-    def mapValidationErrors(errors: Seq[(JsPath, Seq[ValidationError])]):Seq[JsObject] = {
-      errors.map {
-        case (path, seq) => Json.obj(path.toString() -> seq.map { e => Messages(e.message, e.args: _*) }.foldLeft("")(_ + " " + _))
-      }
-    }
-
-    request.body.validate[PensionInput].fold(
+    request.body.validate[Seq[Contribution]].fold(
       errors => {
         Future.successful(BadRequest(Json.obj("status" -> JsNumber(BAD_REQUEST),
                                               "message" -> JsString("Invalid JSON request object."),
-                                              "validationErrors" -> JsArray(mapValidationErrors(errors)))))
+                                              "validationErrors" -> JsError.toFlatJson(errors))))
       },
       result => {
         Future.successful(Ok(Json.obj("status" -> JsNumber(OK), 
