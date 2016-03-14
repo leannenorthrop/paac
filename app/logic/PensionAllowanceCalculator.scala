@@ -18,8 +18,49 @@ package logic
 
 import models._
 
+trait Calculator {
+  def summary(contribution:Contribution) : SummaryResult
+}
+
+object CalculatorFactory {
+  def get(contribution:Contribution) : Option[Calculator] = contribution match {
+    case Contribution(year, _) if year < 2014 => Some(Pre2014Calculator)
+    case Contribution(year, _) if year == 2014 => Some(Year2014Calculator)
+    case Contribution(year, _) if year == 2015 => Some(Year2015Period1Calculator)
+    case Contribution(year, _) if year == 2015 => Some(Year2015Period2Calculator)
+    case Contribution(year, _) if year > 2015 => Some(Post2015Period2Calculator)
+    case _ => None
+  }
+}
+
+object Pre2014Calculator extends Calculator {
+  def summary(contribution: models.Contribution): models.SummaryResult = SummaryResult()
+}
+
+object Year2014Calculator extends Calculator {
+  def summary(contribution: models.Contribution): models.SummaryResult = SummaryResult()
+}
+
+object Year2015Period1Calculator extends Calculator {
+  def summary(contribution: models.Contribution): models.SummaryResult = SummaryResult()
+}
+
+object Year2015Period2Calculator extends Calculator {
+  def summary(contribution: models.Contribution): models.SummaryResult = SummaryResult()
+}
+
+object Post2015Period2Calculator extends Calculator {
+  def summary(contribution: models.Contribution): models.SummaryResult = SummaryResult()
+}
+
 trait PensionAllowanceCalculator {
-  def calculateAllowances(contributions : Seq[Contribution]) : Seq[TaxYearResults] = List(TaxYearResults(contributions(0), SummaryResult()))
+  def calculateAllowances(contributions : Seq[Contribution]) : Seq[TaxYearResults] = {
+    contributions.map {
+      contribution =>
+      val summary = CalculatorFactory.get(contribution).map(_.summary(contribution)).getOrElse(SummaryResult())
+      TaxYearResults(contribution, summary)
+    }
+  }
 }
 
 object PensionAllowanceCalculator extends PensionAllowanceCalculator
