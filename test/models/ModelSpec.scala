@@ -16,23 +16,14 @@
 
 package models
 
-import play.api.libs.functional.syntax._
-import play.api.libs.json.Writes._
+import play.api.test.Helpers._
 import play.api.libs.json._
 
-case class PensionInput(
-                    taxYear: String,
-                    pensionInputAmount: BigDecimal
-                  )
+import uk.gov.hmrc.play.test.UnitSpec
 
-object PensionInput {
-  implicit val PensionWrites: Writes[PensionInput] = (
-    (JsPath \ "taxYear").write[String] and
-      (JsPath \ "pensionInputAmount").write[BigDecimal]
-    ) (unlift(PensionInput.unapply))
+import org.scalatest._
+import org.scalatest.concurrent._
 
-  implicit val PensionReads: Reads[PensionInput] = (
-    (JsPath \ "taxYear").read[String] and
-      (JsPath \ "pensionInputAmount").read[BigDecimal]
-    ) (PensionInput.apply _)
-}
+class ModelSpec extends UnitSpec {
+
+} 

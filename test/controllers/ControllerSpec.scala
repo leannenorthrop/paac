@@ -14,24 +14,22 @@
  * limitations under the License.
  */
 
-package models
+package controllers
+
+import play.api.test.FakeRequest
+import play.api.test.Helpers._
+import play.api.mvc.{AnyContentAsJson,Request}
+import concurrent._
+import play.api.libs.json._
+import play.api.mvc.{Result, Results, Controller, Action}
 
 import uk.gov.hmrc.play.test.UnitSpec
-import play.api.libs.json._
 
-object PensionsSpec extends UnitSpec {
+import org.scalatest._
+import org.scalatest.concurrent._
 
-
-  "PensionsSpec" should {
-
-
-    val json = Json.toJson[models.PensionInput]
-    json shouldBe Json.parse(
-      """
-      {
-        | "taxYear":"2012",
-        | "pensionInputAmout":"100.000"
-      }
-      """.stripMargin)
+class ControllerSpec extends UnitSpec {
+  def getRequestWithJsonBody(path :String, json :JsValue) : Request[JsValue] = {
+    FakeRequest(GET, path).withBody(json)
   }
-}
+} 

@@ -16,24 +16,76 @@
 
 package controllers
 
-import play.api.libs.json.{JsValue, Json}
+import models._
+import play.api.test.Helpers._
+import play.api.test._
+import concurrent._
+import play.api.libs.json._
+import play.api.mvc.{Result, Results, Controller, Action}
+import play.api.mvc.Results._
+
 import uk.gov.hmrc.play.test.UnitSpec
 
-import play.api.test.FakeRequest
-import play.api.test.Helpers._
-import play.api.test.FakeApplication
+import org.scalatest._
+import org.scalatest.concurrent._
 
-trait CalculatorControllerSpec extends FakeApplication {
+class CalculatorControllerSpec extends ControllerSpec {
+  val ENDPOINT_PATH = "/paac/calculate/"
+  val VALID_CONTRIBUTION_JSON_BODY : List[Contribution] = List[Contribution](Contribution(taxYear=2009, amounts=InputAmounts(90000L,0L)))
+  val INVALID_CONTRIBUTION_JSON_BODY : List[Contribution] = List[Contribution](Contribution(taxYear=2004, amounts=InputAmounts(-2000L,0L)))
 
-  class CalculatorControllerSpec extends UnitSpec {
+  def execute(body : List[Contribution]) : Future[Result] = controllers.CalculatorController.calculate()(getRequestWithJsonBody(ENDPOINT_PATH, Json.toJson(body)))
 
-    implicit val request = FakeRequest()
+  "Calculator API" should {
+    "with valid json request body" must {
+      "return 200 OK" in {
+          // setup
+          val requestBody = VALID_CONTRIBUTION_JSON_BODY
 
-    "CalculatorController" should {
-      "not return result NOT_FOUND" in {
-        val result = route(FakeRequest(GET, "/paac/calculate/"))
-        result.isDefined shouldBe true
-        status(result.get) should not be NOT_FOUND
+          // do it
+          val result = execute(requestBody)
+
+          // check
+          status(result) shouldBe OK
+      }
+
+      "return appropriate JSON message" in {
+          // setup
+          val requestBody = VALID_CONTRIBUTION_JSON_BODY
+
+          // do it
+          val result = execute(requestBody)
+
+          // check
+          contentAsJson(result) shouldBe Json.obj("status" -> JsNumber(200), 
+                                                  "message" -> JsString("Valid pension calculation request received."),
+                                                  "results" -> Json.toJson(List(TaxYearResults(Contribution(taxYear=2009, amounts=InputAmounts(90000L,0L)), SummaryResult()))))
+      }
+    }
+
+    "with invalid json request body" must {
+      "return BadRequest" in {
+          // setup
+          val requestBody = INVALID_CONTRIBUTION_JSON_BODY
+
+          // do it
+          val result = execute(requestBody)
+
+          // check
+          status(result) shouldBe status(BadRequest)
+      }
+
+      "return error message" in {   
+        //setup
+        val requestBody = INVALID_CONTRIBUTION_JSON_BODY
+
+        //do it
+        val result = execute(requestBody)
+
+        //check 
+        val obj : JsObject = contentAsJson(result).as[JsObject]
+        (obj \ "status") shouldBe JsNumber(400)
+        (obj \ "message") shouldBe JsString("Invalid JSON request object.")
       }
     }
   }

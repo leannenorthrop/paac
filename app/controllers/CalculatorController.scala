@@ -16,12 +16,14 @@
 
 package controllers
 
-import models.{PensionInput}
-import play.api.mvc._
+import models._
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
+import play.api.mvc._
+import play.api.http.Status
+import play.api.data.validation._
 import play.api.Logger
-import play.api.i18n.Messages
+import play.api.i18n.{ Messages, MessagesApi }
 import play.api.libs.json._
 import play.api.mvc.Action
 import scala.concurrent.Future
@@ -29,20 +31,27 @@ import scala.concurrent.Future
 /**
   * Created by peri on 02/03/16.
   */
-object CalculatorController extends CalculatorController
+trait CalculatorController {
+  this: Controller =>
 
-  trait CalculatorController extends Controller {
+  def calculate() = Action.async(parse.json) { 
+    implicit request =>
 
-    def calculate = Action.async(parse.json) {
-      implicit request =>
-        request.body.validate[PensionInput].fold(
-          error => {
-           Future.successful(Ok("not OK"))
-          },
-          result => {
-            Future.successful(Ok("OK to json"))
-          }
-        )
-    }
-
+    request.body.validate[Seq[Contribution]].fold(
+      errors => {
+        Future.successful(BadRequest(Json.obj("status" -> JsNumber(BAD_REQUEST),
+                                              "message" -> JsString("Invalid JSON request object."),
+                                              "validationErrors" -> JsError.toFlatJson(errors))))
+      },
+      result => {
+        val calculationResults : List[TaxYearResults] = List(TaxYearResults(result(0), SummaryResult()))
+        Future.successful(Ok(Json.obj("status" -> JsNumber(OK), 
+                                      "message" -> JsString("Valid pension calculation request received."),
+                                      "results" -> Json.toJson(calculationResults))))
+      }
+    )
   }
+}
+
+object CalculatorController extends Controller with CalculatorController {
+}
