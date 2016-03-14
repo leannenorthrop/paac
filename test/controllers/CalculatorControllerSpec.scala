@@ -58,7 +58,8 @@ class CalculatorControllerSpec extends ControllerSpec {
 
           // check
           contentAsJson(result) shouldBe Json.obj("status" -> JsNumber(200), 
-                                                  "message" -> JsString("Valid pension calculation request received."))
+                                                  "message" -> JsString("Valid pension calculation request received."),
+                                                  "results" -> Json.toJson(List(TaxYearResults(Contribution(taxYear=2009, amounts=InputAmounts(90000L,0L)), SummaryResult()))))
       }
     }
 

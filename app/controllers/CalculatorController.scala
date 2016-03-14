@@ -44,8 +44,10 @@ trait CalculatorController {
                                               "validationErrors" -> JsError.toFlatJson(errors))))
       },
       result => {
+        val calculationResults : List[TaxYearResults] = List(TaxYearResults(result(0), SummaryResult()))
         Future.successful(Ok(Json.obj("status" -> JsNumber(OK), 
-                                      "message" -> JsString("Valid pension calculation request received."))))
+                                      "message" -> JsString("Valid pension calculation request received."),
+                                      "results" -> Json.toJson(calculationResults))))
       }
     )
   }
