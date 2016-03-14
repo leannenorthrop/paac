@@ -17,6 +17,7 @@
 package controllers
 
 import models._
+import logic._
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import play.api.mvc._
@@ -32,7 +33,7 @@ import scala.concurrent.Future
   * Created by peri on 02/03/16.
   */
 trait CalculatorController {
-  this: Controller =>
+  this: Controller with PensionAllowanceCalculator =>
 
   def calculate() = Action.async(parse.json) { 
     implicit request =>
@@ -44,14 +45,13 @@ trait CalculatorController {
                                               "validationErrors" -> JsError.toFlatJson(errors))))
       },
       result => {
-        val calculationResults : List[TaxYearResults] = List(TaxYearResults(result(0), SummaryResult()))
         Future.successful(Ok(Json.obj("status" -> JsNumber(OK), 
                                       "message" -> JsString("Valid pension calculation request received."),
-                                      "results" -> Json.toJson(calculationResults))))
+                                      "results" -> Json.toJson(calculateAllowances(result)))))
       }
     )
   }
 }
 
-object CalculatorController extends Controller with CalculatorController {
+object CalculatorController extends Controller with CalculatorController with PensionAllowanceCalculator {
 }

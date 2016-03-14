@@ -20,8 +20,8 @@ import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json._
 
-sealed trait Result
-sealed trait PensionCalculationResult extends Result
+sealed trait PensionResult
+sealed trait PensionCalculationResult extends PensionResult
 
 case class TaxYearResults(input: Contribution,
                           summaryResult: SummaryResult) extends PensionCalculationResult

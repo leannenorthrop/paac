@@ -19,11 +19,7 @@ package logic
 import models._
 
 trait PensionAllowanceCalculator {
-
-  def calculate(contributions : List[Contribution]) : List[TaxYearResults] = List(TaxYearResults(contributions(0), SummaryResult()))
-
+  def calculateAllowances(contributions : Seq[Contribution]) : Seq[TaxYearResults] = List(TaxYearResults(contributions(0), SummaryResult()))
 }
 
-object PensionAllowanceCalculator extends PensionAllowanceCalculator {
-
-}
+object PensionAllowanceCalculator extends PensionAllowanceCalculator

@@ -30,7 +30,7 @@ class PensionAllowanceCalculatorSpec extends UnitSpec {
       val inputs = List(input)
 
       // do it
-      val results = PensionAllowanceCalculator.calculate(inputs)
+      val results = PensionAllowanceCalculator.calculateAllowances(inputs)
 
       // check it
       results.size shouldBe 1
