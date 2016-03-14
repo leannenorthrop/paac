@@ -31,8 +31,8 @@ import org.scalatest.concurrent._
 
 class CalculatorControllerSpec extends ControllerSpec {
   val ENDPOINT_PATH = "/paac/calculate/"
-  val VALID_CONTRIBUTION_JSON_BODY : List[Contribution] = List[Contribution](Contribution(taxYear=2009, amounts=InputAmounts(90000L,0L)))
-  val INVALID_CONTRIBUTION_JSON_BODY : List[Contribution] = List[Contribution](Contribution(taxYear=2004, amounts=InputAmounts(-2000L,0L)))
+  val VALID_CONTRIBUTION_JSON_BODY : List[Contribution] = List[Contribution](Contribution(taxPeriodStart=TaxPeriod(2009, 0, 1), taxPeriodEnd=TaxPeriod(2009, 3, 31), amounts=InputAmounts(90000L,0L)))
+  val INVALID_CONTRIBUTION_JSON_BODY : List[Contribution] = List[Contribution](Contribution(taxPeriodStart=TaxPeriod(2009, 0, 1), taxPeriodEnd=TaxPeriod(2009, 3, 31), amounts=InputAmounts(-2000L,0L)))
 
   def execute(body : List[Contribution]) : Future[Result] = controllers.CalculatorController.calculate()(getRequestWithJsonBody(ENDPOINT_PATH, Json.toJson(body)))
 
@@ -59,7 +59,7 @@ class CalculatorControllerSpec extends ControllerSpec {
           // check
           contentAsJson(result) shouldBe Json.obj("status" -> JsNumber(200), 
                                                   "message" -> JsString("Valid pension calculation request received."),
-                                                  "results" -> Json.toJson(List(TaxYearResults(Contribution(taxYear=2009, amounts=InputAmounts(90000L,0L)), SummaryResult()))))
+                                                  "results" -> Json.toJson(List(TaxYearResults(Contribution(taxPeriodStart=TaxPeriod(2009, 0, 1), taxPeriodEnd=TaxPeriod(2009, 3, 31), amounts=InputAmounts(90000L,0L)), SummaryResult()))))
       }
     }
 
