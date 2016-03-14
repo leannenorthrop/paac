@@ -191,17 +191,17 @@ class ContributionSpec extends ModelSpec {
       contributionOption shouldBe Some(Contribution(2012, InputAmounts(12345, 67890)))
     }
 
-    "unmarshall from JSON allows tax year of 2007" in {
+    "unmarshall from JSON allows tax year of 2008" in {
       // setup
-      val json = Json.parse("""{"taxYear": 2007, "amounts": {"definedBenefit": 12345, "moneyPurchase": 67890}}""")
+      val json = Json.parse("""{"taxYear": 2008, "amounts": {"definedBenefit": 12345, "moneyPurchase": 67890}}""")
 
       // do it
       val contributionOption : Option[Contribution] = json.validate[Contribution].fold(invalid = { _ => None }, valid = { contribution => Some(contribution)})
 
-      contributionOption shouldBe Some(Contribution(2007, InputAmounts(12345, 67890)))
+      contributionOption shouldBe Some(Contribution(2008, InputAmounts(12345, 67890)))
     }
 
-    "unmashall from JSON ensuring tax year must not be less than 2007" in {
+    "unmashall from JSON ensuring tax year must not be less than 2008" in {
       // setup
       val json = Json.parse("""{"taxYear": 1918, "amounts": {"definedBenefit": 12345, "moneyPurchase": 67890}}""")
 
@@ -213,7 +213,7 @@ class ContributionSpec extends ModelSpec {
       // check
       firstValidationErrorPath.toString shouldBe "/taxYear"
       firstValidationError.message shouldBe "error.min"
-      firstValidationError.args(0) shouldBe 2007
+      firstValidationError.args(0) shouldBe 2008
     }
   }
 
