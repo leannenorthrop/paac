@@ -39,7 +39,7 @@ object InputAmounts {
 }
 
 object Contribution {
-  val EARLIEST_YEAR_SUPPORTED:Short = 2007
+  val EARLIEST_YEAR_SUPPORTED:Short = 2008
   implicit val contributionWrites: Writes[Contribution] = (
     (JsPath \ "taxYear").write[Short] and
     (JsPath \ "amounts").write[InputAmounts]
