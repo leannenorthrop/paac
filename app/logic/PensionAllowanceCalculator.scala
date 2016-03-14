@@ -19,7 +19,7 @@ package logic
 import models._
 
 trait Calculator {
-  def summary(contribution:Contribution) : SummaryResult
+  def summary(contribution:Contribution) : Option[SummaryResult]
 }
 
 object CalculatorFactory {
@@ -34,31 +34,35 @@ object CalculatorFactory {
 }
 
 object Pre2014Calculator extends Calculator {
-  def summary(contribution: models.Contribution): models.SummaryResult = SummaryResult()
+  def summary(contribution: models.Contribution): Option[SummaryResult] = contribution match {
+    case Contribution(year, _) if year < 2014 =>
+      Some(SummaryResult())
+    case _ => None
+  }
 }
 
 object Year2014Calculator extends Calculator {
-  def summary(contribution: models.Contribution): models.SummaryResult = SummaryResult()
+  def summary(contribution: models.Contribution): Option[SummaryResult] = Some(SummaryResult())
 }
 
 object Year2015Period1Calculator extends Calculator {
-  def summary(contribution: models.Contribution): models.SummaryResult = SummaryResult()
+  def summary(contribution: models.Contribution): Option[SummaryResult] = Some(SummaryResult())
 }
 
 object Year2015Period2Calculator extends Calculator {
-  def summary(contribution: models.Contribution): models.SummaryResult = SummaryResult()
+  def summary(contribution: models.Contribution): Option[SummaryResult] = Some(SummaryResult())
 }
 
 object Post2015Period2Calculator extends Calculator {
-  def summary(contribution: models.Contribution): models.SummaryResult = SummaryResult()
+  def summary(contribution: models.Contribution): Option[SummaryResult] = Some(SummaryResult())
 }
 
 trait PensionAllowanceCalculator {
   def calculateAllowances(contributions : Seq[Contribution]) : Seq[TaxYearResults] = {
     contributions.map {
       contribution =>
-      val summary = CalculatorFactory.get(contribution).map(_.summary(contribution)).getOrElse(SummaryResult())
-      TaxYearResults(contribution, summary)
+      TaxYearResults(contribution,
+                     CalculatorFactory.get(contribution).map(_.summary(contribution).getOrElse(SummaryResult())).getOrElse(SummaryResult()))
     }
   }
 }
