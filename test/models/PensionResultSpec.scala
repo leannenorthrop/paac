@@ -86,7 +86,7 @@ class PensionResultSpec extends ModelSpec {
   "TaxYearResults" can {
     "have tax year and input amounts as a contibution" in {
       // setup
-      val contribution = Contribution(2011, InputAmounts(1, 2))
+      val contribution = Contribution(TaxPeriod(2011, 0, 1), TaxPeriod(2011, 3, 31), InputAmounts(1, 2))
 
       // do it
       val results = TaxYearResults(contribution, SummaryResult())
@@ -100,7 +100,7 @@ class PensionResultSpec extends ModelSpec {
       val summary = SummaryResult(12345, 67890)
 
       // do it
-      val results = TaxYearResults(Contribution(2011, InputAmounts()), summary)
+      val results = TaxYearResults(Contribution(TaxPeriod(2011, 0, 1), TaxPeriod(2011, 3, 31), InputAmounts()), summary)
 
       // check
       results.summaryResult shouldBe summary
@@ -111,7 +111,7 @@ class PensionResultSpec extends ModelSpec {
       val taxYear:Short = 2013
       val dbAmountInPounds = 39342
       val mpAmountInPounds = 6789234
-      val contribution = Contribution(taxYear, InputAmounts(dbAmountInPounds,mpAmountInPounds))
+      val contribution = Contribution(TaxPeriod(taxYear, 0, 1), TaxPeriod(taxYear, 3, 31), InputAmounts(dbAmountInPounds,mpAmountInPounds))
 
       val chargableAmount : Long = 2468
       val exceedingAAAmount : Long = 13579
@@ -121,7 +121,7 @@ class PensionResultSpec extends ModelSpec {
       val json = Json.toJson(TaxYearResults(contribution, summaryResult))
 
       // check
-      val jsonTaxYear = json \ "input" \ "taxYear"
+      val jsonTaxYear = json \ "input" \ "taxPeriodStart" \ "year"
       jsonTaxYear.as[Short] shouldBe taxYear
       val jsonDefinedBenfitInPounds = json \ "input" \ "amounts" \ "definedBenefit"
       jsonDefinedBenfitInPounds.as[Long] shouldBe dbAmountInPounds
