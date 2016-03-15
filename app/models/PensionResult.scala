@@ -29,8 +29,8 @@ case class SummaryResult(chargableAmount: Long = 0,
                          exceedingAAAmount: Long = 0,
                          availableAllowance: Long = 0,
                          unusedAllowance: Long = 0,
-                         availableAllowanceWithCF: Long = 0,
-                         availableAllowanceWithCCF: Long = 0) extends PensionCalculationResult
+                         availableAAWithCF: Long = 0,
+                         availableAAWithCCF: Long = 0) extends PensionCalculationResult
 
 object SummaryResult {
   implicit val summaryResultWrites: Writes[SummaryResult] = (
@@ -38,8 +38,8 @@ object SummaryResult {
     (JsPath \ "exceedingAAAmount").write[Long] and 
     (JsPath \ "availableAllowance").write[Long] and
     (JsPath \ "unusedAllowance").write[Long] and 
-    (JsPath \ "availableAllowanceWithCF").write[Long] and
-    (JsPath \ "availableAllowanceWithCCF").write[Long]
+    (JsPath \ "availableAAWithCF").write[Long] and
+    (JsPath \ "availableAAWithCCF").write[Long]
   )(unlift(SummaryResult.unapply))
 
   implicit val summaryResultReads: Reads[SummaryResult] = (
@@ -47,8 +47,8 @@ object SummaryResult {
     (JsPath \ "exceedingAAAmount").read[Long] and
     (JsPath \ "availableAllowance").read[Long] and
     (JsPath \ "unusedAllowance").read[Long] and
-    (JsPath \ "availableAllowanceWithCF").read[Long] and
-    (JsPath \ "availableAllowanceWithCCF").read[Long]
+    (JsPath \ "availableAAWithCF").read[Long] and
+    (JsPath \ "availableAAWithCCF").read[Long]
   )(SummaryResult.apply _)
 }
 

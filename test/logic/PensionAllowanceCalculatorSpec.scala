@@ -137,8 +137,8 @@ class PensionAllowanceCalculatorSpec extends UnitSpec {
                                    exceedingAAAmount = 0,
                                    availableAllowance = 50000,
                                    unusedAllowance = 45000,
-                                   availableAllowanceWithCF = 50000,
-                                   availableAllowanceWithCCF = 45000)
+                                   availableAAWithCF = 50000,
+                                   availableAAWithCCF = 45000)
       val result = Pre2014Calculator.summary(starting, contribution1).get
 
       // check it
@@ -146,8 +146,8 @@ class PensionAllowanceCalculatorSpec extends UnitSpec {
       result.exceedingAAAmount shouldBe 0
       result.availableAllowance shouldBe 50000
       result.unusedAllowance shouldBe 44000
-      result.availableAllowanceWithCF shouldBe 95000
-      result.availableAllowanceWithCCF shouldBe 89000
+      result.availableAAWithCF shouldBe 95000
+      result.availableAAWithCCF shouldBe 89000
     }
   }
 } 
