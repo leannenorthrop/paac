@@ -12,6 +12,7 @@ import play.api.test.FakeApplication
 import org.scalatest._
 import org.scalatest.concurrent._
 import scala.concurrent._
+import play.api.libs.json._
 
 class ControllerITSpec extends UnitSpec with BeforeAndAfterAll {
   val app = FakeApplication()
@@ -28,9 +29,17 @@ class ControllerITSpec extends UnitSpec with BeforeAndAfterAll {
   }
 
   "Calculator controller" should {
-    "return list of summary allowances for each input" in {
-      val result : Option[Future[Result]] = route(FakeRequest(POST, "/paac/calculate"));
+    "return error if no JSON supplied" in {
+      val result : Option[Future[Result]] = route(FakeRequest(POST, "/paac/calculate"))
       status(result.get) should not be 200
+    }
+
+    "return list of summary allowances for each input" in {
+      val contributions = Seq(Contribution(TaxPeriod(2013,3,1),TaxPeriod(2014,2,31),InputAmounts(definedBenefit=5000)))
+      val result : Option[Future[Result]] = route(FakeRequest(POST, "/paac/calculate").withBody(Json.toJson(contributions)))
+      val results = (contentAsJson(result.get) \ "results").as[List[TaxYearResults]]
+      results(0).summaryResult shouldBe SummaryResult()
+      status(result.get) shouldBe 200
     }
   }
 } 

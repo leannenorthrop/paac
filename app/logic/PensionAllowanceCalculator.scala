@@ -24,24 +24,24 @@ trait Calculator {
 
 object CalculatorFactory {
   def get(contribution:Contribution) : Option[Calculator] = contribution match {
-    case Contribution(year, _) if year < 2014 => Some(Pre2014Calculator)
-    case Contribution(year, _) if year == 2014 => Some(Year2014Calculator)
-    case Contribution(year, _) if year == 2015 => Some(Year2015Period1Calculator)
-    case Contribution(year, _) if year == 2015 => Some(Year2015Period2Calculator)
-    case Contribution(year, _) if year > 2015 => Some(Post2015Period2Calculator)
+    case Contribution(TaxPeriod(year, _, _ ), _, _) if year < 2014 && year > 2007 => Some(Pre2014Calculator)
+    /*case Contribution(TaxPeriod(year, _, _ ), _, _) if year == 2014 => Some(Year2014Calculator)
+    case Contribution(TaxPeriod(year, _, _ ), _, _) if year == 2015 => Some(Year2015Period1Calculator)
+    case Contribution(TaxPeriod(year, _, _ ), _, _) if year == 2015 => Some(Year2015Period2Calculator)
+    case Contribution(TaxPeriod(year, _, _ ), _, _) if year > 2015 => Some(Post2015Period2Calculator)*/
     case _ => None
   }
 }
 
 object Pre2014Calculator extends Calculator {
   def summary(contribution: models.Contribution): Option[SummaryResult] = contribution match {
-    case Contribution(year, _) if year < 2014 =>
+    case Contribution(TaxPeriod(year, _, _ ), _, _) if year < 2014 && year > 2007 =>
       Some(SummaryResult())
     case _ => None
   }
 }
 
-object Year2014Calculator extends Calculator {
+/*object Year2014Calculator extends Calculator {
   def summary(contribution: models.Contribution): Option[SummaryResult] = Some(SummaryResult())
 }
 
@@ -55,7 +55,7 @@ object Year2015Period2Calculator extends Calculator {
 
 object Post2015Period2Calculator extends Calculator {
   def summary(contribution: models.Contribution): Option[SummaryResult] = Some(SummaryResult())
-}
+}*/
 
 trait PensionAllowanceCalculator {
   def calculateAllowances(contributions : Seq[Contribution]) : Seq[TaxYearResults] = {
