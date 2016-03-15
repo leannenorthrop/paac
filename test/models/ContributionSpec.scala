@@ -25,44 +25,27 @@ import org.scalatest._
 import org.scalatest.Matchers._
 
 class ContributionSpec extends ModelSpec {
+  trait TaxPeriodFixture {
+    val year : Short = 2016
+    val month : Short = 7
+    val day : Short = 18
+    val taxPeriod = TaxPeriod(year, month, day)
+  }
+
   "TaxPeriod" can {
-    "have a full year value as short" in {
-      // setup
-      val year : Short = 2016
-
-      // do it
-      val taxPeriod = TaxPeriod(year, 0, 0)
-
-      // check
+    "have a full year value as short" in new TaxPeriodFixture {
       taxPeriod.year shouldBe year
     }
-    "have a month value as short" in {
-      // setup
-      val month : Short = 1
 
-      // do it
-      val taxPeriod = TaxPeriod(2000, month, 0)
-
-      // check
+    "have a month value as short" in new TaxPeriodFixture {
       taxPeriod.month shouldBe month
     }
-    "have a day value as short" in {
-      // setup
-      val day : Short = 1
 
-      // do it
-      val taxPeriod = TaxPeriod(2000, 0, day)
-
-      // check
+    "have a day value as short" in new TaxPeriodFixture {
       taxPeriod.day shouldBe day
     }
-    "marshall to JSON" in {
-      // setup
-      val year : Short = 2016
-      val month : Short = 3
-      val day : Short = 15
-      val taxPeriod = TaxPeriod(year, month, day)
 
+    "marshall to JSON" in new TaxPeriodFixture {
       // do it
       val json = Json.toJson(taxPeriod)
 
@@ -75,14 +58,14 @@ class ContributionSpec extends ModelSpec {
       jsonDay.as[Short] shouldBe day
     }
 
-    "unmarshall from JSON" in {
+    "unmarshall from JSON" in new TaxPeriodFixture {
       // setup
-      val json = Json.parse("""{"year": 2017, "month": 7, "day" : 19}""")
+      val json = Json.parse("""{"year": 2016, "month": 7, "day" : 18}""")
 
       // do it
       val inputAmountsOption : Option[TaxPeriod] = json.validate[TaxPeriod].fold(invalid = { _ => None }, valid = { period => Some(period) })
 
-      inputAmountsOption shouldBe Some(TaxPeriod(2017, 7, 19))
+      inputAmountsOption shouldBe Some(taxPeriod)
     }
 
     "unmashall from JSON ensuring tax period year is not less than 2000" in {
@@ -102,42 +85,43 @@ class ContributionSpec extends ModelSpec {
   }
 
   "InputAmounts" can {
-    "have default value of 0 for defined benefit and money purchase in pounds" in {
-      // do it
+    trait InputAmountsFixture {
       val amounts = InputAmounts()
+    }
 
+    "have default value of 0 for defined benefit and money purchase in pounds" in new InputAmountsFixture {
       // check
       amounts.definedBenefit shouldBe 0
       amounts.moneyPurchase shouldBe 0
     }
 
-    "have a defined benefit amount in pounds" in {
+    "have a defined benefit amount in pounds" in new InputAmountsFixture {
       // setup
       val definedBenefitInPounds : Long = 246813579
 
       // do it
-      val amounts = InputAmounts(definedBenefitInPounds)
+      val a = amounts.copy(definedBenefit=definedBenefitInPounds)
 
       // check
-      amounts.definedBenefit shouldBe definedBenefitInPounds
+      a.definedBenefit shouldBe definedBenefitInPounds
     }
 
-    "have a money purchase amount in pounds" in {
+    "have a money purchase amount in pounds" in new InputAmountsFixture {
       // setup
       val moneyPurchaseInPounds : Long = 135792468
 
       // do it
-      val amounts = InputAmounts(moneyPurchase=moneyPurchaseInPounds)
+      val a = amounts.copy(moneyPurchase=moneyPurchaseInPounds)
 
       // check
-      amounts.moneyPurchase shouldBe moneyPurchaseInPounds
+      a.moneyPurchase shouldBe moneyPurchaseInPounds
     }
 
-    "marshall to JSON" in {
+    "marshall to JSON" in new InputAmountsFixture {
       // setup
       val definedBenefitInPounds : Long = 2468
       val moneyPurchaseInPounds : Long = 13579
-      val inputAmounts = InputAmounts(definedBenefitInPounds, moneyPurchaseInPounds)
+      val inputAmounts = amounts.copy(definedBenefit=definedBenefitInPounds, moneyPurchase=moneyPurchaseInPounds)
 
       // do it
       val json = Json.toJson(inputAmounts)
@@ -200,51 +184,51 @@ class ContributionSpec extends ModelSpec {
     }
   }
 
+  trait ContributionFixture {
+    val taxYear : Short = 2014
+    val taxYearEnd : Short = 2015
+    val taxPeriodStart = new TaxPeriod(taxYear, 3, 1) // 1st of April
+    val taxPeriodEnd = new TaxPeriod(taxYearEnd, 2, 31) // 31st of March
+    val definedBenefit = 2000
+    val moneyPurchase = 0
+    val contribution = Contribution(taxPeriodStart, taxPeriodEnd, InputAmounts(definedBenefit, moneyPurchase))
+  }
+
+  def getExpectedContributionJson():String = {
+    """{"taxPeriodStart":{"year":2014,"month":3,"day":1},"taxPeriodEnd":{"year":2015,"month":2,"day":31},"amounts":{"definedBenefit":2000,"moneyPurchase":0}}"""
+  }
+
   "A Contribution" can {
-    "have a tax year" in {
-      // setup
-      val taxYear:Short = 2013
-
-      // do it
-      val contribution = Contribution(TaxPeriod(taxYear, 0, 1), TaxPeriod(taxYear, 0, 3), InputAmounts())
-
+    "have a tax year" in new ContributionFixture {
       // check
       contribution.taxPeriodStart.year shouldBe taxYear
     }
 
-    "have a defined benefit input amount in pounds" in {
+    "have a defined benefit input amount in pounds" in new ContributionFixture {
       // setup
-      val taxYear:Short = 2015
       val dbAmountInPounds = 39342
       val amountsInPounds:InputAmounts = InputAmounts(dbAmountInPounds)
 
       // do it
-      val contribution = Contribution(TaxPeriod(taxYear, 0, 1), TaxPeriod(taxYear, 0, 3), amountsInPounds)
+      val contrib = contribution.copy(amounts=amountsInPounds)
 
       // check
-      contribution.amounts.definedBenefit shouldBe dbAmountInPounds
+      contrib.amounts.definedBenefit shouldBe dbAmountInPounds
     }
 
-    "have a money purchase input amount in pounds" in {
+    "have a money purchase input amount in pounds" in new ContributionFixture {
       // setup
-      val taxYear:Short = 2015
       val mpAmountInPounds = 6789234
       val amountsInPounds:InputAmounts = InputAmounts(moneyPurchase=mpAmountInPounds)
 
       // do it
-      val contribution = Contribution(TaxPeriod(taxYear, 0, 1), TaxPeriod(taxYear, 0, 3), amountsInPounds)
+      val contrib = contribution.copy(amounts=amountsInPounds)
 
       // check
-      contribution.amounts.moneyPurchase shouldBe mpAmountInPounds
+      contrib.amounts.moneyPurchase shouldBe mpAmountInPounds
     }
 
-    "marshall to JSON" in {
-      // setup
-      val taxYear:Short = 2013
-      val dbAmountInPounds = 39342
-      val mpAmountInPounds = 6789234
-      val contribution = Contribution(TaxPeriod(taxYear, 0, 1), TaxPeriod(taxYear, 0, 3), InputAmounts(dbAmountInPounds,mpAmountInPounds))
-
+    "marshall to JSON" in new ContributionFixture {
       // do it
       val json = Json.toJson(contribution)
 
@@ -252,19 +236,19 @@ class ContributionSpec extends ModelSpec {
       val jsonTaxYear = json \ "taxPeriodStart" \ "year"
       jsonTaxYear.as[Short] shouldBe taxYear
       val jsonDefinedBenfitInPounds = json \ "amounts" \ "definedBenefit"
-      jsonDefinedBenfitInPounds.as[Long] shouldBe dbAmountInPounds
+      jsonDefinedBenfitInPounds.as[Long] shouldBe definedBenefit
       val jsonMoneyPurchaseInPounds = json \ "amounts" \ "moneyPurchase"
-      jsonMoneyPurchaseInPounds.as[Long] shouldBe mpAmountInPounds
+      jsonMoneyPurchaseInPounds.as[Long] shouldBe moneyPurchase
     }
 
-    "unmarshall from JSON" in {
+    "unmarshall from JSON" in new ContributionFixture {
       // setup
-      val json = Json.parse("""{"taxPeriodStart": {"year":2012, "month" : 2, "day" : 12}, "taxPeriodEnd": {"year":2012, "month" : 8, "day" : 11}, "amounts": {"definedBenefit": 12345, "moneyPurchase": 67890}}""")
+      val json = Json.parse(getExpectedContributionJson)
 
       // do it
       val contributionOption : Option[Contribution] = json.validate[Contribution].fold(invalid = { _ => None }, valid = { contribution => Some(contribution)})
 
-      contributionOption shouldBe Some(Contribution(TaxPeriod(2012, 2, 12), TaxPeriod(2012, 8, 11), InputAmounts(12345, 67890)))
+      contributionOption shouldBe Some(contribution)
     }
 
     "unmarshall from JSON allows tax year of 2008" in {
@@ -294,23 +278,23 @@ class ContributionSpec extends ModelSpec {
   }
 
   "Array of contributions" can {
-    "marshall to JSON" in {
+    "marshall to JSON" in new ContributionFixture {
       // setup
-      val contributions = Seq(Contribution(TaxPeriod(2011, 0, 1), TaxPeriod(2011, 0, 3), InputAmounts(1,2)),
-                              Contribution(TaxPeriod(2012, 0, 1), TaxPeriod(2012, 0, 3), InputAmounts(3,4)))
+      val contributions = Seq(contribution,
+                              contribution)
+      val expectedJSON = "[" + getExpectedContributionJson()+","+getExpectedContributionJson() + "]"
 
       // do it
       val json = Json.toJson(contributions)
 
       // check
-      Json.stringify(json) shouldBe """[{"taxPeriodStart":{"year":2011,"month":0,"day":1},"taxPeriodEnd":{"year":2011,"month":0,"day":3},"amounts":{"definedBenefit":1,"moneyPurchase":2}},{"taxPeriodStart":{"year":2012,"month":0,"day":1},"taxPeriodEnd":{"year":2012,"month":0,"day":3},"amounts":{"definedBenefit":3,"moneyPurchase":4}}]"""
+      Json.stringify(json) shouldBe expectedJSON
     }
 
-    "unmarshall from JSON" in {
+    "unmarshall from JSON" in new ContributionFixture {
       // setup
-      val expectedContributions = Seq(Contribution(TaxPeriod(2011, 0, 1), TaxPeriod(2011, 0, 3), InputAmounts(1,2)),
-                                      Contribution(TaxPeriod(2012, 0, 1), TaxPeriod(2012, 0, 3), InputAmounts(3,4)))
-      val json = Json.parse("""[{"taxPeriodStart":{"year":2011,"month":0,"day":1},"taxPeriodEnd":{"year":2011,"month":0,"day":3},"amounts":{"definedBenefit":1,"moneyPurchase":2}},{"taxPeriodStart":{"year":2012,"month":0,"day":1},"taxPeriodEnd":{"year":2012,"month":0,"day":3},"amounts":{"definedBenefit":3,"moneyPurchase":4}}]""")
+      val expectedContributions = Seq(contribution, contribution)
+      val json = Json.parse("[" + getExpectedContributionJson()+","+getExpectedContributionJson() + "]")
 
       // do it
       val contributionsOption : Option[Contribution] = (json(0)).validate[Contribution].fold(invalid = { _ => None }, valid = { contribution => Some(contribution)})
