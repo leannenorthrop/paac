@@ -32,6 +32,8 @@ class PensionResultSpec extends ModelSpec {
       // check
       summaryResult.chargableAmount shouldBe 0
       summaryResult.exceedingAAAmount shouldBe 0
+      summaryResult.availableAllowance shouldBe 0
+      summaryResult.unusedAllowance shouldBe 0
     }
 
     "have chargable amount in pounds" in {
@@ -56,6 +58,50 @@ class PensionResultSpec extends ModelSpec {
       summaryResult.exceedingAAAmount shouldBe exceedingAAAmount 
     }
 
+    "have available Allowance Amount" in {
+      // setup
+      val availableAllowanceAmount = 13492
+
+      // do it
+      val summaryResult = SummaryResult(availableAllowance=availableAllowanceAmount)
+
+      // check
+      summaryResult.availableAllowance shouldBe availableAllowanceAmount 
+    }
+
+    "have unused Allowance Amount" in {
+      // setup
+      val unusedAllowanceAmount = 13492
+
+      // do it
+      val summaryResult = SummaryResult(unusedAllowance=unusedAllowanceAmount)
+
+      // check
+      summaryResult.unusedAllowance shouldBe unusedAllowanceAmount 
+    }
+
+    "have available Allowance with Carry Forward Amount" in {
+      // setup
+      val availableAllowanceWithCFAmount = 13492
+
+      // do it
+      val summaryResult = SummaryResult(availableAllowanceWithCF=availableAllowanceWithCFAmount)
+
+      // check
+      summaryResult.availableAllowanceWithCF shouldBe availableAllowanceWithCFAmount 
+    }
+
+    "have available Allowance with Cumulative Carry Forward Amount" in {
+      // setup
+      val availableAllowanceWithCCFAmount = 13492
+
+      // do it
+      val summaryResult = SummaryResult(availableAllowanceWithCCF=availableAllowanceWithCCFAmount)
+
+      // check
+      summaryResult.availableAllowanceWithCCF shouldBe availableAllowanceWithCCFAmount 
+    }
+
     "marshall to JSON" in {
       // setup
       val chargableAmount : Long = 2468
@@ -70,11 +116,19 @@ class PensionResultSpec extends ModelSpec {
       jsonChargableAmount.as[Long] shouldBe chargableAmount
       val jsonExceedingAAAmount = json \ "exceedingAAAmount"
       jsonExceedingAAAmount.as[Long] shouldBe exceedingAAAmount
+      val jsonAvailableAllowance = json \ "availableAllowance"
+      jsonAvailableAllowance.as[Long] shouldBe 0
+      val jsonUnusedAllowance = json \ "unusedAllowance"
+      jsonUnusedAllowance.as[Long] shouldBe 0
+      val jsonAvailableAllowanceWithCF = json \ "availableAllowanceWithCF"
+      jsonAvailableAllowanceWithCF.as[Long] shouldBe 0
+      val jsonAvailableAllowanceWithCCF = json \ "availableAllowanceWithCCF"
+      jsonAvailableAllowanceWithCCF.as[Long] shouldBe 0
     }
 
     "unmarshall from JSON" in {
       // setup
-      val json = Json.parse("""{"chargableAmount": 12345, "exceedingAAAmount": 67890}""")
+      val json = Json.parse("""{"chargableAmount": 12345, "exceedingAAAmount": 67890, "availableAllowance":0, "unusedAllowance": 0, "availableAllowanceWithCF": 0, "availableAllowanceWithCCF":0}""")
 
       // do it
       val summaryResultOption : Option[SummaryResult] = json.validate[SummaryResult].fold(invalid = { _ => None }, valid = { obj => Some(obj)})

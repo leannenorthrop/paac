@@ -57,9 +57,8 @@ class CalculatorControllerSpec extends ControllerSpec {
           val result = execute(requestBody)
 
           // check
-          contentAsJson(result) shouldBe Json.obj("status" -> JsNumber(200), 
-                                                  "message" -> JsString("Valid pension calculation request received."),
-                                                  "results" -> Json.toJson(List(TaxYearResults(Contribution(taxPeriodStart=TaxPeriod(2009, 0, 1), taxPeriodEnd=TaxPeriod(2009, 3, 31), amounts=InputAmounts(90000L,0L)), SummaryResult()))))
+          (contentAsJson(result) \ "status") shouldBe JsNumber(200)
+          (contentAsJson(result) \ "message") shouldBe JsString("Valid pension calculation request received.")
       }
     }
 

@@ -26,17 +26,29 @@ sealed trait PensionCalculationResult extends PensionResult
 case class TaxYearResults(input: Contribution,
                           summaryResult: SummaryResult) extends PensionCalculationResult
 case class SummaryResult(chargableAmount: Long = 0,
-                         exceedingAAAmount: Long = 0) extends PensionCalculationResult
+                         exceedingAAAmount: Long = 0,
+                         availableAllowance: Long = 0,
+                         unusedAllowance: Long = 0,
+                         availableAllowanceWithCF: Long = 0,
+                         availableAllowanceWithCCF: Long = 0) extends PensionCalculationResult
 
 object SummaryResult {
   implicit val summaryResultWrites: Writes[SummaryResult] = (
     (JsPath \ "chargableAmount").write[Long] and
-    (JsPath \ "exceedingAAAmount").write[Long]
+    (JsPath \ "exceedingAAAmount").write[Long] and 
+    (JsPath \ "availableAllowance").write[Long] and
+    (JsPath \ "unusedAllowance").write[Long] and 
+    (JsPath \ "availableAllowanceWithCF").write[Long] and
+    (JsPath \ "availableAllowanceWithCCF").write[Long]
   )(unlift(SummaryResult.unapply))
 
   implicit val summaryResultReads: Reads[SummaryResult] = (
     (JsPath \ "chargableAmount").read[Long] and
-    (JsPath \ "exceedingAAAmount").read[Long]
+    (JsPath \ "exceedingAAAmount").read[Long] and
+    (JsPath \ "availableAllowance").read[Long] and
+    (JsPath \ "unusedAllowance").read[Long] and
+    (JsPath \ "availableAllowanceWithCF").read[Long] and
+    (JsPath \ "availableAllowanceWithCCF").read[Long]
   )(SummaryResult.apply _)
 }
 
