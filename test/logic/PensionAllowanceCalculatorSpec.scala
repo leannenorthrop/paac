@@ -52,6 +52,14 @@ class PensionAllowanceCalculatorSpec extends UnitSpec {
   }
 
   "Pre2014Calculator" should {
+    trait ZeroContributionFixture {
+      val contribution = Contribution(TaxPeriod(2013, 3, 1), TaxPeriod(2013, 8, 31), InputAmounts())
+    }
+
+    trait ContributionFixture {
+      val contribution = Contribution(TaxPeriod(2013, 3, 1), TaxPeriod(2013, 8, 31), InputAmounts(definedBenefit=5000))
+    }
+
     "return none for contributions prior to 2008" in {
       // set up
       val input = Contribution(TaxPeriod(1914, 3, 1), TaxPeriod(1915, 8, 31), InputAmounts())
@@ -63,15 +71,44 @@ class PensionAllowanceCalculatorSpec extends UnitSpec {
       results shouldBe None
     }
 
-    "return some for contributions prior to 2014 and after 2007" in {
-      // set up
-      val input = Contribution(TaxPeriod(2013, 3, 1), TaxPeriod(2013, 8, 31), InputAmounts())
-
+    "return some for contributions prior to 2014 and after 2007" in new ZeroContributionFixture {
       // do it
-      val results = Pre2014Calculator.summary(input)
+      val results = Pre2014Calculator.summary(contribution)
 
       // check it
-      results shouldBe Some(SummaryResult())
+      results shouldBe Some(SummaryResult(0,0,50000,50000))
+    }
+
+    "return amount exceeding Annual Allowance of 0 for values under 50000" in new ContributionFixture {
+      // do it
+      val result = Pre2014Calculator.summary(contribution).get
+
+      // check it
+      result.exceedingAAAmount shouldBe 0
+    }
+
+    "return amount chargable amount of 0 for values under 50000" in new ContributionFixture {
+      // do it
+      val result = Pre2014Calculator.summary(contribution).get
+
+      // check it
+      result.chargableAmount shouldBe 0
+    }
+
+    "return available allowance of 50000" in new ContributionFixture {
+      // do it
+      val result = Pre2014Calculator.summary(contribution).get
+
+      // check it
+      result.availableAllowance shouldBe 50000
+    }
+
+    "return unused allowance of 45000" in new ContributionFixture {
+      // do it
+      val result = Pre2014Calculator.summary(contribution).get
+
+      // check it
+      result.unusedAllowance shouldBe 45000
     }
   }
 } 
