@@ -26,22 +26,22 @@ import org.scalatest.Matchers._
 
 class ContributionSpec extends ModelSpec {
   trait TaxPeriodFixture {
-    val year : Short = 2016
-    val month : Short = 7
-    val day : Short = 18
+    val year : Int = 2016
+    val month : Int = 7
+    val day : Int = 18
     val taxPeriod = TaxPeriod(year, month, day)
   }
 
   "TaxPeriod" can {
-    "have a full year value as short" in new TaxPeriodFixture {
+    "have a full year value as int" in new TaxPeriodFixture {
       taxPeriod.year shouldBe year
     }
 
-    "have a month value as short" in new TaxPeriodFixture {
+    "have a month value as int" in new TaxPeriodFixture {
       taxPeriod.month shouldBe month
     }
 
-    "have a day value as short" in new TaxPeriodFixture {
+    "have a day value as int" in new TaxPeriodFixture {
       taxPeriod.day shouldBe day
     }
 
@@ -51,11 +51,11 @@ class ContributionSpec extends ModelSpec {
 
       // check
       val jsonYear = json \ "year"
-      jsonYear.as[Short] shouldBe year
+      jsonYear.as[Int] shouldBe year
       val jsonMonth = json \ "month"
-      jsonMonth.as[Short] shouldBe month
+      jsonMonth.as[Int] shouldBe month
       val jsonDay = json \ "day"
-      jsonDay.as[Short] shouldBe day
+      jsonDay.as[Int] shouldBe day
     }
 
     "unmarshall from JSON" in new TaxPeriodFixture {
@@ -185,8 +185,8 @@ class ContributionSpec extends ModelSpec {
   }
 
   trait ContributionFixture {
-    val taxYear : Short = 2014
-    val taxYearEnd : Short = 2015
+    val taxYear : Int = 2014
+    val taxYearEnd : Int = 2015
     val taxPeriodStart = new TaxPeriod(taxYear, 3, 1) // 1st of April
     val taxPeriodEnd = new TaxPeriod(taxYearEnd, 2, 31) // 31st of March
     val definedBenefit = 2000
@@ -234,7 +234,7 @@ class ContributionSpec extends ModelSpec {
 
       // check
       val jsonTaxYear = json \ "taxPeriodStart" \ "year"
-      jsonTaxYear.as[Short] shouldBe taxYear
+      jsonTaxYear.as[Int] shouldBe taxYear
       val jsonDefinedBenfitInPounds = json \ "amounts" \ "definedBenefit"
       jsonDefinedBenfitInPounds.as[Long] shouldBe definedBenefit
       val jsonMoneyPurchaseInPounds = json \ "amounts" \ "moneyPurchase"
