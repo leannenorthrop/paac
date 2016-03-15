@@ -30,6 +30,6 @@ import org.scalatest.concurrent._
 
 class ControllerSpec extends UnitSpec {
   def getRequestWithJsonBody(path :String, json :JsValue) : Request[JsValue] = {
-    FakeRequest(GET, path).withBody(json)
+    FakeRequest(POST, path).withBody(json)
   }
 } 
