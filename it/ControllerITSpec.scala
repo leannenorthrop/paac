@@ -35,10 +35,17 @@ class ControllerITSpec extends UnitSpec with BeforeAndAfterAll {
     }
 
     "return list of summary allowances for each input" in {
-      val contributions = Seq(Contribution(TaxPeriod(2013,3,1),TaxPeriod(2014,2,31),InputAmounts(definedBenefit=5000)))
+      val contribution0 = Contribution(TaxPeriod(2008, 4, 1), TaxPeriod(2009, 3, 31), InputAmounts(definedBenefit=5000))
+      val contribution1 = Contribution(TaxPeriod(2009, 4, 1), TaxPeriod(2010, 3, 31), InputAmounts(definedBenefit=6000))
+      val contribution2 = Contribution(TaxPeriod(2010, 4, 1), TaxPeriod(2011, 3, 31), InputAmounts(definedBenefit=7000))
+      val contribution3 = Contribution(TaxPeriod(2011, 4, 1), TaxPeriod(2012, 3, 31), InputAmounts(definedBenefit=8000))
+      val contribution4 = Contribution(TaxPeriod(2013, 4, 1), TaxPeriod(2014, 3, 31), InputAmounts(definedBenefit=9000))
+      val contributions = Seq(contribution0, contribution1, contribution2, contribution3, contribution4)
+
       val result : Option[Future[Result]] = route(FakeRequest(POST, "/paac/calculate").withBody(Json.toJson(contributions)))
+
       val results = (contentAsJson(result.get) \ "results").as[List[TaxYearResults]]
-      results(0).summaryResult shouldBe SummaryResult()
+      results.size shouldBe 5
       status(result.get) shouldBe 200
     }
   }
