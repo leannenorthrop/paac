@@ -66,7 +66,16 @@ object Post2015Period2Calculator extends Calculator {
 
 trait PensionAllowanceCalculator {
   def calculateAllowances(contributions : Seq[Contribution]) : Seq[TaxYearResults] = {
-    contributions.sortWith(_.taxPeriodStart.year < _.taxPeriodStart.year).foldLeft(List[TaxYearResults]()) {
+    // Ensure sequential tax years
+    val inputsByTaxYear = contributions.groupBy(_.taxPeriodStart.year)
+    val allContributions = (inputsByTaxYear.keys.min to inputsByTaxYear.keys.max).foldLeft(List[Contribution]()) {
+      (lst:List[Contribution], year:Int) =>
+      // TODO implement support partial tax years
+      inputsByTaxYear.get(year).getOrElse(List(Contribution(year,0))).head :: lst
+    }.sortWith(_.taxPeriodStart.year < _.taxPeriodStart.year)
+
+    // Calculate results
+    allContributions.foldLeft(List[TaxYearResults]()) {
       (lst, contribution) =>
 
       val summary = CalculatorFactory.get(contribution).map(_.summary(lst.map(_.summaryResult), contribution).getOrElse(SummaryResult())).getOrElse(SummaryResult())
