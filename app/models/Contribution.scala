@@ -67,5 +67,9 @@ object Contribution {
     (JsPath \ "taxPeriodStart").read[TaxPeriod] and
     (JsPath \ "taxPeriodEnd").read[TaxPeriod] and
     (JsPath \ "amounts").read[InputAmounts]
-  )(Contribution.apply _)
+  )(Contribution.apply(_:TaxPeriod, _:TaxPeriod, _:InputAmounts))
+
+  def apply(year: Int, definedBenefit: Long) : Contribution = {
+    Contribution(TaxPeriod(year, 4, 6), TaxPeriod(year+1, 4, 5), InputAmounts(definedBenefit=definedBenefit))
+  }
 }

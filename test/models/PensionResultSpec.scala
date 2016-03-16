@@ -85,10 +85,10 @@ class PensionResultSpec extends ModelSpec {
       val availableAllowanceWithCFAmount = 13492
 
       // do it
-      val summaryResult = SummaryResult(availableAllowanceWithCF=availableAllowanceWithCFAmount)
+      val summaryResult = SummaryResult(availableAAWithCF=availableAllowanceWithCFAmount)
 
       // check
-      summaryResult.availableAllowanceWithCF shouldBe availableAllowanceWithCFAmount 
+      summaryResult.availableAAWithCF shouldBe availableAllowanceWithCFAmount 
     }
 
     "have available Allowance with Cumulative Carry Forward Amount" in {
@@ -96,10 +96,10 @@ class PensionResultSpec extends ModelSpec {
       val availableAllowanceWithCCFAmount = 13492
 
       // do it
-      val summaryResult = SummaryResult(availableAllowanceWithCCF=availableAllowanceWithCCFAmount)
+      val summaryResult = SummaryResult(availableAAWithCCF=availableAllowanceWithCCFAmount)
 
       // check
-      summaryResult.availableAllowanceWithCCF shouldBe availableAllowanceWithCCFAmount 
+      summaryResult.availableAAWithCCF shouldBe availableAllowanceWithCCFAmount 
     }
 
     "marshall to JSON" in {
@@ -120,15 +120,15 @@ class PensionResultSpec extends ModelSpec {
       jsonAvailableAllowance.as[Long] shouldBe 0
       val jsonUnusedAllowance = json \ "unusedAllowance"
       jsonUnusedAllowance.as[Long] shouldBe 0
-      val jsonAvailableAllowanceWithCF = json \ "availableAllowanceWithCF"
+      val jsonAvailableAllowanceWithCF = json \ "availableAAWithCF"
       jsonAvailableAllowanceWithCF.as[Long] shouldBe 0
-      val jsonAvailableAllowanceWithCCF = json \ "availableAllowanceWithCCF"
+      val jsonAvailableAllowanceWithCCF = json \ "availableAAWithCCF"
       jsonAvailableAllowanceWithCCF.as[Long] shouldBe 0
     }
 
     "unmarshall from JSON" in {
       // setup
-      val json = Json.parse("""{"chargableAmount": 12345, "exceedingAAAmount": 67890, "availableAllowance":0, "unusedAllowance": 0, "availableAllowanceWithCF": 0, "availableAllowanceWithCCF":0}""")
+      val json = Json.parse("""{"chargableAmount": 12345, "exceedingAAAmount": 67890, "availableAllowance":0, "unusedAllowance": 0, "availableAAWithCF": 0, "availableAAWithCCF":0}""")
 
       // do it
       val summaryResultOption : Option[SummaryResult] = json.validate[SummaryResult].fold(invalid = { _ => None }, valid = { obj => Some(obj)})
