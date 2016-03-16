@@ -33,7 +33,7 @@ class PensionAllowanceCalculatorSpec extends UnitSpec {
     }
 
   "PensionAllowanceCalculator" should {
-    "return 0 for any input" in {
+    "return 0 for any input after 2013 tax year" in {
       // set up
       val input = Contribution(TaxPeriod(2016, 3, 1), TaxPeriod(2016, 8, 31), InputAmounts())
       val inputs = List(input)
@@ -59,21 +59,54 @@ class PensionAllowanceCalculatorSpec extends UnitSpec {
       results(0) shouldBe TaxYearResults(input, SummaryResult())
     }
 
-    "return correct allowances and carry forward values for contributions prior to 2014" in new ContributionPre2014Fixture {
-      // set up
-      val inputs = List(contribution0, contribution1, contribution2, contribution3, contribution4, contribution5)
+    "for contributions prior to 2014 and after 2008" should {
+      "return correct allowances and carry forward values" in new ContributionPre2014Fixture {
+        // set up
+        val inputs = List(contribution0, contribution1, contribution2, contribution3, contribution4, contribution5)
 
-      // do it
-      val results = PensionAllowanceCalculator.calculateAllowances(inputs)
+        // do it
+        val results = PensionAllowanceCalculator.calculateAllowances(inputs)
 
-      // check it
-      results.size shouldBe 6
-      results(0) shouldBe TaxYearResults(inputs(0), SummaryResult(0,0,50000,45000,50000,45000))
-      results(1) shouldBe TaxYearResults(inputs(1), SummaryResult(0,0,50000,44000,95000,89000))
-      results(2) shouldBe TaxYearResults(inputs(2), SummaryResult(0,0,50000,43000,139000,132000))
-      results(3) shouldBe TaxYearResults(inputs(3), SummaryResult(0,0,50000,42000,182000,129000))
-      results(4) shouldBe TaxYearResults(inputs(4), SummaryResult(0,0,50000,41000,179000,126000))
-      results(5) shouldBe TaxYearResults(inputs(5), SummaryResult(0,0,50000,40000,176000,123000))
+        // check it
+        results.size shouldBe 6
+        results(0) shouldBe TaxYearResults(inputs(0), SummaryResult(0,0,50000,45000,50000,45000))
+        results(1) shouldBe TaxYearResults(inputs(1), SummaryResult(0,0,50000,44000,95000,89000))
+        results(2) shouldBe TaxYearResults(inputs(2), SummaryResult(0,0,50000,43000,139000,132000))
+        results(3) shouldBe TaxYearResults(inputs(3), SummaryResult(0,0,50000,42000,182000,129000))
+        results(4) shouldBe TaxYearResults(inputs(4), SummaryResult(0,0,50000,41000,179000,126000))
+        results(5) shouldBe TaxYearResults(inputs(5), SummaryResult(0,0,50000,40000,176000,123000))
+      }
+
+      "return correct allowances and carry forward values even if inputs are not in tax year sequential order" in new ContributionPre2014Fixture {
+        // set up
+        val inputs = List(contribution3, contribution1, contribution0, contribution2, contribution5, contribution4)
+
+        // do it
+        val results = PensionAllowanceCalculator.calculateAllowances(inputs)
+
+        // check it
+        results.size shouldBe 6
+        results(0) shouldBe TaxYearResults(contribution0, SummaryResult(0,0,50000,45000,50000,45000))
+        results(1) shouldBe TaxYearResults(contribution1, SummaryResult(0,0,50000,44000,95000,89000))
+        results(2) shouldBe TaxYearResults(contribution2, SummaryResult(0,0,50000,43000,139000,132000))
+        results(3) shouldBe TaxYearResults(contribution3, SummaryResult(0,0,50000,42000,182000,129000))
+        results(4) shouldBe TaxYearResults(contribution4, SummaryResult(0,0,50000,41000,179000,126000))
+        results(5) shouldBe TaxYearResults(contribution5, SummaryResult(0,0,50000,40000,176000,123000))
+      }
+
+      "return correct allowances and carry forward values if interim tax year inputs are missing" in new ContributionPre2014Fixture {
+        // set up
+        val inputs = List(contribution0, contribution2)
+
+        // do it
+        val results = PensionAllowanceCalculator.calculateAllowances(inputs)
+
+        // check it
+        results.size shouldBe 3
+        results(0) shouldBe TaxYearResults(contribution0, SummaryResult(0,0,50000,45000,50000,45000))
+        results(1) shouldBe TaxYearResults(Contribution(2009,0), SummaryResult(0,0,50000,50000,95000,95000))
+        results(2) shouldBe TaxYearResults(contribution2, SummaryResult(0,0,50000,43000,145000,138000))
+      }
     }
   }
 
