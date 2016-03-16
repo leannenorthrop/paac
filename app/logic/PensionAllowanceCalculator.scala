@@ -19,7 +19,7 @@ package logic
 import models._
 
 trait Calculator {
-  def summary(previousPeriod:SummaryResult, contribution:Contribution) : Option[SummaryResult]
+  def summary(previousPeriods:Seq[SummaryResult], contribution:Contribution) : Option[SummaryResult]
 }
 
 object CalculatorFactory {
@@ -34,14 +34,14 @@ object CalculatorFactory {
 }
 
 object Pre2014Calculator extends Calculator {
-  def summary(previousPeriod:SummaryResult, contribution: models.Contribution): Option[SummaryResult] = contribution match {
+  def summary(previousPeriods:Seq[SummaryResult], contribution: models.Contribution): Option[SummaryResult] = contribution match {
     case Contribution(TaxPeriod(year, _, _ ), _, _) if year < 2014 && year > 2007 =>
       val annualAllowance: Long = 50000
       val chargableAmount: Long = 0
       val exceedingAAAmount: Long = (contribution.amounts.definedBenefit - annualAllowance).max(0)
       val unusedAllowance: Long = (annualAllowance - contribution.amounts.definedBenefit).max(0)
-      val availableAAWithCF: Long = annualAllowance + previousPeriod.unusedAllowance
-      val availableAAWithCCF: Long = availableAAWithCF - contribution.amounts.definedBenefit // next to do only 3 years allowances
+      val availableAAWithCF: Long = annualAllowance + previousPeriods.slice(0,3).foldLeft(0L)(_+_.unusedAllowance)
+      val availableAAWithCCF: Long = annualAllowance + previousPeriods.slice(0,2).foldLeft(0L)(_+_.unusedAllowance) - contribution.amounts.definedBenefit
 
       Some(SummaryResult(chargableAmount, exceedingAAAmount, annualAllowance, unusedAllowance, availableAAWithCF, availableAAWithCCF))
     case _ => None
@@ -69,8 +69,7 @@ trait PensionAllowanceCalculator {
     contributions.sortWith(_.taxPeriodStart.year < _.taxPeriodStart.year).foldLeft(List[TaxYearResults]()) {
       (lst, contribution) =>
 
-      val previousSummary = lst.headOption.map(_.summaryResult).getOrElse(SummaryResult())
-      val summary = CalculatorFactory.get(contribution).map(_.summary(previousSummary, contribution).getOrElse(SummaryResult())).getOrElse(SummaryResult())
+      val summary = CalculatorFactory.get(contribution).map(_.summary(lst.map(_.summaryResult), contribution).getOrElse(SummaryResult())).getOrElse(SummaryResult())
       
       TaxYearResults(contribution, summary) :: lst
     }.reverse
