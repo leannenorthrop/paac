@@ -40,8 +40,8 @@ object Pre2014Calculator extends Calculator {
       val exceedingAAAmount: Long = (contribution.amounts.definedBenefit - annualAllowance).max(0)
       val unusedAllowance: Long = (annualAllowance - contribution.amounts.definedBenefit).max(0)
       val availableAAWithCF: Long = annualAllowance + previousPeriods.slice(0,3).foldLeft(0L)(_+_.unusedAllowance)
-      val availableAAWithCCF: Long = annualAllowance + previousPeriods.slice(0,2).foldLeft(0L)(_+_.unusedAllowance) - contribution.amounts.definedBenefit
-      val chargableAmount: Long = if (previousPeriods.slice(0,3).size < 3) 0 else (contribution.amounts.definedBenefit - annualAllowance).max(0)
+      val availableAAWithCCF: Long = (annualAllowance + previousPeriods.slice(0,2).foldLeft(0L)(_+_.unusedAllowance) - (contribution.amounts.definedBenefit-exceedingAAAmount)).max(0)
+      val chargableAmount: Long = if (previousPeriods.slice(0,3).size < 3) 0 else (contribution.amounts.definedBenefit - availableAAWithCF).max(0)
 
       Some(SummaryResult(chargableAmount, exceedingAAAmount, annualAllowance, unusedAllowance, availableAAWithCF, availableAAWithCCF))
     case _ => None

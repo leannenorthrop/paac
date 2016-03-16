@@ -107,6 +107,116 @@ class PensionAllowanceCalculatorSpec extends UnitSpec {
         results(1) shouldBe TaxYearResults(Contribution(2009,0), SummaryResult(0,0,50000,50000,95000,95000))
         results(2) shouldBe TaxYearResults(contribution2, SummaryResult(0,0,50000,43000,145000,138000))
       }
+
+      "return correct calculations when pension contributions are 50000" in {
+        // set up
+        val inputs = List(Contribution(2008, 50000),
+                          Contribution(2009, 50000),
+                          Contribution(2010, 50000),
+                          Contribution(2011, 50000),
+                          Contribution(2012, 50000),
+                          Contribution(2013, 50000))
+
+        // do it
+        val results = PensionAllowanceCalculator.calculateAllowances(inputs)
+
+        // check results
+        results.size shouldBe 6
+        results(0) shouldBe TaxYearResults(Contribution(2008, 50000), SummaryResult(chargableAmount=0,exceedingAAAmount=0,availableAllowance=50000,unusedAllowance=0,availableAAWithCF=50000,availableAAWithCCF=0))
+        results(1) shouldBe TaxYearResults(Contribution(2009, 50000), SummaryResult(chargableAmount=0,exceedingAAAmount=0,availableAllowance=50000,unusedAllowance=0,availableAAWithCF=50000,availableAAWithCCF=0))
+        results(2) shouldBe TaxYearResults(Contribution(2010, 50000), SummaryResult(chargableAmount=0,exceedingAAAmount=0,availableAllowance=50000,unusedAllowance=0,availableAAWithCF=50000,availableAAWithCCF=0))
+        results(3) shouldBe TaxYearResults(Contribution(2011, 50000), SummaryResult(chargableAmount=0,exceedingAAAmount=0,availableAllowance=50000,unusedAllowance=0,availableAAWithCF=50000,availableAAWithCCF=0))
+        results(4) shouldBe TaxYearResults(Contribution(2012, 50000), SummaryResult(chargableAmount=0,exceedingAAAmount=0,availableAllowance=50000,unusedAllowance=0,availableAAWithCF=50000,availableAAWithCCF=0))
+        results(5) shouldBe TaxYearResults(Contribution(2013, 50000), SummaryResult(chargableAmount=0,exceedingAAAmount=0,availableAllowance=50000,unusedAllowance=0,availableAAWithCF=50000,availableAAWithCCF=0))
+      }
+
+      "return correct calculations when pension contributions are less than 50000" in {
+        // set up
+        val inputs = List(Contribution(2008, 40000),
+                          Contribution(2009, 40000),
+                          Contribution(2010, 40000),
+                          Contribution(2011, 40000),
+                          Contribution(2012, 40000),
+                          Contribution(2013, 40000))
+
+        // do it
+        val results = PensionAllowanceCalculator.calculateAllowances(inputs)
+
+        // check results
+        results.size shouldBe 6
+        results(0) shouldBe TaxYearResults(Contribution(2008, 40000), SummaryResult(chargableAmount=0,exceedingAAAmount=0,availableAllowance=50000,unusedAllowance=10000,availableAAWithCF=50000,availableAAWithCCF=10000))
+        results(1) shouldBe TaxYearResults(Contribution(2009, 40000), SummaryResult(chargableAmount=0,exceedingAAAmount=0,availableAllowance=50000,unusedAllowance=10000,availableAAWithCF=60000,availableAAWithCCF=20000))
+        results(2) shouldBe TaxYearResults(Contribution(2010, 40000), SummaryResult(chargableAmount=0,exceedingAAAmount=0,availableAllowance=50000,unusedAllowance=10000,availableAAWithCF=70000,availableAAWithCCF=30000))
+        results(3) shouldBe TaxYearResults(Contribution(2011, 40000), SummaryResult(chargableAmount=0,exceedingAAAmount=0,availableAllowance=50000,unusedAllowance=10000,availableAAWithCF=80000,availableAAWithCCF=30000))
+        results(4) shouldBe TaxYearResults(Contribution(2012, 40000), SummaryResult(chargableAmount=0,exceedingAAAmount=0,availableAllowance=50000,unusedAllowance=10000,availableAAWithCF=80000,availableAAWithCCF=30000))
+        results(5) shouldBe TaxYearResults(Contribution(2013, 40000), SummaryResult(chargableAmount=0,exceedingAAAmount=0,availableAllowance=50000,unusedAllowance=10000,availableAAWithCF=80000,availableAAWithCCF=30000))
+      }
+
+      "return correct calculations when pension contributions are greater than 50000" in {
+        // set up
+        val inputs = List(Contribution(2008, 60000),
+                          Contribution(2009, 60000),
+                          Contribution(2010, 60000),
+                          Contribution(2011, 60000),
+                          Contribution(2012, 60000),
+                          Contribution(2013, 60000))
+
+        // do it
+        val results = PensionAllowanceCalculator.calculateAllowances(inputs)
+
+        // check results
+        results.size shouldBe 6
+        results(0) shouldBe TaxYearResults(Contribution(2008, 60000), SummaryResult(chargableAmount=0,    exceedingAAAmount=10000,availableAllowance=50000,unusedAllowance=0,availableAAWithCF=50000,availableAAWithCCF=0))
+        results(1) shouldBe TaxYearResults(Contribution(2009, 60000), SummaryResult(chargableAmount=0,    exceedingAAAmount=10000,availableAllowance=50000,unusedAllowance=0,availableAAWithCF=50000,availableAAWithCCF=0))
+        results(2) shouldBe TaxYearResults(Contribution(2010, 60000), SummaryResult(chargableAmount=0,    exceedingAAAmount=10000,availableAllowance=50000,unusedAllowance=0,availableAAWithCF=50000,availableAAWithCCF=0))
+        results(3) shouldBe TaxYearResults(Contribution(2011, 60000), SummaryResult(chargableAmount=10000,exceedingAAAmount=10000,availableAllowance=50000,unusedAllowance=0,availableAAWithCF=50000,availableAAWithCCF=0))
+        results(4) shouldBe TaxYearResults(Contribution(2012, 60000), SummaryResult(chargableAmount=10000,exceedingAAAmount=10000,availableAllowance=50000,unusedAllowance=0,availableAAWithCF=50000,availableAAWithCCF=0))
+        results(5) shouldBe TaxYearResults(Contribution(2013, 60000), SummaryResult(chargableAmount=10000,exceedingAAAmount=10000,availableAllowance=50000,unusedAllowance=0,availableAAWithCF=50000,availableAAWithCCF=0))
+      }
+
+      "return correct calculations when pension contributions are 0" in {
+        // set up
+        val inputs = List(Contribution(2008, 0),
+                          Contribution(2009, 0),
+                          Contribution(2010, 0),
+                          Contribution(2011, 0),
+                          Contribution(2012, 0),
+                          Contribution(2013, 0))
+
+        // do it
+        val results = PensionAllowanceCalculator.calculateAllowances(inputs)
+
+        // check results
+        results.size shouldBe 6
+        results(0) shouldBe TaxYearResults(Contribution(2008, 0), SummaryResult(chargableAmount=0,exceedingAAAmount=0,availableAllowance=50000 ,unusedAllowance=50000,availableAAWithCF=50000, availableAAWithCCF=50000 ))
+        results(1) shouldBe TaxYearResults(Contribution(2009, 0), SummaryResult(chargableAmount=0,exceedingAAAmount=0,availableAllowance=50000,unusedAllowance=50000,availableAAWithCF=100000,availableAAWithCCF=100000))
+        results(2) shouldBe TaxYearResults(Contribution(2010, 0), SummaryResult(chargableAmount=0,exceedingAAAmount=0,availableAllowance=50000,unusedAllowance=50000,availableAAWithCF=150000,availableAAWithCCF=150000))
+        results(3) shouldBe TaxYearResults(Contribution(2011, 0), SummaryResult(chargableAmount=0,exceedingAAAmount=0,availableAllowance=50000,unusedAllowance=50000,availableAAWithCF=200000,availableAAWithCCF=150000))
+        results(4) shouldBe TaxYearResults(Contribution(2012, 0), SummaryResult(chargableAmount=0,exceedingAAAmount=0,availableAllowance=50000,unusedAllowance=50000,availableAAWithCF=200000,availableAAWithCCF=150000))
+        results(5) shouldBe TaxYearResults(Contribution(2013, 0), SummaryResult(chargableAmount=0,exceedingAAAmount=0,availableAllowance=50000,unusedAllowance=50000,availableAAWithCF=200000,availableAAWithCCF=150000))
+      }
+
+      "return correct calculations when pension contributions are variable amounts above and below allowance" in {
+        // set up
+        val inputs = List(Contribution(2008, 0),
+                          Contribution(2009, 50000),
+                          Contribution(2010, 60000),
+                          Contribution(2011, 150000),
+                          Contribution(2012, 40000),
+                          Contribution(2013, 50000))
+
+        // do it
+        val results = PensionAllowanceCalculator.calculateAllowances(inputs)
+
+        // check results
+        results.size shouldBe 6
+        results(0) shouldBe TaxYearResults(Contribution(2008, 0),     SummaryResult(chargableAmount=0,     exceedingAAAmount=0,      availableAllowance=50000, unusedAllowance=50000, availableAAWithCF=50000,  availableAAWithCCF=50000))
+        results(1) shouldBe TaxYearResults(Contribution(2009, 50000), SummaryResult(chargableAmount=0,     exceedingAAAmount=0,      availableAllowance=50000, unusedAllowance=0,     availableAAWithCF=100000, availableAAWithCCF=50000))
+        results(2) shouldBe TaxYearResults(Contribution(2010, 60000), SummaryResult(chargableAmount=0,     exceedingAAAmount=10000,  availableAllowance=50000, unusedAllowance=0,     availableAAWithCF=100000, availableAAWithCCF=50000))
+        results(3) shouldBe TaxYearResults(Contribution(2011, 150000),SummaryResult(chargableAmount=50000, exceedingAAAmount=100000, availableAllowance=50000, unusedAllowance=0,     availableAAWithCF=100000, availableAAWithCCF=0))
+        results(4) shouldBe TaxYearResults(Contribution(2012, 40000), SummaryResult(chargableAmount=0,     exceedingAAAmount=0,      availableAllowance=50000, unusedAllowance=10000, availableAAWithCF=50000,  availableAAWithCCF=10000))
+        results(5) shouldBe TaxYearResults(Contribution(2013, 50000), SummaryResult(chargableAmount=0,     exceedingAAAmount=0,      availableAllowance=50000, unusedAllowance=0,     availableAAWithCF=60000,  availableAAWithCCF=10000))
+      }
     }
   }
 
