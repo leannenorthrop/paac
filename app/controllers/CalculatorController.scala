@@ -44,10 +44,14 @@ trait CalculatorController {
                                               "message" -> JsString("Invalid JSON request object."),
                                               "validationErrors" -> JsError.toFlatJson(errors))))
       },
-      result => {
-        Future.successful(Ok(Json.obj("status" -> JsNumber(OK), 
-                                      "message" -> JsString("Valid pension calculation request received."),
-                                      "results" -> Json.toJson(calculateAllowances(result)))))
+      inputs => {
+        if (inputs.exists((contribution)=>(contribution.taxPeriodStart.year < TaxPeriod.EARLIEST_YEAR_SUPPORTED || contribution.taxPeriodStart.year > TaxPeriod.LATEST_YEAR_SUPPORTED)))
+          Future.successful(BadRequest(Json.obj("status" -> JsNumber(BAD_REQUEST),
+                                                "message" -> JsString(s"Unsupported tax year supplied, only tax years between ${TaxPeriod.EARLIEST_YEAR_SUPPORTED} and ${TaxPeriod.LATEST_YEAR_SUPPORTED} inclusive, are supported."))))
+        else
+          Future.successful(Ok(Json.obj("status" -> JsNumber(OK), 
+                                        "message" -> JsString("Valid pension calculation request received."),
+                                        "results" -> Json.toJson(calculateAllowances(inputs)))))
       }
     )
   }
