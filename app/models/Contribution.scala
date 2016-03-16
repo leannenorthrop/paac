@@ -26,7 +26,7 @@ sealed trait PensionCalculatorValue
 case class InputAmounts(definedBenefit: Long = 0, moneyPurchase: Long = 0) extends PensionCalculatorValue
 case class TaxPeriod(year: Int, month: Int, day: Int)
 case class Contribution(taxPeriodStart: TaxPeriod, taxPeriodEnd: TaxPeriod, amounts: InputAmounts) extends CalculationParam {
-  def taxYearLabel() : String = s"${taxPeriodStart.year}/${taxPeriodEnd.year-2000}"
+  def taxYearLabel() : String = s"${taxPeriodStart.year}/${taxPeriodEnd.year.toString().drop(2)}"
 }
 
 object TaxPeriod {
