@@ -87,5 +87,18 @@ class CalculatorControllerSpec extends ControllerSpec {
         (obj \ "message") shouldBe JsString("Invalid JSON request object.")
       }
     }
+
+    "with tax year greater than latest supported tax year" in {
+      val contribution0 = Contribution(4400, 5000)
+      val contributions = List(contribution0)
+
+      val result = execute(contributions)
+
+      status(result) shouldBe 400
+      val results = contentAsJson(result)
+      (results \ "status") shouldBe JsNumber(400)
+      (results \ "message") shouldBe JsString("Unsupported tax year supplied, only tax years between 2008 and 2013 inclusive, are supported.")
+    }
+
   }
 }
