@@ -24,12 +24,12 @@ import org.scalatest._
 
 class PensionAllowanceCalculatorSpec extends UnitSpec {
     trait ContributionPre2014Fixture {
-      val contribution0 = Contribution(TaxPeriod(2008, 4, 1), TaxPeriod(2009, 3, 31), InputAmounts(definedBenefit=5000))
-      val contribution1 = Contribution(TaxPeriod(2009, 4, 1), TaxPeriod(2010, 3, 31), InputAmounts(definedBenefit=6000))
-      val contribution2 = Contribution(TaxPeriod(2010, 4, 1), TaxPeriod(2011, 3, 31), InputAmounts(definedBenefit=7000))
-      val contribution3 = Contribution(TaxPeriod(2011, 4, 1), TaxPeriod(2012, 3, 31), InputAmounts(definedBenefit=8000))
-      val contribution4 = Contribution(TaxPeriod(2012, 4, 1), TaxPeriod(2013, 3, 31), InputAmounts(definedBenefit=9000))
-      val contribution5 = Contribution(TaxPeriod(2013, 4, 1), TaxPeriod(2014, 3, 31), InputAmounts(definedBenefit=10000))
+      val contribution0 = Contribution(2008, 5000)
+      val contribution1 = Contribution(2009, 6000)
+      val contribution2 = Contribution(2010, 7000)
+      val contribution3 = Contribution(2011, 8000)
+      val contribution4 = Contribution(2012, 9000)
+      val contribution5 = Contribution(2013, 10000)
     }
 
   "PensionAllowanceCalculator" should {
