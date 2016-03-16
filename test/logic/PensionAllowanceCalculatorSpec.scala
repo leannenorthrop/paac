@@ -150,6 +150,22 @@ class PensionAllowanceCalculatorSpec extends UnitSpec {
       result.chargableAmount shouldBe 0
     }
 
+    "return amount chargable amount of non-0 for values over 50000" in new ContributionPre2014Fixture {
+      // do it
+      val result = Pre2014Calculator.summary(Seq[SummaryResult](SummaryResult(),SummaryResult(),SummaryResult()), Contribution(2011, 55000)).get
+
+      // check it
+      result.chargableAmount shouldBe 5000
+    }
+
+    "return amount exceeding Annual Allowance of non-0 for values over 50000" in new ContributionPre2014Fixture {
+      // do it
+      val result = Pre2014Calculator.summary(Seq[SummaryResult](SummaryResult(),SummaryResult(),SummaryResult()), Contribution(2011, 55000)).get
+
+      // check it
+      result.exceedingAAAmount shouldBe 5000
+    }
+
     "return available allowance of 50000" in new ContributionPre2014Fixture {
       // do it
       val result = Pre2014Calculator.summary(Seq[SummaryResult](), contribution1).get
