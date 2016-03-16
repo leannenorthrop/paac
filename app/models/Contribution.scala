@@ -29,6 +29,7 @@ case class Contribution(taxPeriodStart: TaxPeriod, taxPeriodEnd: TaxPeriod, amou
 
 object TaxPeriod {
   val EARLIEST_YEAR_SUPPORTED:Int = 2008
+  val LATEST_YEAR_SUPPORTED:Int = 2013
   val MIN_VALUE:Int = 0
   val MIN_DAY_VALUE:Int = 1
   implicit val taxPeriodWrites: Writes[TaxPeriod] = (
@@ -71,5 +72,14 @@ object Contribution {
 
   def apply(year: Int, definedBenefit: Long) : Contribution = {
     Contribution(TaxPeriod(year, 4, 6), TaxPeriod(year+1, 4, 5), InputAmounts(definedBenefit=definedBenefit))
+  }
+
+  def unapplyPair(contribution:Contribution) : Option[(Int,Long)] = {
+    if (contribution == null) None
+    else Some((contribution.taxPeriodStart.year, contribution.amounts.definedBenefit))
+  }
+
+  def unapplySimple(contribution:Contribution) : Option[(Int,Long)] = {
+    unapplyPair(contribution)
   }
 }
