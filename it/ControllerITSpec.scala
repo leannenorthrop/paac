@@ -51,7 +51,7 @@ class ControllerITSpec extends UnitSpec with BeforeAndAfterAll {
       status(result.get) shouldBe 400
       val results = contentAsJson(result.get)
       (results \ "status") shouldBe JsNumber(400)
-      (results \ "message") shouldBe JsString("Unsupported tax year supplied, only tax years between 2008 and 2013 inclusive, are supported.")
+      (results \ "message") shouldBe JsString("Unsupported tax year supplied, only tax years between 2008 and 2016 inclusive, are supported.")
     }
 
     "return list of summary allowances for each input" in {

@@ -75,13 +75,4 @@ object Contribution {
   def apply(year: Int, definedBenefit: Long) : Contribution = {
     Contribution(TaxPeriod(year, 4, 6), TaxPeriod(year+1, 4, 5), InputAmounts(definedBenefit=definedBenefit))
   }
-
-  def unapplyPair(contribution:Contribution) : Option[(Int,Long)] = {
-    if (contribution == null) None
-    else Some((contribution.taxPeriodStart.year, contribution.amounts.definedBenefit))
-  }
-
-  def unapplySimple(contribution:Contribution) : Option[(Int,Long)] = {
-    unapplyPair(contribution)
-  }
 }
