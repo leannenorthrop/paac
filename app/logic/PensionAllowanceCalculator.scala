@@ -36,7 +36,7 @@ object CalculatorFactory {
 object Pre2014Calculator extends Calculator {
   def summary(previousPeriods:Seq[SummaryResult], contribution: models.Contribution): Option[SummaryResult] = contribution match {
     case Contribution(TaxPeriod(year, _, _ ), _, _) if year < 2014 && year > 2007 =>
-      val annualAllowance: Long = 50000
+      val annualAllowance: Long = 50000*100
       val exceedingAAAmount: Long = (contribution.amounts.definedBenefit - annualAllowance).max(0)
       val unusedAllowance: Long = (annualAllowance - contribution.amounts.definedBenefit).max(0)
       val availableAAWithCF: Long = annualAllowance + previousPeriods.slice(0,3).foldLeft(0L)(_+_.unusedAllowance)

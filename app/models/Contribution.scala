@@ -31,7 +31,7 @@ case class Contribution(taxPeriodStart: TaxPeriod, taxPeriodEnd: TaxPeriod, amou
 
 object TaxPeriod {
   val EARLIEST_YEAR_SUPPORTED:Int = 2008
-  val LATEST_YEAR_SUPPORTED:Int = 2013
+  val LATEST_YEAR_SUPPORTED:Int = 2016
   val MIN_VALUE:Int = 0
   val MIN_DAY_VALUE:Int = 1
   implicit val taxPeriodWrites: Writes[TaxPeriod] = (
