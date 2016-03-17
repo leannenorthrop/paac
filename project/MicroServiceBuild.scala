@@ -21,6 +21,7 @@ private object AppDependencies {
   private val hmrcTestVersion = "1.4.0"
   private val scalaTestVersion = "2.2.2"
   private val pegDownVersion = "1.4.2"
+  private val scalacheckVersion = "1.12.5"
 
   val compile = Seq(
 
@@ -45,7 +46,8 @@ private object AppDependencies {
         "uk.gov.hmrc" %% "hmrctest" % hmrcTestVersion % scope,
         "org.scalatest" %% "scalatest" % scalaTestVersion % scope,
         "org.pegdown" % "pegdown" % pegDownVersion % scope,
-        "com.typesafe.play" %% "play-test" % PlayVersion.current % scope
+        "com.typesafe.play" %% "play-test" % PlayVersion.current % scope,
+        "org.scalacheck" %% "scalacheck" % scalacheckVersion % scope
       )
     }.test
   }
