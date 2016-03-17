@@ -286,20 +286,6 @@ class ContributionSpec extends ModelSpec {
       firstValidationError.message shouldBe "error.min"
       firstValidationError.args(0) shouldBe 2008
     }
-
-    "unapplySimple returns just start tax year and defined benefit amount" in {
-      // setup
-      val taxYear = 2015
-      val amount = 48900
-      val contribution = Contribution(taxYear, amount)
-
-      // do it
-      val (actualTaxYear, actualAmount) = Contribution.unapplySimple(contribution).get
-
-      // check
-      actualTaxYear shouldBe taxYear
-      actualAmount shouldBe amount
-    }
   }
 
   "Array of contributions" can {
