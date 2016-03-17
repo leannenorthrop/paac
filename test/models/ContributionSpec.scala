@@ -204,6 +204,17 @@ class ContributionSpec extends ModelSpec {
       contribution.taxPeriodStart.year shouldBe taxYear
     }
 
+    "have a tax year label" in {
+      // set up
+      val c = Contribution(2008, 0)
+
+      // do it 
+      val label = c.taxYearLabel
+
+      // check
+      label shouldBe "2008/09"
+    }
+
     "have a defined benefit input amount in pounds" in new ContributionFixture {
       // setup
       val dbAmountInPounds = 39342
