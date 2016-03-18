@@ -24,7 +24,7 @@ trait Calculator {
 }
 
 object CalculatorFactory {
-  val calculators : List[Calculator] = List(Pre2014Calculator)
+  val calculators : List[Calculator] = List(Pre2014Calculator,Year2014Calculator)
 
   def get(contribution:Contribution) : Option[Calculator] = 
     calculators.find(_.isSupported(contribution))

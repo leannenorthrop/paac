@@ -29,9 +29,6 @@ import play.api.libs.json._
 import play.api.mvc.Action
 import scala.concurrent.Future
 
-/**
-  * Created by peri on 02/03/16.
-  */
 trait CalculatorController {
   this: Controller with PensionAllowanceCalculator =>
 
@@ -57,5 +54,4 @@ trait CalculatorController {
   }
 }
 
-object CalculatorController extends Controller with CalculatorController with PensionAllowanceCalculator {
-}
+object CalculatorController extends Controller with CalculatorController with PensionAllowanceCalculator
