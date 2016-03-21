@@ -64,7 +64,8 @@ trait BasicCalculator extends Calculator {
     val availableAAWithCF: Long = annualAllowance + previousPeriods.slice(0,3).foldLeft(0L)(_+_.unusedAllowance)
     val availableAAWithCCF: Long = (annualAllowance + previousPeriods.slice(0,2).foldLeft(0L)(_+_.unusedAllowance) - (contribution.amounts.definedBenefit-exceedingAAAmount)).max(0)
     val chargableAmount: Long = if (contribution.taxPeriodStart.year < 2011) -1 else (contribution.amounts.definedBenefit - availableAAWithCF).max(0)
+    val unusedAllowanceCF: Long = (availableAAWithCF-contribution.amounts.definedBenefit).max(0)
 
-    Some(SummaryResult(chargableAmount, exceedingAAAmount, annualAllowance, unusedAllowance, availableAAWithCF, availableAAWithCCF))
+    Some(SummaryResult(chargableAmount, exceedingAAAmount, annualAllowance, unusedAllowance, availableAAWithCF, availableAAWithCCF, unusedAllowanceCF))
   } else None
 }

@@ -84,7 +84,7 @@ class Year2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks
       val results = Year2014Calculator.summary(Seq[SummaryResult](), Contribution(2014, 0))
 
       // check it
-      results shouldBe Some(SummaryResult(0,0,4000000,4000000,4000000,4000000))
+      results shouldBe Some(SummaryResult(0,0,4000000,4000000,4000000,4000000,4000000))
     }
 
     "return annual allowance of 4000000 pence for all valid amounts" in {

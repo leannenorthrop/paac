@@ -70,12 +70,12 @@ class PensionAllowanceCalculatorSpec extends UnitSpec {
 
         // check it
         results.size shouldBe 6
-        results(0) shouldBe TaxYearResults(inputs(0), SummaryResult(-1,0,5000000,4500000,5000000,4500000))
-        results(1) shouldBe TaxYearResults(inputs(1), SummaryResult(-1,0,5000000,4400000,9500000,8900000))
-        results(2) shouldBe TaxYearResults(inputs(2), SummaryResult(-1,0,5000000,4300000,13900000,13200000))
-        results(3) shouldBe TaxYearResults(inputs(3), SummaryResult(0,0,5000000,4200000,18200000,12900000))
-        results(4) shouldBe TaxYearResults(inputs(4), SummaryResult(0,0,5000000,4100000,17900000,12600000))
-        results(5) shouldBe TaxYearResults(inputs(5), SummaryResult(0,0,5000000,4000000,17600000,12300000))
+        results(0) shouldBe TaxYearResults(inputs(0), SummaryResult(-1,0,5000000,4500000,5000000,4500000,4500000))
+        results(1) shouldBe TaxYearResults(inputs(1), SummaryResult(-1,0,5000000,4400000,9500000,8900000,8900000))
+        results(2) shouldBe TaxYearResults(inputs(2), SummaryResult(-1,0,5000000,4300000,13900000,13200000,13200000))
+        results(3) shouldBe TaxYearResults(inputs(3), SummaryResult(0,0,5000000,4200000,18200000,12900000,17400000))
+        results(4) shouldBe TaxYearResults(inputs(4), SummaryResult(0,0,5000000,4100000,17900000,12600000,17000000))
+        results(5) shouldBe TaxYearResults(inputs(5), SummaryResult(0,0,5000000,4000000,17600000,12300000,16600000))
       }
 
       "return correct allowances and carry forward values even if inputs are not in tax year sequential order" in new ContributionPre2014Fixture {
@@ -87,12 +87,12 @@ class PensionAllowanceCalculatorSpec extends UnitSpec {
 
         // check it
         results.size shouldBe 6
-        results(0) shouldBe TaxYearResults(contribution0, SummaryResult(-1,0,5000000,4500000,5000000,4500000))
-        results(1) shouldBe TaxYearResults(contribution1, SummaryResult(-1,0,5000000,4400000,9500000,8900000))
-        results(2) shouldBe TaxYearResults(contribution2, SummaryResult(-1,0,5000000,4300000,13900000,13200000))
-        results(3) shouldBe TaxYearResults(contribution3, SummaryResult(0,0,5000000,4200000,18200000,12900000))
-        results(4) shouldBe TaxYearResults(contribution4, SummaryResult(0,0,5000000,4100000,17900000,12600000))
-        results(5) shouldBe TaxYearResults(contribution5, SummaryResult(0,0,5000000,4000000,17600000,12300000))
+        results(0) shouldBe TaxYearResults(contribution0, SummaryResult(-1,0,5000000,4500000,5000000,4500000,4500000))
+        results(1) shouldBe TaxYearResults(contribution1, SummaryResult(-1,0,5000000,4400000,9500000,8900000,8900000))
+        results(2) shouldBe TaxYearResults(contribution2, SummaryResult(-1,0,5000000,4300000,13900000,13200000,13200000))
+        results(3) shouldBe TaxYearResults(contribution3, SummaryResult(0,0,5000000,4200000,18200000,12900000,17400000))
+        results(4) shouldBe TaxYearResults(contribution4, SummaryResult(0,0,5000000,4100000,17900000,12600000,17000000))
+        results(5) shouldBe TaxYearResults(contribution5, SummaryResult(0,0,5000000,4000000,17600000,12300000,16600000))
       }
 
       "return correct allowances and carry forward values if interim tax year inputs are missing" in new ContributionPre2014Fixture {
@@ -104,9 +104,9 @@ class PensionAllowanceCalculatorSpec extends UnitSpec {
 
         // check it
         results.size shouldBe 3
-        results(0) shouldBe TaxYearResults(contribution0, SummaryResult(-1,0,5000000,4500000,5000000,4500000))
-        results(1) shouldBe TaxYearResults(Contribution(2009,0), SummaryResult(-1,0,5000000,5000000,9500000,9500000))
-        results(2) shouldBe TaxYearResults(contribution2, SummaryResult(-1,0,5000000,4300000,14500000,13800000))
+        results(0) shouldBe TaxYearResults(contribution0, SummaryResult(-1,0,5000000,4500000,5000000,4500000,4500000))
+        results(1) shouldBe TaxYearResults(Contribution(2009,0), SummaryResult(-1,0,5000000,5000000,9500000,9500000,9500000))
+        results(2) shouldBe TaxYearResults(contribution2, SummaryResult(-1,0,5000000,4300000,14500000,13800000,13800000))
       }
 
       "return correct calculations when pension contributions are 50000" in {
@@ -145,12 +145,12 @@ class PensionAllowanceCalculatorSpec extends UnitSpec {
 
         // check results
         results.size shouldBe 6
-        results(0) shouldBe TaxYearResults(Contribution(2008, 4000000), SummaryResult(-1,               exceedingAAAmount=0,availableAllowance=5000000,unusedAllowance=1000000,availableAAWithCF=5000000,availableAAWithCCF=1000000))
-        results(1) shouldBe TaxYearResults(Contribution(2009, 4000000), SummaryResult(-1,               exceedingAAAmount=0,availableAllowance=5000000,unusedAllowance=1000000,availableAAWithCF=6000000,availableAAWithCCF=2000000))
-        results(2) shouldBe TaxYearResults(Contribution(2010, 4000000), SummaryResult(-1,               exceedingAAAmount=0,availableAllowance=5000000,unusedAllowance=1000000,availableAAWithCF=7000000,availableAAWithCCF=3000000))
-        results(3) shouldBe TaxYearResults(Contribution(2011, 4000000), SummaryResult(chargableAmount=0,exceedingAAAmount=0,availableAllowance=5000000,unusedAllowance=1000000,availableAAWithCF=8000000,availableAAWithCCF=3000000))
-        results(4) shouldBe TaxYearResults(Contribution(2012, 4000000), SummaryResult(chargableAmount=0,exceedingAAAmount=0,availableAllowance=5000000,unusedAllowance=1000000,availableAAWithCF=8000000,availableAAWithCCF=3000000))
-        results(5) shouldBe TaxYearResults(Contribution(2013, 4000000), SummaryResult(chargableAmount=0,exceedingAAAmount=0,availableAllowance=5000000,unusedAllowance=1000000,availableAAWithCF=8000000,availableAAWithCCF=3000000))
+        results(0) shouldBe TaxYearResults(Contribution(2008, 4000000), SummaryResult(-1,               exceedingAAAmount=0,availableAllowance=5000000,unusedAllowance=1000000,availableAAWithCF=5000000,availableAAWithCCF=1000000,1000000))
+        results(1) shouldBe TaxYearResults(Contribution(2009, 4000000), SummaryResult(-1,               exceedingAAAmount=0,availableAllowance=5000000,unusedAllowance=1000000,availableAAWithCF=6000000,availableAAWithCCF=2000000,2000000))
+        results(2) shouldBe TaxYearResults(Contribution(2010, 4000000), SummaryResult(-1,               exceedingAAAmount=0,availableAllowance=5000000,unusedAllowance=1000000,availableAAWithCF=7000000,availableAAWithCCF=3000000,3000000))
+        results(3) shouldBe TaxYearResults(Contribution(2011, 4000000), SummaryResult(chargableAmount=0,exceedingAAAmount=0,availableAllowance=5000000,unusedAllowance=1000000,availableAAWithCF=8000000,availableAAWithCCF=3000000,4000000))
+        results(4) shouldBe TaxYearResults(Contribution(2012, 4000000), SummaryResult(chargableAmount=0,exceedingAAAmount=0,availableAllowance=5000000,unusedAllowance=1000000,availableAAWithCF=8000000,availableAAWithCCF=3000000,4000000))
+        results(5) shouldBe TaxYearResults(Contribution(2013, 4000000), SummaryResult(chargableAmount=0,exceedingAAAmount=0,availableAllowance=5000000,unusedAllowance=1000000,availableAAWithCF=8000000,availableAAWithCCF=3000000,4000000))
       }
 
       "return correct calculations when pension contributions are greater than 50000" in {
@@ -189,12 +189,12 @@ class PensionAllowanceCalculatorSpec extends UnitSpec {
 
         // check results
         results.size shouldBe 6
-        results(0) shouldBe TaxYearResults(Contribution(2008, 0), SummaryResult(-1,               exceedingAAAmount=0,availableAllowance=5000000,unusedAllowance=5000000,availableAAWithCF=5000000 ,availableAAWithCCF=5000000 ))
-        results(1) shouldBe TaxYearResults(Contribution(2009, 0), SummaryResult(-1,               exceedingAAAmount=0,availableAllowance=5000000,unusedAllowance=5000000,availableAAWithCF=10000000,availableAAWithCCF=10000000))
-        results(2) shouldBe TaxYearResults(Contribution(2010, 0), SummaryResult(-1,               exceedingAAAmount=0,availableAllowance=5000000,unusedAllowance=5000000,availableAAWithCF=15000000,availableAAWithCCF=15000000))
-        results(3) shouldBe TaxYearResults(Contribution(2011, 0), SummaryResult(chargableAmount=0,exceedingAAAmount=0,availableAllowance=5000000,unusedAllowance=5000000,availableAAWithCF=20000000,availableAAWithCCF=15000000))
-        results(4) shouldBe TaxYearResults(Contribution(2012, 0), SummaryResult(chargableAmount=0,exceedingAAAmount=0,availableAllowance=5000000,unusedAllowance=5000000,availableAAWithCF=20000000,availableAAWithCCF=15000000))
-        results(5) shouldBe TaxYearResults(Contribution(2013, 0), SummaryResult(chargableAmount=0,exceedingAAAmount=0,availableAllowance=5000000,unusedAllowance=5000000,availableAAWithCF=20000000,availableAAWithCCF=15000000))
+        results(0) shouldBe TaxYearResults(Contribution(2008, 0), SummaryResult(-1,               exceedingAAAmount=0,availableAllowance=5000000,unusedAllowance=5000000,availableAAWithCF=5000000 ,availableAAWithCCF=5000000, 5000000))
+        results(1) shouldBe TaxYearResults(Contribution(2009, 0), SummaryResult(-1,               exceedingAAAmount=0,availableAllowance=5000000,unusedAllowance=5000000,availableAAWithCF=10000000,availableAAWithCCF=10000000,10000000))
+        results(2) shouldBe TaxYearResults(Contribution(2010, 0), SummaryResult(-1,               exceedingAAAmount=0,availableAllowance=5000000,unusedAllowance=5000000,availableAAWithCF=15000000,availableAAWithCCF=15000000,15000000))
+        results(3) shouldBe TaxYearResults(Contribution(2011, 0), SummaryResult(chargableAmount=0,exceedingAAAmount=0,availableAllowance=5000000,unusedAllowance=5000000,availableAAWithCF=20000000,availableAAWithCCF=15000000,20000000))
+        results(4) shouldBe TaxYearResults(Contribution(2012, 0), SummaryResult(chargableAmount=0,exceedingAAAmount=0,availableAllowance=5000000,unusedAllowance=5000000,availableAAWithCF=20000000,availableAAWithCCF=15000000,20000000))
+        results(5) shouldBe TaxYearResults(Contribution(2013, 0), SummaryResult(chargableAmount=0,exceedingAAAmount=0,availableAllowance=5000000,unusedAllowance=5000000,availableAAWithCF=20000000,availableAAWithCCF=15000000,20000000))
       }
 
       "return correct calculations when pension contributions are variable amounts above and below allowance" in {
@@ -211,12 +211,12 @@ class PensionAllowanceCalculatorSpec extends UnitSpec {
 
         // check results
         results.size shouldBe 6
-        results(0) shouldBe TaxYearResults(Contribution(2008, 0),       SummaryResult(-1,                      exceedingAAAmount=0,        availableAllowance=5000000, unusedAllowance=5000000, availableAAWithCF=5000000,  availableAAWithCCF=5000000))
-        results(1) shouldBe TaxYearResults(Contribution(2009, 5000000), SummaryResult(-1,                      exceedingAAAmount=0,        availableAllowance=5000000, unusedAllowance=0,       availableAAWithCF=10000000, availableAAWithCCF=5000000))
-        results(2) shouldBe TaxYearResults(Contribution(2010, 6000000), SummaryResult(-1,                      exceedingAAAmount=1000000,  availableAllowance=5000000, unusedAllowance=0,       availableAAWithCF=10000000, availableAAWithCCF=5000000))
-        results(3) shouldBe TaxYearResults(Contribution(2011, 15000000),SummaryResult(chargableAmount=5000000, exceedingAAAmount=10000000, availableAllowance=5000000, unusedAllowance=0,       availableAAWithCF=10000000, availableAAWithCCF=0))
-        results(4) shouldBe TaxYearResults(Contribution(2012, 4000000), SummaryResult(chargableAmount=0,       exceedingAAAmount=0,        availableAllowance=5000000, unusedAllowance=1000000, availableAAWithCF=5000000,  availableAAWithCCF=1000000))
-        results(5) shouldBe TaxYearResults(Contribution(2013, 5000000), SummaryResult(chargableAmount=0,       exceedingAAAmount=0,        availableAllowance=5000000, unusedAllowance=0,       availableAAWithCF=6000000,  availableAAWithCCF=1000000))
+        results(0) shouldBe TaxYearResults(Contribution(2008, 0),       SummaryResult(-1,                      exceedingAAAmount=0,        availableAllowance=5000000, unusedAllowance=5000000, availableAAWithCF=5000000,  availableAAWithCCF=5000000, 5000000))
+        results(1) shouldBe TaxYearResults(Contribution(2009, 5000000), SummaryResult(-1,                      exceedingAAAmount=0,        availableAllowance=5000000, unusedAllowance=0,       availableAAWithCF=10000000, availableAAWithCCF=5000000, 5000000))
+        results(2) shouldBe TaxYearResults(Contribution(2010, 6000000), SummaryResult(-1,                      exceedingAAAmount=1000000,  availableAllowance=5000000, unusedAllowance=0,       availableAAWithCF=10000000, availableAAWithCCF=5000000, 4000000))
+        results(3) shouldBe TaxYearResults(Contribution(2011, 15000000),SummaryResult(chargableAmount=5000000, exceedingAAAmount=10000000, availableAllowance=5000000, unusedAllowance=0,       availableAAWithCF=10000000, availableAAWithCCF=0,       0))
+        results(4) shouldBe TaxYearResults(Contribution(2012, 4000000), SummaryResult(chargableAmount=0,       exceedingAAAmount=0,        availableAllowance=5000000, unusedAllowance=1000000, availableAAWithCF=5000000,  availableAAWithCCF=1000000, 1000000))
+        results(5) shouldBe TaxYearResults(Contribution(2013, 5000000), SummaryResult(chargableAmount=0,       exceedingAAAmount=0,        availableAllowance=5000000, unusedAllowance=0,       availableAAWithCF=6000000,  availableAAWithCCF=1000000, 1000000))
       }
     }
   }
