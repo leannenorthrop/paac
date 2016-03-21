@@ -52,3 +52,19 @@ trait PensionAllowanceCalculator {
 }
 
 object PensionAllowanceCalculator extends PensionAllowanceCalculator
+
+trait BasicCalculator extends Calculator {
+  protected val annualAllowanceInPounds: Long
+
+  def summary(previousPeriods:Seq[SummaryResult], contribution: models.Contribution): Option[SummaryResult] = if (isSupported(contribution) && contribution.amounts.definedBenefit >= 0) {
+    // convert allowance from pounds to pence
+    val annualAllowance: Long = annualAllowanceInPounds*100 
+    val exceedingAAAmount: Long = (contribution.amounts.definedBenefit - annualAllowance).max(0)
+    val unusedAllowance: Long = (annualAllowance - contribution.amounts.definedBenefit).max(0)
+    val availableAAWithCF: Long = annualAllowance + previousPeriods.slice(0,3).foldLeft(0L)(_+_.unusedAllowance)
+    val availableAAWithCCF: Long = (annualAllowance + previousPeriods.slice(0,2).foldLeft(0L)(_+_.unusedAllowance) - (contribution.amounts.definedBenefit-exceedingAAAmount)).max(0)
+    val chargableAmount: Long = if (contribution.taxPeriodStart.year < 2011) -1 else (contribution.amounts.definedBenefit - availableAAWithCF).max(0)
+
+    Some(SummaryResult(chargableAmount, exceedingAAAmount, annualAllowance, unusedAllowance, availableAAWithCF, availableAAWithCCF))
+  } else None
+}
