@@ -34,6 +34,19 @@ class PensionAllowanceCalculatorSpec extends UnitSpec {
     }
 
   "PensionAllowanceCalculator" should {
+    "return 0 for any negative defined benefit" in {
+      // set up
+      val input = Contribution(2010, -9000L)
+      val inputs = List(input)
+
+      // do it
+      val results = PensionAllowanceCalculator.calculateAllowances(inputs)
+
+      // check it
+      results.size shouldBe 1
+      results(0) shouldBe TaxYearResults(input, SummaryResult())
+    }
+
     "return 0 for any input after 2013 tax year" in {
       // set up
       val input = Contribution(TaxPeriod(2016, 3, 1), TaxPeriod(2016, 8, 31), InputAmounts())

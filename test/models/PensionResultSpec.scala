@@ -186,5 +186,16 @@ class PensionResultSpec extends ModelSpec {
       val jsonExceedingAAAmount = json \ "summaryResult" \ "exceedingAAAmount"
       jsonExceedingAAAmount.as[Long] shouldBe exceedingAAAmount
     }    
+
+    "unmarshall from JSON" in {
+      // setup
+      val json = Json.parse("""{"input": {"taxPeriodStart": {"year":2008, "month" : 2, "day" : 11}, "taxPeriodEnd": {"year":2008, "month" : 8, "day" : 12}, "amounts": {"definedBenefit": 12345, "moneyPurchase": 67890}}, "summaryResult":{"chargableAmount": 12345, "exceedingAAAmount": 67890, "availableAllowance":0, "unusedAllowance": 0, "availableAAWithCF": 0, "availableAAWithCCF":0, "unusedAllowanceCF":0}}""")
+
+      // do it
+      val taxYearResultsOption : Option[TaxYearResults] = json.validate[TaxYearResults].fold(invalid = { _ => None }, valid = { obj => Some(obj)})
+
+      taxYearResultsOption.get.input.taxPeriodStart.year shouldBe 2008
+      taxYearResultsOption.get.summaryResult.chargableAmount shouldBe 12345
+    }
   }  
 }
