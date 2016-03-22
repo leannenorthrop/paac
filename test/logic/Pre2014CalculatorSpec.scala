@@ -101,7 +101,7 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
       val results = Pre2014Calculator.summary(Seq[SummaryResult](), contribution)
 
       // check it
-      results shouldBe Some(SummaryResult(-1,0,5000000,5000000,5000000,5000000))
+      results shouldBe Some(SummaryResult(-1,0,5000000,5000000,5000000,5000000,5000000))
     }
 
     "return amount exceeding Annual Allowance of 0 for values under 5000000" in new ContributionPre2014Fixture {
