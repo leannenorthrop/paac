@@ -21,6 +21,7 @@ private object AppDependencies {
   private val scalaTestVersion = "2.2.2"
   private val pegDownVersion = "1.4.2"
   private val scalacheckVersion = "1.12.5"
+  private val mockitoVersion = "1.10.19"
 
   val compile = Seq(
 
@@ -45,7 +46,8 @@ private object AppDependencies {
         "org.scalatest" %% "scalatest" % scalaTestVersion % scope,
         "org.pegdown" % "pegdown" % pegDownVersion % scope,
         "com.typesafe.play" %% "play-test" % PlayVersion.current % scope,
-        "org.scalacheck" %% "scalacheck" % scalacheckVersion % scope
+        "org.scalacheck" %% "scalacheck" % scalacheckVersion % scope,
+        "org.mockito" % "mockito-core" % mockitoVersion % scope
       )
     }.test
   }
