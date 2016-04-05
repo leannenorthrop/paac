@@ -21,12 +21,13 @@ import models._
 trait PensionAllowanceCalculator {
 
   def calculateAllowances(contributions : Seq[Contribution]) : Seq[TaxYearResults] = {
-    // Ensure sequential tax years
+    // Ensure sequential tax years have values converted none amounts to 0 for calculation purposes
     val inputsByTaxYear = contributions.groupBy(_.taxPeriodStart.year)
     val allContributions = (inputsByTaxYear.keys.min to inputsByTaxYear.keys.max).foldLeft(List[Contribution]()) {
       (lst:List[Contribution], year:Int) =>
       // TODO implement support partial tax years
-      inputsByTaxYear.get(year).getOrElse(List(Contribution(year,0))).head :: lst
+      val contribution = inputsByTaxYear.get(year).getOrElse(List(Contribution(year,0))).head
+      (if (contribution.isEmpty) contribution.copy(amounts=Some(InputAmounts(0,0))) else contribution) :: lst
     }.sortWith(_.taxPeriodStart.year < _.taxPeriodStart.year)
 
     // Calculate results

@@ -23,17 +23,29 @@ import play.api.libs.json._
 sealed trait CalculationParam
 sealed trait PensionCalculatorValue
 
-case class InputAmounts(definedBenefit: Long = 0, moneyPurchase: Long = 0) extends PensionCalculatorValue
+case class InputAmounts(definedBenefit: Option[Long] = None, moneyPurchase: Option[Long] = None) extends PensionCalculatorValue {
+  def isEmpty() : Boolean = {
+    definedBenefit == None && moneyPurchase == None
+  }
+}
+
 case class TaxPeriod(year: Int, month: Int, day: Int)
-case class Contribution(taxPeriodStart: TaxPeriod, taxPeriodEnd: TaxPeriod, amounts: InputAmounts) extends CalculationParam {
+case class Contribution(taxPeriodStart: TaxPeriod, taxPeriodEnd: TaxPeriod, amounts: Option[InputAmounts]) extends CalculationParam {
   def taxYearLabel() : String = s"${taxPeriodStart.year}/${taxPeriodEnd.year.toString().drop(2)}"
+  def isEmpty() : Boolean = {
+    amounts == None || (amounts.isDefined && amounts.get.isEmpty)
+  }
 }
 
 object TaxPeriod {
-  val EARLIEST_YEAR_SUPPORTED:Int = 2008
+  // Unlike front-end backend must have fixed supported start and end years
+  // as calculation rules are very dependant on a varying set of rules for each year
+  val EARLIEST_YEAR_SUPPORTED:Int = 2006
   val LATEST_YEAR_SUPPORTED:Int = 2016
+
   val MIN_VALUE:Int = 0
   val MIN_DAY_VALUE:Int = 1
+
   implicit val taxPeriodWrites: Writes[TaxPeriod] = (
     (JsPath \ "year").write[Int] and
     (JsPath \ "month").write[Int] and
@@ -49,30 +61,38 @@ object TaxPeriod {
 
 object InputAmounts {
   implicit val inputAmountsWrites: Writes[InputAmounts] = (
-    (JsPath \ "definedBenefit").write[Long] and
-    (JsPath \ "moneyPurchase").write[Long]
+    (JsPath \ "definedBenefit").write[Option[Long]] and
+    (JsPath \ "moneyPurchase").write[Option[Long]]
   )(unlift(InputAmounts.unapply))
 
   implicit val inputAmountsReads: Reads[InputAmounts] = (
-    (JsPath \ "definedBenefit").read[Long](min(0L)) and
-    (JsPath \ "moneyPurchase").read[Long](min(0L))
-  )(InputAmounts.apply _)
+    (JsPath \ "definedBenefit").readNullable[Long](min(0L)) and
+    (JsPath \ "moneyPurchase").readNullable[Long](min(0L))
+  )(InputAmounts.apply(_: Option[Long], _: Option[Long]))
+
+  def apply(definedBenefit: Long, moneyPurchase: Long) : InputAmounts = {
+    InputAmounts(Some(definedBenefit), Some(moneyPurchase))
+  }
+
+  def apply(definedBenefit: Long) : InputAmounts = {
+    InputAmounts(Some(definedBenefit), None)
+  }
 }
 
 object Contribution {
   implicit val contributionWrites: Writes[Contribution] = (
     (JsPath \ "taxPeriodStart").write[TaxPeriod] and
     (JsPath \ "taxPeriodEnd").write[TaxPeriod] and
-    (JsPath \ "amounts").write[InputAmounts]
+    (JsPath \ "amounts").write[Option[InputAmounts]]
   )(unlift(Contribution.unapply))
 
   implicit val contributionReads: Reads[Contribution] = (
     (JsPath \ "taxPeriodStart").read[TaxPeriod] and
     (JsPath \ "taxPeriodEnd").read[TaxPeriod] and
-    (JsPath \ "amounts").read[InputAmounts]
-  )(Contribution.apply(_:TaxPeriod, _:TaxPeriod, _:InputAmounts))
+    (JsPath \ "amounts").readNullable[InputAmounts]
+  )(Contribution.apply(_:TaxPeriod, _:TaxPeriod, _:Option[InputAmounts]))
 
   def apply(year: Int, definedBenefit: Long) : Contribution = {
-    Contribution(TaxPeriod(year, 4, 6), TaxPeriod(year+1, 4, 5), InputAmounts(definedBenefit=definedBenefit))
+    Contribution(TaxPeriod(year, 4, 6), TaxPeriod(year+1, 4, 5), Some(InputAmounts(definedBenefit=Some(definedBenefit))))
   }
 }

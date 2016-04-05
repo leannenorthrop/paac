@@ -21,16 +21,22 @@ import models._
 trait BasicCalculator extends Calculator {
   protected val annualAllowanceInPounds: Long
 
-  def summary(previousPeriods:Seq[SummaryResult], contribution: models.Contribution): Option[SummaryResult] = if (isSupported(contribution) && contribution.amounts.definedBenefit >= 0) {
-    // convert allowance from pounds to pence
-    val annualAllowance: Long = annualAllowanceInPounds*100 
-    val exceedingAAAmount: Long = (contribution.amounts.definedBenefit - annualAllowance).max(0)
-    val unusedAllowance: Long = (annualAllowance - contribution.amounts.definedBenefit).max(0)
-    val availableAAWithCF: Long = annualAllowance + previousPeriods.slice(0,3).foldLeft(0L)(_+_.unusedAllowance)
-    val availableAAWithCCF: Long = (annualAllowance + previousPeriods.slice(0,2).foldLeft(0L)(_+_.unusedAllowance) - (contribution.amounts.definedBenefit-exceedingAAAmount)).max(0)
-    val chargableAmount: Long = if (contribution.taxPeriodStart.year < 2011) -1 else (contribution.amounts.definedBenefit - availableAAWithCF).max(0)
-    val unusedAllowanceCF: Long = (availableAAWithCF-contribution.amounts.definedBenefit).max(0)
+  def summary(previousPeriods:Seq[SummaryResult], contribution: models.Contribution): Option[SummaryResult] = {
+    if (contribution.amounts.isDefined &&
+        contribution.amounts.get.definedBenefit.isDefined) {
+      val definedBenefit = contribution.amounts.get.definedBenefit.get
+      if (isSupported(contribution) && definedBenefit >= 0) {
+        // convert allowance from pounds to pence
+        val annualAllowance: Long = annualAllowanceInPounds*100 
+        val exceedingAAAmount: Long = (definedBenefit - annualAllowance).max(0)
+        val unusedAllowance: Long = (annualAllowance - definedBenefit).max(0)
+        val availableAAWithCF: Long = annualAllowance + previousPeriods.slice(0,3).foldLeft(0L)(_+_.unusedAllowance)
+        val availableAAWithCCF: Long = (annualAllowance + previousPeriods.slice(0,2).foldLeft(0L)(_+_.unusedAllowance) - (definedBenefit-exceedingAAAmount)).max(0)
+        val chargableAmount: Long = if (contribution.taxPeriodStart.year < 2011) -1 else (definedBenefit - availableAAWithCF).max(0)
+        val unusedAllowanceCF: Long = (availableAAWithCF-definedBenefit).max(0)
 
-    Some(SummaryResult(chargableAmount, exceedingAAAmount, annualAllowance, unusedAllowance, availableAAWithCF, availableAAWithCCF, unusedAllowanceCF))
-  } else None
+        Some(SummaryResult(chargableAmount, exceedingAAAmount, annualAllowance, unusedAllowance, availableAAWithCF, availableAAWithCCF, unusedAllowanceCF))
+      } else None
+    } else None
+  }
 }

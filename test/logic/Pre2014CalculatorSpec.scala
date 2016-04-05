@@ -36,7 +36,7 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
 
   "Pre2014Calculator" should {
     trait ZeroContributionFixture {
-      val contribution = Contribution(TaxPeriod(2009, 3, 1), TaxPeriod(2009, 8, 31), InputAmounts())
+      val contribution = Contribution(2009, 0)
     }
 
     "not support calculations for tax years prior to 2008" in {
@@ -94,6 +94,28 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
           results should not be None 
         }
       }
+    }
+
+    "return none for contributions with no amounts provided" in {
+      // set up
+      val contribution = Contribution(TaxPeriod(2010,3,5),TaxPeriod(2011,3,6), None)
+
+      // test
+      val results = Pre2014Calculator.summary(Seq[SummaryResult](), contribution)
+
+      // check it
+      results shouldBe None
+    }
+
+    "return none for contributions with no definedBenefit amount provided" in {
+      // set up
+      val contribution = Contribution(TaxPeriod(2010,3,5),TaxPeriod(2011,3,6), Some(InputAmounts(None,None)))
+
+      // test
+      val results = Pre2014Calculator.summary(Seq[SummaryResult](), contribution)
+
+      // check it
+      results shouldBe None
     }
 
     "return some for contributions prior to 2014 and after 2007" in new ZeroContributionFixture {
@@ -178,7 +200,7 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
           results should not be None 
 
           val summaryResult = results.get
-          val definedBenefit = contribution.amounts.definedBenefit
+          val definedBenefit = contribution.amounts.get.definedBenefit.get
           summaryResult.chargableAmount shouldBe (if (contribution.taxPeriodStart.year < 2011) -1 else (definedBenefit-20000000L).max(0))
           summaryResult.exceedingAAAmount shouldBe (definedBenefit - 5000000).max(0)
           summaryResult.availableAllowance shouldBe 5000000L
@@ -212,7 +234,7 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
       val invalidContributions = for (amount <- Gen.choose(Integer.MIN_VALUE, -1)) yield Contribution(2008, amount)
 
       forAll(invalidContributions) { (contribution: Contribution) =>
-        whenever (contribution.amounts.definedBenefit < 0) { 
+        whenever (contribution.amounts.get.definedBenefit.get < 0) { 
           Pre2014Calculator.summary(Seq[SummaryResult](), contribution) shouldBe None 
         }
       }
