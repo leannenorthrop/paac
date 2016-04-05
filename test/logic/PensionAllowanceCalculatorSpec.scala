@@ -44,12 +44,12 @@ class PensionAllowanceCalculatorSpec extends UnitSpec {
 
       // check it
       results.size shouldBe 1
-      results(0) shouldBe TaxYearResults(input, SummaryResult())
+      results(0) shouldBe TaxYearResults(input, SummaryResult(0,0,0,0,0,0,0))
     }
 
     "return 0 for any input after 2013 tax year" in {
       // set up
-      val input = Contribution(TaxPeriod(2016, 3, 1), TaxPeriod(2016, 8, 31), InputAmounts())
+      val input = Contribution(2016, 100)
       val inputs = List(input)
 
       // do it
@@ -57,12 +57,12 @@ class PensionAllowanceCalculatorSpec extends UnitSpec {
 
       // check it
       results.size shouldBe 1
-      results(0) shouldBe TaxYearResults(input, SummaryResult())
+      results(0) shouldBe TaxYearResults(input, SummaryResult(0,0,0,0,0,0,0))
     }
 
     "return 0 for contributions prior to 2008" in {
       // set up
-      val input = Contribution(TaxPeriod(1914, 3, 1), TaxPeriod(1915, 8, 31), InputAmounts())
+      val input = Contribution(1914, 100)
       val inputs = List(input)
 
       // do it
@@ -70,7 +70,7 @@ class PensionAllowanceCalculatorSpec extends UnitSpec {
 
       // check it
       results.size shouldBe 1
-      results(0) shouldBe TaxYearResults(input, SummaryResult())
+      results(0) shouldBe TaxYearResults(input, SummaryResult(0,0,0,0,0,0,0))
     }
 
     "for contributions prior to 2014 and after 2008" should {

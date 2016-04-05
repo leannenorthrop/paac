@@ -91,7 +91,7 @@ class Year2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks
       val validContributions = for (amount <- Gen.choose(0, Integer.MAX_VALUE)) yield Contribution(2014, amount)
 
       forAll(validContributions) { (contribution: Contribution) =>
-        whenever (contribution.amounts.definedBenefit >= 0) { 
+        whenever (contribution.amounts.get.definedBenefit.get >= 0) { 
           val results = Year2014Calculator.summary(Seq[SummaryResult](), contribution)
           results.get.availableAllowance shouldBe 4000000L
         }
@@ -103,7 +103,7 @@ class Year2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks
         val validContributions = for (amount <- Gen.choose(0, 3999999)) yield Contribution(2014, amount)
 
         forAll(validContributions) { (contribution: Contribution) =>
-          whenever (contribution.amounts.definedBenefit < 4000000) { 
+          whenever (contribution.amounts.get.definedBenefit.get < 4000000) { 
             val results = Year2014Calculator.summary(Seq[SummaryResult](), contribution)
             results.get.exceedingAAAmount shouldBe 0 
           }
@@ -119,10 +119,10 @@ class Year2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks
         val validContributions = for (amount <- Gen.choose(4000001, Integer.MAX_VALUE)) yield Contribution(2014, amount)
 
         forAll(validContributions) { (contribution: Contribution) =>
-          whenever (contribution.amounts.definedBenefit > 4000000) { 
+          whenever (contribution.amounts.get.definedBenefit.get > 4000000) { 
             val results = Year2014Calculator.summary(Seq[SummaryResult](), contribution)
             results.get.exceedingAAAmount should not be 0 
-            val db = contribution.amounts.definedBenefit
+            val db = contribution.amounts.get.definedBenefit.get
             results.get.exceedingAAAmount shouldBe (db - 4000000L).max(0) 
           }
         }
@@ -132,7 +132,7 @@ class Year2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks
         val validContributions = for (amount <- Gen.choose(0, 3999999)) yield Contribution(2014, amount)
 
         forAll(validContributions) { (contribution: Contribution) =>
-          whenever (contribution.amounts.definedBenefit < 4000000) { 
+          whenever (contribution.amounts.get.definedBenefit.get < 4000000) { 
             val results = Year2014Calculator.summary(Seq[SummaryResult](), contribution)
             results.get.chargableAmount shouldBe 0 
           }
@@ -148,10 +148,10 @@ class Year2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks
         val validContributions = for (amount <- Gen.choose(4000001, Integer.MAX_VALUE)) yield Contribution(2014, amount)
 
         forAll(validContributions) { (contribution: Contribution) =>
-          whenever (contribution.amounts.definedBenefit > 4000000) { 
+          whenever (contribution.amounts.get.definedBenefit.get > 4000000) { 
             val results = Year2014Calculator.summary(Seq[SummaryResult](), contribution)
             results.get.chargableAmount should not be 0 
-            val db = contribution.amounts.definedBenefit
+            val db = contribution.amounts.get.definedBenefit.get
             results.get.chargableAmount shouldBe (db - 4000000L).max(0) 
           }
         }
@@ -161,10 +161,10 @@ class Year2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks
         val validContributions = for (amount <- Gen.choose(0, 3999999)) yield Contribution(2014, amount)
 
         forAll(validContributions) { (contribution: Contribution) =>
-          whenever (contribution.amounts.definedBenefit < 4000000) { 
+          whenever (contribution.amounts.get.definedBenefit.get < 4000000) { 
             val results = Year2014Calculator.summary(Seq[SummaryResult](), contribution)
             results.get.unusedAllowance should not be 0 
-            val db = contribution.amounts.definedBenefit
+            val db = contribution.amounts.get.definedBenefit.get
             results.get.unusedAllowance shouldBe (4000000L - db).max(0)
           }
         }
@@ -179,7 +179,7 @@ class Year2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks
         val validContributions = for (amount <- Gen.choose(4000001, Integer.MAX_VALUE)) yield Contribution(2014, amount)
 
         forAll(validContributions) { (contribution: Contribution) =>
-          whenever (contribution.amounts.definedBenefit > 4000000) { 
+          whenever (contribution.amounts.get.definedBenefit.get > 4000000) { 
             val results = Year2014Calculator.summary(Seq[SummaryResult](), contribution)
             results.get.unusedAllowance shouldBe 0  
           }
@@ -206,7 +206,7 @@ class Year2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks
         results should not be None 
 
         val summaryResult = results.get
-        val definedBenefit = contribution.amounts.definedBenefit
+        val definedBenefit = contribution.amounts.get.definedBenefit.get
         summaryResult.chargableAmount shouldBe (definedBenefit-19000000L).max(0)
         summaryResult.exceedingAAAmount shouldBe (definedBenefit - 4000000).max(0)
         summaryResult.availableAllowance shouldBe 4000000L
