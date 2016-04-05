@@ -184,6 +184,45 @@ class ContributionSpec extends ModelSpec {
       firstValidationError.args(0) shouldBe 0
     }
 
+    "unmashalling null" can {
+      "definedBenefit results in None" in {
+        // setup
+        val json = Json.parse("""{"definedBenefit": null, "moneyPurchase": 67890}""")
+
+        // do it
+        val inputAmountsOption : Option[InputAmounts] = json.validate[InputAmounts].fold(invalid = { _ => None }, valid = { inputAmounts => Some(inputAmounts) })
+
+        inputAmountsOption shouldBe Some(InputAmounts(None, Some(67890L)))
+      }
+      "moneyPurchase results in None" in {
+        // setup
+        val json = Json.parse("""{"definedBenefit": 737373, "moneyPurchase": null}""")
+
+        // do it
+        val inputAmountsOption : Option[InputAmounts] = json.validate[InputAmounts].fold(invalid = { _ => None }, valid = { inputAmounts => Some(inputAmounts) })
+
+        inputAmountsOption shouldBe Some(InputAmounts(Some(737373L), None))
+      }
+      "definedBenefit empty results in None" in {
+        // setup
+        val json = Json.parse("""{"moneyPurchase": 67890}""")
+
+        // do it
+        val inputAmountsOption : Option[InputAmounts] = json.validate[InputAmounts].fold(invalid = { _ => None }, valid = { inputAmounts => Some(inputAmounts) })
+
+        inputAmountsOption shouldBe Some(InputAmounts(None, Some(67890L)))
+      }
+      "moneyPurchase empty results in None" in {
+        // setup
+        val json = Json.parse("""{"definedBenefit": 737373}""")
+
+        // do it
+        val inputAmountsOption : Option[InputAmounts] = json.validate[InputAmounts].fold(invalid = { _ => None }, valid = { inputAmounts => Some(inputAmounts) })
+
+        inputAmountsOption shouldBe Some(InputAmounts(Some(737373L), None))
+      }
+    }
+
     "isEmpty" can {
       "return true if both definedBenefit and money purchase are none" in new InputAmountsFixture {
         amounts.isEmpty shouldBe true
@@ -264,6 +303,17 @@ class ContributionSpec extends ModelSpec {
       jsonMoneyPurchaseInPounds.as[Long] shouldBe moneyPurchase
     }
 
+    "marshall None amounts to JSON" in {
+      // do it
+      val json = Json.toJson(Contribution(TaxPeriod(2010,3,5),TaxPeriod(2010,3,6),None))
+
+      // check
+      val jsonTaxYear = json \ "taxPeriodStart" \ "year"
+      jsonTaxYear.as[Int] shouldBe 2010
+      val v = json \ "amounts" 
+      v.as[Option[InputAmounts]] shouldBe Some(InputAmounts(None,None))
+    }
+
     "unmarshall from JSON" in new ContributionFixture {
       // setup
       val json = Json.parse(getExpectedContributionJson)
@@ -298,6 +348,38 @@ class ContributionSpec extends ModelSpec {
       firstValidationError.message shouldBe "error.min"
       firstValidationError.args(0) shouldBe 2006
     }
+
+    "unmashalling null" can {
+      "amounts results in None" in {
+        // setup
+        val json = Json.parse("""{"taxPeriodStart": {"year":2008, "month" : 2, "day" : 11}, "taxPeriodEnd": {"year":2008, "month" : 8, "day" : 12}, "amounts": null}""")
+
+        // do it
+        val contributionOption : Option[Contribution] = json.validate[Contribution].fold(invalid = { _ => None }, valid = { contribution => Some(contribution)})
+
+        contributionOption shouldBe Some(Contribution(TaxPeriod(2008, 2, 11), TaxPeriod(2008, 8, 12), None))
+      }
+
+      "unmarshall from JSON allows null definedBenefit" in {
+        // setup
+        val json = Json.parse("""{"taxPeriodStart": {"year":2008, "month" : 2, "day" : 11}, "taxPeriodEnd": {"year":2008, "month" : 8, "day" : 12}, "amounts": {"definedBenefit": null, "moneyPurchase": 67890}}""")
+
+        // do it
+        val contributionOption : Option[Contribution] = json.validate[Contribution].fold(invalid = { _ => None }, valid = { contribution => Some(contribution)})
+
+        contributionOption shouldBe Some(Contribution(TaxPeriod(2008, 2, 11), TaxPeriod(2008, 8, 12), Some(InputAmounts(None, Some(67890L)))))
+      }
+
+      "unmarshall from JSON allows null moneyPurchase" in {
+        // setup
+        val json = Json.parse("""{"taxPeriodStart": {"year":2008, "month" : 2, "day" : 11}, "taxPeriodEnd": {"year":2008, "month" : 8, "day" : 12}, "amounts": {"definedBenefit": 9898080}}""")
+
+        // do it
+        val contributionOption : Option[Contribution] = json.validate[Contribution].fold(invalid = { _ => None }, valid = { contribution => Some(contribution)})
+
+        contributionOption shouldBe Some(Contribution(TaxPeriod(2008, 2, 11), TaxPeriod(2008, 8, 12), Some(InputAmounts(Some(9898080L),None))))
+      }
+    }    
   }
 
   "Array of contributions" can {
