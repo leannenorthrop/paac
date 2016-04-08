@@ -37,13 +37,51 @@ class Year2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks
     }
 
     "support calculations for 2014 tax year" in {
-      val validContributions = for (amount <- Gen.choose(Integer.MIN_VALUE, Integer.MAX_VALUE)) yield Contribution(2014, amount)
+      (0 until 356).foreach {
+        (day)=>
+        // first supported tax year starts on 6th April 2006
+        val c = new java.util.GregorianCalendar(2014, 3, 6)
+        c.add(java.util.Calendar.DAY_OF_MONTH,day)
+        val taxYear = c.get(java.util.Calendar.YEAR)
+        val taxMonth = c.get(java.util.Calendar.MONTH)
+        val taxDay = c.get(java.util.Calendar.DAY_OF_MONTH)
 
-      forAll(validContributions) { (contribution: Contribution) =>
-        whenever (contribution.taxPeriodStart.year == 2014) { 
-          Year2014Calculator.isSupported(contribution) shouldBe true 
-        }
+        val contribution = Contribution(TaxPeriod(taxYear, taxMonth, taxDay), 
+                                        TaxPeriod(taxYear, taxMonth, taxDay),
+                                        Some(InputAmounts(5000L)))
+
+        // do it
+        val isSupported = Year2014Calculator.isSupported(contribution)
+
+        // check it
+        withClue(s"Date '$taxDay/${taxMonth+1}/$taxYear' should be supported but") { isSupported shouldBe true }
       }
+
+      // Bounds checks
+      // start date before supported range
+      Year2014Calculator.isSupported(Contribution(TaxPeriod(2014, 3, 5), 
+                                        TaxPeriod(2014, 3, 5),
+                                        Some(InputAmounts(5000L)))) shouldBe false
+      // start date after supported range
+      Year2014Calculator.isSupported(Contribution(TaxPeriod(2015, 3, 6), 
+                                        TaxPeriod(2015, 3, 5),
+                                        Some(InputAmounts(5000L)))) shouldBe false
+      // end date before supported range
+      Year2014Calculator.isSupported(Contribution(TaxPeriod(2014, 3, 5), 
+                                        TaxPeriod(2014, 3, 5),
+                                        Some(InputAmounts(5000L)))) shouldBe false
+      // end date after supported range
+      Year2014Calculator.isSupported(Contribution(TaxPeriod(2015, 3, 6), 
+                                        TaxPeriod(2014, 3, 6),
+                                        Some(InputAmounts(5000L)))) shouldBe false 
+      // start and end date before supported range
+      Year2014Calculator.isSupported(Contribution(TaxPeriod(2014, 3, 5), 
+                                        TaxPeriod(2014, 3, 5),
+                                        Some(InputAmounts(5000L)))) shouldBe false
+      // start and end date after supported range
+      Year2014Calculator.isSupported(Contribution(TaxPeriod(2015, 3, 6), 
+                                        TaxPeriod(2015, 3, 6),
+                                        Some(InputAmounts(5000L)))) shouldBe false  
     }
 
     "return none for contributions other than 2014 tax year" in {

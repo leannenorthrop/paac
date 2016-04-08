@@ -21,7 +21,15 @@ import models._
 object Year2014Calculator extends BasicCalculator {
   protected def getAnnualAllowanceInPounds: Long = 40000L
   def isSupported(contribution:Contribution):Boolean = contribution match {
-    case Contribution(TaxPeriod(year, _, _ ), _, _) if year == 2014 => true
+    case Contribution(TaxPeriod(startYear, startMonth, startDay), 
+                      TaxPeriod(endYear, endMonth, endDay), _) => {
+      val start = new java.util.GregorianCalendar(startYear, startMonth, startDay)
+      val end = new java.util.GregorianCalendar(endYear, endMonth, endDay)
+      start.after(new java.util.GregorianCalendar(2014, 3, 5)) && 
+      start.before(new java.util.GregorianCalendar(2015, 3, 6)) && 
+      end.after(new java.util.GregorianCalendar(2014, 3, 5)) &&
+      end.before(new java.util.GregorianCalendar(2015, 3, 6))
+    }
     case _ => false
   }
 }
