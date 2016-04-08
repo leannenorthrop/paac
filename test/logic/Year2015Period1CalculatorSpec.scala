@@ -27,19 +27,24 @@ import org.scalacheck.Gen
 class Year2015Period1CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks {
   "Year2014Calculator" should {
     "support defined benefits amounts for on 6 April but before 9th July 2015" in {
-      // set up
-      val validContributions = for {taxYear <- Gen.choose(2015, 2015)
-                                    taxMonth <- Gen.oneOf(4, 5)
-                                    taxDay <- Gen.choose(1, 30)
-                                    } yield Contribution(TaxPeriod(taxYear, taxMonth, taxDay), 
-                                                         TaxPeriod(taxYear, taxMonth, taxDay+1),
-                                                         Some(InputAmounts(5000L)))
+      (0 until 94).foreach {
+        (day)=>
+        // first supported tax year starts on 6th April 2006
+        val c = new java.util.GregorianCalendar(2015, 3, 6)
+        c.add(java.util.Calendar.DAY_OF_MONTH,day)
+        val taxYear = c.get(java.util.Calendar.YEAR)
+        val taxMonth = c.get(java.util.Calendar.MONTH)
+        val taxDay = c.get(java.util.Calendar.DAY_OF_MONTH)
 
-      // test
-      forAll(validContributions) { (contribution: Contribution) =>
-        whenever (contribution.taxPeriodStart.year == 2015) { 
-          Year2015Period1Calculator.isSupported(contribution) shouldBe true
-        }
+        val contribution = Contribution(TaxPeriod(taxYear, taxMonth, taxDay), 
+                                        TaxPeriod(taxYear, taxMonth, taxDay),
+                                        Some(InputAmounts(5000L)))
+
+        // do it
+        val isSupported = Year2015Period1Calculator.isSupported(contribution)
+
+        // check it
+        withClue(s"Date '$taxDay/${taxMonth+1}/$taxYear' should be supported but") { isSupported shouldBe true }
       }
     }
 
