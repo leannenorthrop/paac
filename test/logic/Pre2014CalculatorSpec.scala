@@ -83,9 +83,30 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
       }
 
       // Bounds checks
+      // start date before supported range
       Pre2014Calculator.isSupported(Contribution(TaxPeriod(2006, 3, 5), 
                                         TaxPeriod(2006, 3, 5),
                                         Some(InputAmounts(5000L)))) shouldBe false
+      // start date after supported range
+      Pre2014Calculator.isSupported(Contribution(TaxPeriod(2014, 3, 6), 
+                                        TaxPeriod(2014, 3, 5),
+                                        Some(InputAmounts(5000L)))) shouldBe false
+      // end date before supported range
+      Pre2014Calculator.isSupported(Contribution(TaxPeriod(2006, 3, 6), 
+                                        TaxPeriod(2006, 3, 5),
+                                        Some(InputAmounts(5000L)))) shouldBe false
+      // end date after supported range
+      Pre2014Calculator.isSupported(Contribution(TaxPeriod(2014, 3, 5), 
+                                        TaxPeriod(2014, 3, 6),
+                                        Some(InputAmounts(5000L)))) shouldBe false 
+      // start and end date before supported range
+      Pre2014Calculator.isSupported(Contribution(TaxPeriod(2006, 3, 5), 
+                                        TaxPeriod(2006, 3, 5),
+                                        Some(InputAmounts(5000L)))) shouldBe false
+      // start and end date after supported range
+      Pre2014Calculator.isSupported(Contribution(TaxPeriod(2014, 3, 6), 
+                                        TaxPeriod(2014, 3, 6),
+                                        Some(InputAmounts(5000L)))) shouldBe false      
     }
 
     "return none for contributions prior to 2006" in {

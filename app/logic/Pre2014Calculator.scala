@@ -25,7 +25,10 @@ object Pre2014Calculator extends BasicCalculator {
                       TaxPeriod(endYear, endMonth, endDay), _) => {
       val start = new java.util.GregorianCalendar(startYear, startMonth, startDay)
       val end = new java.util.GregorianCalendar(endYear, endMonth, endDay)
-      start.after(new java.util.GregorianCalendar(2006, 3, 5)) && end.before(new java.util.GregorianCalendar(2014, 3, 6))
+      start.after(new java.util.GregorianCalendar(2006, 3, 5)) && 
+      start.before(new java.util.GregorianCalendar(2014, 3, 6)) && 
+      end.after(new java.util.GregorianCalendar(2006, 3, 5)) &&
+      end.before(new java.util.GregorianCalendar(2014, 3, 6))
     }
     case _ => false
   }
