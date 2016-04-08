@@ -19,7 +19,7 @@ package logic
 import models._
 
 object Pre2014Calculator extends BasicCalculator {
-  protected val annualAllowanceInPounds: Long = 50000
+  protected def getAnnualAllowanceInPounds: Long = 50000L
   def isSupported(contribution:Contribution):Boolean = contribution match {
     case Contribution(TaxPeriod(year, _, _ ), _, _) if year < 2014 && year > 2007 => true
     case _ => false
