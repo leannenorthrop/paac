@@ -266,6 +266,19 @@ class ContributionSpec extends ModelSpec {
       label shouldBe "2008/09"
     }
 
+    "apply creates a proper full tax year period" in {
+      // set up
+      val c = Contribution(2008, 0)
+
+      // check
+      c.taxPeriodStart.year shouldBe 2008
+      c.taxPeriodStart.month shouldBe 3
+      c.taxPeriodStart.day shouldBe 6
+      c.taxPeriodEnd.year shouldBe 2009
+      c.taxPeriodEnd.month shouldBe 3
+      c.taxPeriodEnd.day shouldBe 5
+    }
+
     "have a defined benefit input amount in pounds" in new ContributionFixture {
       // setup
       val dbAmountInPounds = 39342

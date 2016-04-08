@@ -96,6 +96,7 @@ object Contribution {
   )(Contribution.apply(_:TaxPeriod, _:TaxPeriod, _:Option[InputAmounts]))
 
   def apply(year: Int, definedBenefit: Long) : Contribution = {
+    // month is 0 based
     Contribution(TaxPeriod(year, 3, 6), TaxPeriod(year+1, 3, 5), Some(InputAmounts(definedBenefit=Some(definedBenefit))))
   }
 }
