@@ -83,20 +83,7 @@ class PensionAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       results(0) shouldBe TaxYearResults(input, SummaryResult(0,0,0,0,0,0,0))
     }
 
-    "return 0 for any input after 2013 tax year" in {
-      // set up
-      val input = Contribution(2016, 100)
-      val inputs = List(input)
-
-      // do it
-      val results = PensionAllowanceCalculator.calculateAllowances(inputs)
-
-      // check it
-      results.size shouldBe 1
-      results(0) shouldBe TaxYearResults(input, SummaryResult(0,0,0,0,0,0,0))
-    }
-
-    "return 0 for contributions prior to 2008" in {
+    "return 0 for contributions prior to 2006" in {
       // set up
       val input = Contribution(1914, 100)
       val inputs = List(input)
@@ -109,7 +96,7 @@ class PensionAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       results(0) shouldBe TaxYearResults(input, SummaryResult(0,0,0,0,0,0,0))
     }
 
-    "for contributions prior to 2014 and after 2008" should {
+    "for contributions prior to 2014 and after 2006" should {
       "return correct allowances and carry forward values" in new ContributionPre2014Fixture {
         // set up
         val inputs = List(contribution0, contribution1, contribution2, contribution3, contribution4, contribution5)
@@ -270,7 +257,7 @@ class PensionAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
     }
   }
 
-  "for contributions prior to 2015 and after 2008" should {
+  "for contributions prior to 2015 and after 2006" should {
     "return correct allowances and carry forward values" in new Contribution2014Fixture {
       // set up
       val inputs = List(contribution0, contribution1, contribution2, contribution3, contribution4, contribution5, contribution6)
@@ -290,7 +277,7 @@ class PensionAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
     }
   }
 
-  "for contributions prior to 2016 and after 2008" should {
+  "for contributions prior to 2016 and after 2006" should {
     "return correct allowances and carry forward values" in new Contribution2015Fixture {
       // set up
       val inputs = List(contribution0, contribution1, contribution2, contribution3, contribution4, contribution5, contribution6, contribution7)

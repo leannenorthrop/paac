@@ -40,7 +40,7 @@ class Year2015Period1CalculatorSpec extends UnitSpec with GeneratorDrivenPropert
     } finally Play.stop()
   }
 
-  "Year2014Calculator" should {
+  "Year 2015 Period 1 Calculator" should {
     "support defined benefits amounts for on 6 April but before 9th July 2015" in {
       (0 until 94).foreach {
         (day)=>
