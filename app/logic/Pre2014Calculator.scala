@@ -21,7 +21,7 @@ import models._
 import java.util._
 
 object Pre2014Calculator extends BasicCalculator {
-  protected def getAnnualAllowanceInPounds: Long = PaacConfiguration.config.flatMap[Long](_.getLong("annualallowances.Year2014Calculator")).getOrElse(40000L)
+  protected def getAnnualAllowanceInPounds: Long = PaacConfiguration.config.flatMap[Long](_.getLong("annualallowances.Pre2014Calculator")).getOrElse(50000L)
   def isSupported(contribution:Contribution):Boolean = contribution match {
     case Contribution(TaxPeriod(startYear, startMonth, startDay), 
                       TaxPeriod(endYear, endMonth, endDay), _) => {

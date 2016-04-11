@@ -27,7 +27,7 @@ object Year2015Period1Calculator extends BasicCalculator {
       val start = new GregorianCalendar(startYear, startMonth, startDay)
       val end = new GregorianCalendar(endYear, endMonth, endDay)
       start.after(new GregorianCalendar(2015, 3, 5)) && 
-      start.before(new GregorianCalendar(2015, 6, 9)) && 
+      start.before(new GregorianCalendar(2015, 6, 9)) &&
       end.after(new GregorianCalendar(2015, 3, 5)) &&
       end.before(new GregorianCalendar(2015, 6, 9))
     }

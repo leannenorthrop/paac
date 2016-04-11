@@ -16,6 +16,8 @@
 
 package logic
 
+import play.api.Play
+import play.api.test.FakeApplication
 import uk.gov.hmrc.play.test.UnitSpec
 
 import models._
@@ -24,7 +26,20 @@ import org.scalatest._
 import org.scalatest.prop._
 import org.scalacheck.Gen
 
-class Year2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks {
+class Year2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks with BeforeAndAfterAll {
+  val app = FakeApplication()
+
+  override def beforeAll() {
+    Play.start(app)
+    super.beforeAll() // To be stackable, must call super.beforeEach
+  }
+
+  override def afterAll() {
+    try {
+      super.afterAll()
+    } finally Play.stop()
+  }
+
   "Year2014Calculator" should {
     "not support calculations for tax years other than 2014" in {
       val invalidContributions = for (taxYear <- Gen.choose(Integer.MIN_VALUE, Integer.MAX_VALUE)) yield Contribution(taxYear, 5000)
