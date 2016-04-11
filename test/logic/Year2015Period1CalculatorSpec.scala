@@ -78,5 +78,38 @@ class Year2015Period1CalculatorSpec extends UnitSpec with GeneratorDrivenPropert
                                                   TaxPeriod(2015, 6, 9),
                                                   Some(InputAmounts(5000L)))) shouldBe false 
     }
+
+    "return none for contributions other than 2015 period 1" in {
+      val invalidContributions = for (taxYear <- Gen.choose(Integer.MIN_VALUE, Integer.MAX_VALUE)) yield Contribution(taxYear, 5000)
+
+      forAll(invalidContributions) { (contribution: Contribution) =>
+        whenever (contribution.taxPeriodStart.year != 2015) { 
+          val results = Year2015Period1Calculator.summary(Seq[SummaryResult](), contribution)
+          results shouldBe None 
+        }
+      }
+    }
+
+    "return some results for contributions other than 2015 period 1" in {
+      (0 until 94).foreach {
+        (day)=>
+        // first supported tax year starts on 6th April 2006
+        val c = new java.util.GregorianCalendar(2015, 3, 6)
+        c.add(java.util.Calendar.DAY_OF_MONTH,day)
+        val taxYear = c.get(java.util.Calendar.YEAR)
+        val taxMonth = c.get(java.util.Calendar.MONTH)
+        val taxDay = c.get(java.util.Calendar.DAY_OF_MONTH)
+
+        val contribution = Contribution(TaxPeriod(taxYear, taxMonth, taxDay), 
+                                        TaxPeriod(taxYear, taxMonth, taxDay),
+                                        Some(InputAmounts(5000L)))
+
+        // do it
+        val results = Year2015Period1Calculator.summary(Seq[SummaryResult](), contribution)  
+
+        // check it
+        withClue(s"Contributions with date '$taxDay/${taxMonth+1}/$taxYear' should be supported but") { results shouldBe Some(SummaryResult(0,0,8000000,7995000,8000000,7995000,7995000)) }
+      }
+    }
   }
 }

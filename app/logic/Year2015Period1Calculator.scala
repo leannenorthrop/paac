@@ -17,17 +17,18 @@
 package logic
 
 import models._
+import java.util._
 
 object Year2015Period1Calculator extends BasicCalculator {
   protected def getAnnualAllowanceInPounds: Long = 80000L
   def isSupported(contribution:Contribution):Boolean = contribution match {
     case Contribution(TaxPeriod(startYear, startMonth, startDay), TaxPeriod(endYear, endMonth, endDay), _) => {
-      val start = new java.util.GregorianCalendar(startYear, startMonth, startDay)
-      val end = new java.util.GregorianCalendar(endYear, endMonth, endDay)
-      start.after(new java.util.GregorianCalendar(2015, 3, 5)) && 
-      start.before(new java.util.GregorianCalendar(2015, 6, 9)) && 
-      end.after(new java.util.GregorianCalendar(2015, 3, 5)) &&
-      end.before(new java.util.GregorianCalendar(2015, 6, 9))
+      val start = new GregorianCalendar(startYear, startMonth, startDay)
+      val end = new GregorianCalendar(endYear, endMonth, endDay)
+      start.after(new GregorianCalendar(2015, 3, 5)) && 
+      start.before(new GregorianCalendar(2015, 6, 9)) && 
+      end.after(new GregorianCalendar(2015, 3, 5)) &&
+      end.before(new GregorianCalendar(2015, 6, 9))
     }
     case _ => false
   }
