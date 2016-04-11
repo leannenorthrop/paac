@@ -92,14 +92,14 @@ class CalculatorControllerSpec extends ControllerSpec with BeforeAndAfterAll {
           status(result) shouldBe status(BadRequest)
       }
 
-      "return error message" in {   
+      "return error message" in {
         //setup
         val requestBody = INVALID_CONTRIBUTION_JSON_BODY
 
         //do it
         val result = execute(requestBody)
 
-        //check 
+        //check
         val obj : JsObject = contentAsJson(result).as[JsObject]
         (obj \ "status") shouldBe JsNumber(400)
         (obj \ "message") shouldBe JsString("Invalid JSON request object.")

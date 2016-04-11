@@ -19,11 +19,9 @@ package logic
 import play.api.Play
 import uk.gov.hmrc.play.test.UnitSpec
 import org.scalatest.BeforeAndAfterAll
-import play.api.test.{FakeRequest, FakeApplication}
+import play.api.test.{FakeApplication}
 import models._
 
-import org.scalatest._
-//import org.scalacheck.Prop.forAll
 
 class PensionAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
   val app = FakeApplication()

@@ -21,7 +21,8 @@ import models._
 import java.util._
 
 object Pre2014Calculator extends BasicCalculator {
-  protected def getAnnualAllowanceInPounds: Long = PaacConfiguration.config.flatMap[Long](_.getLong("annualallowances.Pre2014Calculator")).getOrElse(50000L)
+  protected def getAnnualAllowanceInPounds: Long =
+    PaacConfiguration.config.flatMap[Long](_.getLong("annualallowances.Pre2014Calculator")).getOrElse(50000L)
   protected val PERIOD_START_AFTER = new GregorianCalendar(2006, 3, 5)
   protected val PERIOD_END_BEFORE = new GregorianCalendar(2014, 3, 6)
 
