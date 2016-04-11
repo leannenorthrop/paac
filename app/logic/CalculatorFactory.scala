@@ -29,5 +29,5 @@ trait CalculatorFactory {
 }
 
 object CalculatorFactory extends CalculatorFactory {
-  override val calculators : List[Calculator] = List(Pre2014Calculator,Year2014Calculator)
+  override val calculators : List[Calculator] = List(Pre2014Calculator, Year2014Calculator, Year2015Period1Calculator)
 }

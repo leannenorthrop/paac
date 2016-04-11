@@ -226,7 +226,7 @@ class Year2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks
     }
   }
 
-  "return correct calculation results for contributions with no previous contributions" in {
+  "return correct calculation results for contributions with previous contributions" in {
     val validContributions = for (amount <- Gen.choose(0, Integer.MAX_VALUE)) 
                              yield Contribution(2014, amount)
 
