@@ -39,7 +39,7 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
       val contribution = Contribution(2009, 0)
     }
 
-    "not support calculations for tax years prior to 2008" in {
+    "not support calculations for tax years prior to 2006" in {
       // set up
       val contribution = Contribution(1914, 5000)
 
@@ -50,7 +50,7 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
       isSupported shouldBe false
     }
 
-    "not support calculations for tax years after 2013" in {
+    "not support calculations for tax years after 2014" in {
       // set up
       val contribution = Contribution(3090, 5000)
 
@@ -61,35 +61,72 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
       isSupported shouldBe false
     }
 
-    "support calculations for tax years 2008 to 2013" in {
-      val validContributions = for (taxYear <- Gen.choose(2008, 2013)) yield Contribution(taxYear, 5000)
+    "support calculations for tax years 2006 to 2014" in {      
+      (0 until 2922).foreach {
+        (day)=>
+        // first supported tax year starts on 6th April 2006
+        val c = new java.util.GregorianCalendar(2006, 3, 6)
+        c.add(java.util.Calendar.DAY_OF_MONTH,day)
+        val taxYear = c.get(java.util.Calendar.YEAR)
+        val taxMonth = c.get(java.util.Calendar.MONTH)
+        val taxDay = c.get(java.util.Calendar.DAY_OF_MONTH)
 
-      forAll(validContributions) { (contribution: Contribution) =>
-        whenever (contribution.taxPeriodStart.year < 2014 && contribution.taxPeriodStart.year > 2007) { 
-          val result = Pre2014Calculator.isSupported(contribution) 
-          result shouldBe true 
-        }
+        val contribution = Contribution(TaxPeriod(taxYear, taxMonth, taxDay), 
+                                        TaxPeriod(taxYear, taxMonth, taxDay),
+                                        Some(InputAmounts(5000L)))
+
+        // do it
+        val isSupported = Pre2014Calculator.isSupported(contribution)
+
+        // check it
+        isSupported shouldBe true
       }
+
+      // Bounds checks
+      // start date before supported range
+      Pre2014Calculator.isSupported(Contribution(TaxPeriod(2006, 3, 5), 
+                                        TaxPeriod(2006, 3, 5),
+                                        Some(InputAmounts(5000L)))) shouldBe false
+      // start date after supported range
+      Pre2014Calculator.isSupported(Contribution(TaxPeriod(2014, 3, 6), 
+                                        TaxPeriod(2014, 3, 5),
+                                        Some(InputAmounts(5000L)))) shouldBe false
+      // end date before supported range
+      Pre2014Calculator.isSupported(Contribution(TaxPeriod(2006, 3, 6), 
+                                        TaxPeriod(2006, 3, 5),
+                                        Some(InputAmounts(5000L)))) shouldBe false
+      // end date after supported range
+      Pre2014Calculator.isSupported(Contribution(TaxPeriod(2014, 3, 5), 
+                                        TaxPeriod(2014, 3, 6),
+                                        Some(InputAmounts(5000L)))) shouldBe false 
+      // start and end date before supported range
+      Pre2014Calculator.isSupported(Contribution(TaxPeriod(2006, 3, 5), 
+                                        TaxPeriod(2006, 3, 5),
+                                        Some(InputAmounts(5000L)))) shouldBe false
+      // start and end date after supported range
+      Pre2014Calculator.isSupported(Contribution(TaxPeriod(2014, 3, 6), 
+                                        TaxPeriod(2014, 3, 6),
+                                        Some(InputAmounts(5000L)))) shouldBe false      
     }
 
-    "return none for contributions prior to 2008" in {
-      val invalidContributions = for (taxYear <- Gen.choose(Integer.MIN_VALUE, 2007)) yield Contribution(taxYear, 5000)
+    "return none for contributions prior to 2006" in {
+      val invalidContributions = for (taxYear <- Gen.choose(Integer.MIN_VALUE, 2005)) yield Contribution(taxYear, 5000)
 
       forAll(invalidContributions) { (contribution: Contribution) =>
-        whenever (contribution.taxPeriodStart.year < 2008) { 
+        whenever (contribution.taxPeriodStart.year < 2006) { 
           val results = Pre2014Calculator.summary(Seq[SummaryResult](), contribution)
           results shouldBe None 
         }
       }
     }
 
-    "return some calculation results for contributions between 2008 and 2013 inclusively" in {
-      val validContributions = for (taxYear <- Gen.choose(2008, 2013);
+    "return some calculation results for contributions between 2006 and 2013/14 inclusively" in {
+      val validContributions = for (taxYear <- Gen.choose(2006, 2013);
                                     amount <- Gen.choose(0, Integer.MAX_VALUE)) 
                               yield Contribution(taxYear, amount)
 
       forAll(validContributions) { (contribution: Contribution) =>
-        whenever (contribution.taxPeriodStart.year < 2014 && contribution.taxPeriodStart.year > 2007) { 
+        whenever (contribution.taxPeriodStart.year < 2015 && contribution.taxPeriodStart.year > 2005) { 
           val results = Pre2014Calculator.summary(Seq[SummaryResult](), contribution)
           results should not be None 
         }
@@ -118,7 +155,7 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
       results shouldBe None
     }
 
-    "return some for contributions prior to 2014 and after 2007" in new ZeroContributionFixture {
+    "return some results for contributions" in new ZeroContributionFixture {
       // do it
       val results = Pre2014Calculator.summary(Seq[SummaryResult](), contribution)
 
@@ -134,7 +171,7 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
       result.exceedingAAAmount shouldBe 0
     }
 
-    "return amount chargable amount of -1 for values under 5000000 for tax years prior to 2011" in new ContributionPre2014Fixture {
+    "return amount chargable amount of -1 for values under 5000000" in new ContributionPre2014Fixture {
       // do it
       val result = Pre2014Calculator.summary(Seq[SummaryResult](), contribution1).get
 
@@ -142,7 +179,7 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
       result.chargableAmount shouldBe -1
     }
 
-    "return amount chargable amount of 0 for values under 5000000 for tax years prior to 2011" in new ContributionPre2014Fixture {
+    "return amount chargable amount of 0 for values under 5000000" in new ContributionPre2014Fixture {
       // do it
       val result = Pre2014Calculator.summary(Seq[SummaryResult](), Contribution(2013, 500000)).get
 
@@ -182,13 +219,13 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
       result.unusedAllowance shouldBe 4400000
     }
 
-    "return correct calculation results for contributions between 2008 and 2013 inclusively with no previous contributions" in {
-      val validContributions = for (taxYear <- Gen.choose(2008, 2013);
+    "return correct calculation results for contributions between 2006 and 2013/14 inclusively with no previous contributions" in {
+      val validContributions = for (taxYear <- Gen.choose(2006, 2013);
                                     amount <- Gen.choose(0, Integer.MAX_VALUE)) 
                                yield Contribution(taxYear, amount)
 
       forAll(validContributions) { (contribution: Contribution) =>
-        whenever (contribution.taxPeriodStart.year < 2014 && contribution.taxPeriodStart.year > 2007) { 
+        whenever (contribution.taxPeriodStart.year < 2014 && contribution.taxPeriodStart.year > 2005) { 
           // set up
           val ty = contribution.taxPeriodStart.year
           val previous = List.tabulate(ty-2008)(n => SummaryResult(availableAllowance=5000000,unusedAllowance=5000000))

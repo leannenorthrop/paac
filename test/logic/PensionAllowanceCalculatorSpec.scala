@@ -24,14 +24,35 @@ import org.scalatest._
 //import org.scalacheck.Prop.forAll
 
 class PensionAllowanceCalculatorSpec extends UnitSpec {
-    trait ContributionPre2014Fixture {
-      val contribution0 = Contribution(2008, 500000)
-      val contribution1 = Contribution(2009, 600000)
-      val contribution2 = Contribution(2010, 700000)
-      val contribution3 = Contribution(2011, 800000)
-      val contribution4 = Contribution(2012, 900000)
-      val contribution5 = Contribution(2013, 1000000)
-    }
+  trait ContributionPre2014Fixture {
+    val contribution0 = Contribution(2008, 500000)
+    val contribution1 = Contribution(2009, 600000)
+    val contribution2 = Contribution(2010, 700000)
+    val contribution3 = Contribution(2011, 800000)
+    val contribution4 = Contribution(2012, 900000)
+    val contribution5 = Contribution(2013, 1000000)
+  }
+
+  trait Contribution2014Fixture {
+    val contribution0 = Contribution(2008, 500000)
+    val contribution1 = Contribution(2009, 600000)
+    val contribution2 = Contribution(2010, 700000)
+    val contribution3 = Contribution(2011, 800000)
+    val contribution4 = Contribution(2012, 900000)
+    val contribution5 = Contribution(2013, 1000000)
+    val contribution6 = Contribution(2014, 1100000)
+  }
+
+  trait Contribution2015Fixture {
+    val contribution0 = Contribution(2008, 500000)
+    val contribution1 = Contribution(2009, 600000)
+    val contribution2 = Contribution(2010, 700000)
+    val contribution3 = Contribution(2011, 800000)
+    val contribution4 = Contribution(2012, 900000)
+    val contribution5 = Contribution(2013, 1000000)
+    val contribution6 = Contribution(2014, 1100000)
+    val contribution7 = Contribution(TaxPeriod(2015, 3, 7), TaxPeriod(2015, 3, 9), Some(InputAmounts(1200000)))
+  }
 
   "PensionAllowanceCalculator" should {
     "return 0 for any negative defined benefit" in {
@@ -231,6 +252,119 @@ class PensionAllowanceCalculatorSpec extends UnitSpec {
         results(4) shouldBe TaxYearResults(Contribution(2012, 4000000), SummaryResult(chargableAmount=0,       exceedingAAAmount=0,        availableAllowance=5000000, unusedAllowance=1000000, availableAAWithCF=5000000,  availableAAWithCCF=1000000, 1000000))
         results(5) shouldBe TaxYearResults(Contribution(2013, 5000000), SummaryResult(chargableAmount=0,       exceedingAAAmount=0,        availableAllowance=5000000, unusedAllowance=0,       availableAAWithCF=6000000,  availableAAWithCCF=1000000, 1000000))
       }
+    }
+  }
+
+  "for contributions prior to 2015 and after 2008" should {
+    "return correct allowances and carry forward values" in new Contribution2014Fixture {
+      // set up
+      val inputs = List(contribution0, contribution1, contribution2, contribution3, contribution4, contribution5, contribution6)
+
+      // do it
+      val results = PensionAllowanceCalculator.calculateAllowances(inputs)
+
+      // check it
+      results.size shouldBe 7
+      results(0) shouldBe TaxYearResults(inputs(0), SummaryResult(-1,0,5000000,4500000,5000000,4500000,4500000))
+      results(1) shouldBe TaxYearResults(inputs(1), SummaryResult(-1,0,5000000,4400000,9500000,8900000,8900000))
+      results(2) shouldBe TaxYearResults(inputs(2), SummaryResult(-1,0,5000000,4300000,13900000,13200000,13200000))
+      results(3) shouldBe TaxYearResults(inputs(3), SummaryResult(0,0,5000000,4200000,18200000,12900000,17400000))
+      results(4) shouldBe TaxYearResults(inputs(4), SummaryResult(0,0,5000000,4100000,17900000,12600000,17000000))
+      results(5) shouldBe TaxYearResults(inputs(5), SummaryResult(0,0,5000000,4000000,17600000,12300000,16600000))
+      results(6) shouldBe TaxYearResults(inputs(6), SummaryResult(0,0,4000000,2900000,16300000,11000000,15200000))
+    }
+  }
+
+  "for contributions prior to 2016 and after 2008" should {
+    "return correct allowances and carry forward values" in new Contribution2015Fixture {
+      // set up
+      val inputs = List(contribution0, contribution1, contribution2, contribution3, contribution4, contribution5, contribution6, contribution7)
+
+      // do it
+      val results = PensionAllowanceCalculator.calculateAllowances(inputs)
+
+      // check it
+      results.size shouldBe 8
+      results(0) shouldBe TaxYearResults(inputs(0), SummaryResult(-1,0,5000000,4500000,5000000,4500000,4500000))
+      results(1) shouldBe TaxYearResults(inputs(1), SummaryResult(-1,0,5000000,4400000,9500000,8900000,8900000))
+      results(2) shouldBe TaxYearResults(inputs(2), SummaryResult(-1,0,5000000,4300000,13900000,13200000,13200000))
+      results(3) shouldBe TaxYearResults(inputs(3), SummaryResult(0,0,5000000,4200000,18200000,12900000,17400000))
+      results(4) shouldBe TaxYearResults(inputs(4), SummaryResult(0,0,5000000,4100000,17900000,12600000,17000000))
+      results(5) shouldBe TaxYearResults(inputs(5), SummaryResult(0,0,5000000,4000000,17600000,12300000,16600000))
+      results(6) shouldBe TaxYearResults(inputs(6), SummaryResult(0,0,4000000,2900000,16300000,11000000,15200000))
+      results(7) shouldBe TaxYearResults(inputs(7), SummaryResult(0,0,8000000,6800000,19000000,13700000,17800000))
+    }
+
+    "return correct allowances and carry forward values when all previous allowances used and input is 8000000" in new Contribution2015Fixture {
+      // set up
+      val inputs = List(Contribution(2012, 5000000),
+                        Contribution(2013, 5000000),
+                        Contribution(2014, 4000000),
+                        Contribution(TaxPeriod(2015, 3, 7), TaxPeriod(2015, 3, 9), Some(InputAmounts(8000000L))))
+
+      // do it
+      val results = PensionAllowanceCalculator.calculateAllowances(inputs)
+
+      // check it
+      results.size shouldBe 4
+      results(0).summaryResult shouldBe SummaryResult(0,0,5000000,0,5000000,0,0)
+      results(1).summaryResult shouldBe SummaryResult(0,0,5000000,0,5000000,0,0)
+      results(2).summaryResult shouldBe SummaryResult(0,0,4000000,0,4000000,0,0) 
+      results(3).summaryResult shouldBe SummaryResult(0,0,8000000,0,8000000,0,0)
+    }
+
+    "return correct allowances and carry forward values when all previous allowances used and input is 7900000" in new Contribution2015Fixture {
+      // set up
+      val inputs = List(Contribution(2012, 5000000),
+                        Contribution(2013, 5000000),
+                        Contribution(2014, 4000000),
+                        Contribution(TaxPeriod(2015, 3, 7), TaxPeriod(2015, 3, 9), Some(InputAmounts(7900000L))))
+
+      // do it
+      val results = PensionAllowanceCalculator.calculateAllowances(inputs)
+
+      // check it
+      results.size shouldBe 4
+      results(0).summaryResult shouldBe SummaryResult(0,0,5000000,0,5000000,0,0)
+      results(1).summaryResult shouldBe SummaryResult(0,0,5000000,0,5000000,0,0)
+      results(2).summaryResult shouldBe SummaryResult(0,0,4000000,0,4000000,0,0) 
+      results(3).summaryResult shouldBe SummaryResult(0,0,8000000,100000,8000000,100000,100000) 
+    }
+
+    "return correct allowances and carry forward values when all previous allowances used and input is 8100000" in new Contribution2015Fixture {
+      // set up
+      val inputs = List(Contribution(2012, 5000000),
+                        Contribution(2013, 5000000),
+                        Contribution(2014, 4000000),
+                        Contribution(TaxPeriod(2015, 3, 7), TaxPeriod(2015, 3, 9), Some(InputAmounts(8100000L))))
+
+      // do it
+      val results = PensionAllowanceCalculator.calculateAllowances(inputs)
+
+      // check it
+      results.size shouldBe 4
+      results(0).summaryResult shouldBe SummaryResult(0,0,5000000,0,5000000,0,0)
+      results(1).summaryResult shouldBe SummaryResult(0,0,5000000,0,5000000,0,0)
+      results(2).summaryResult shouldBe SummaryResult(0,0,4000000,0,4000000,0,0) 
+      results(3).summaryResult shouldBe SummaryResult(100000,100000,8000000,0,8000000,0,0) 
+    }
+
+    "return correct allowances and carry forward values when all previous allowances used and input is 6500000" in new Contribution2015Fixture {
+      // set up
+      val inputs = List(Contribution(2012, 4000000),
+                        Contribution(2013, 4500000),
+                        Contribution(2014, 3700000),
+                        Contribution(TaxPeriod(2015, 3, 7), TaxPeriod(2015, 3, 9), Some(InputAmounts(6500000L))))
+
+      // do it
+      val results = PensionAllowanceCalculator.calculateAllowances(inputs)
+
+      // check it
+      results.size shouldBe 4
+      results(0).summaryResult shouldBe SummaryResult(0,0,5000000,1000000,5000000,1000000,1000000)
+      results(1).summaryResult shouldBe SummaryResult(0,0,5000000,500000,6000000,1500000,1500000)
+      results(2).summaryResult shouldBe SummaryResult(0,0,4000000,300000,5500000,1800000,1800000)
+      results(3).summaryResult shouldBe SummaryResult(0,0,8000000,1500000,9800000,2300000,3300000)
     }
   }
 } 

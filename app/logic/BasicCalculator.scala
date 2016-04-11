@@ -19,7 +19,7 @@ package logic
 import models._
 
 trait BasicCalculator extends Calculator {
-  protected val annualAllowanceInPounds: Long
+  protected def getAnnualAllowanceInPounds: Long
 
   def summary(previousPeriods:Seq[SummaryResult], contribution: models.Contribution): Option[SummaryResult] = {
     if (contribution.amounts.isDefined &&
@@ -27,7 +27,7 @@ trait BasicCalculator extends Calculator {
       val definedBenefit = contribution.amounts.get.definedBenefit.get
       if (isSupported(contribution) && definedBenefit >= 0) {
         // convert allowance from pounds to pence
-        val annualAllowance: Long = annualAllowanceInPounds*100 
+        val annualAllowance: Long = getAnnualAllowanceInPounds*100L
         val exceedingAAAmount: Long = (definedBenefit - annualAllowance).max(0)
         val unusedAllowance: Long = (annualAllowance - definedBenefit).max(0)
         val availableAAWithCF: Long = annualAllowance + previousPeriods.slice(0,3).foldLeft(0L)(_+_.unusedAllowance)
