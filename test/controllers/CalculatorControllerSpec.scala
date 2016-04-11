@@ -24,12 +24,30 @@ import play.api.libs.json._
 import play.api.mvc.{Result, Results, Controller, Action}
 import play.api.mvc.Results._
 
+import org.scalatest.BeforeAndAfterAll
+import play.api.test.{FakeRequest, FakeApplication}
+import models._
+import play.api.Play
+
 import uk.gov.hmrc.play.test.UnitSpec
 
 import org.scalatest._
 import org.scalatest.concurrent._
 
-class CalculatorControllerSpec extends ControllerSpec {
+class CalculatorControllerSpec extends ControllerSpec with BeforeAndAfterAll {
+  val app = FakeApplication()
+
+  override def beforeAll() {
+    Play.start(app)
+    super.beforeAll() // To be stackable, must call super.beforeEach
+  }
+
+  override def afterAll() {
+    try {
+      super.afterAll()
+    } finally Play.stop()
+  }
+
   val ENDPOINT_PATH = "/paac/calculate/"
   val VALID_CONTRIBUTION_JSON_BODY : List[Contribution] = List[Contribution](Contribution(taxPeriodStart=TaxPeriod(2009, 0, 1), taxPeriodEnd=TaxPeriod(2009, 3, 31), amounts=Some(InputAmounts(90000L,0L))))
   val INVALID_CONTRIBUTION_JSON_BODY : List[Contribution] = List[Contribution](Contribution(taxPeriodStart=TaxPeriod(2009, 0, 1), taxPeriodEnd=TaxPeriod(2009, 3, 31), amounts=Some(InputAmounts(-2000L,0L))))
@@ -74,14 +92,14 @@ class CalculatorControllerSpec extends ControllerSpec {
           status(result) shouldBe status(BadRequest)
       }
 
-      "return error message" in {   
+      "return error message" in {
         //setup
         val requestBody = INVALID_CONTRIBUTION_JSON_BODY
 
         //do it
         val result = execute(requestBody)
 
-        //check 
+        //check
         val obj : JsObject = contentAsJson(result).as[JsObject]
         (obj \ "status") shouldBe JsNumber(400)
         (obj \ "message") shouldBe JsString("Invalid JSON request object.")
