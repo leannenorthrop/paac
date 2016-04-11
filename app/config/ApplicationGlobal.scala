@@ -49,3 +49,7 @@ object MicroserviceGlobal extends DefaultMicroserviceGlobal with RunMode {
 
   override val authFilter = None
 }
+
+object PaacConfiguration {
+  lazy val config:Option[Configuration] = Play.current.configuration.getConfig("microservice.paac")
+}

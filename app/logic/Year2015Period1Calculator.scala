@@ -16,11 +16,12 @@
 
 package logic
 
+import config.PaacConfiguration
 import models._
 import java.util._
 
 object Year2015Period1Calculator extends BasicCalculator {
-  protected def getAnnualAllowanceInPounds: Long = 80000L
+  protected def getAnnualAllowanceInPounds: Long = PaacConfiguration.config.flatMap[Long](_.getLong("annualallowances.Year2015Period1Calculator")).getOrElse(80000L)
   def isSupported(contribution:Contribution):Boolean = contribution match {
     case Contribution(TaxPeriod(startYear, startMonth, startDay), TaxPeriod(endYear, endMonth, endDay), _) => {
       val start = new GregorianCalendar(startYear, startMonth, startDay)
