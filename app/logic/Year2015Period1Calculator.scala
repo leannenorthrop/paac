@@ -20,6 +20,8 @@ import models._
 import java.util._
 
 object Year2015Period1Calculator extends BasicCalculator {
+  basic: BasicCalculator =>
+
   protected def getAnnualAllowanceInPounds: Long = 80000L
   protected val PERIOD_START_AFTER = new GregorianCalendar(2015, 3, 5)
   protected val PERIOD_END_BEFORE = new GregorianCalendar(2015, 6, 9)
@@ -28,5 +30,24 @@ object Year2015Period1Calculator extends BasicCalculator {
     val start = contribution.taxPeriodStart.toCalendar
     val end = contribution.taxPeriodEnd.toCalendar
     start.after(PERIOD_START_AFTER) && start.before(PERIOD_END_BEFORE) && end.after(PERIOD_START_AFTER) && end.before(PERIOD_END_BEFORE)
+  }
+
+  override def summary(previousPeriods:Seq[SummaryResult], contribution: models.Contribution): Option[SummaryResult] = {
+    // Period 1 only allows maximum carry forward of £40k (here in pence values)
+    super.summary(previousPeriods, contribution).map {
+      (results) =>
+      if (results.unusedAllowance > 4000000L) {
+          val ua = results.unusedAllowance-4000000L
+          val acf = results.availableAAWithCF-4000000L
+          val accf = results.availableAAWithCCF-4000000L
+          val ucf = results.unusedAllowanceCF-4000000L
+          results.copy(unusedAllowance=ua,
+                       availableAAWithCF=acf, 
+                       availableAAWithCCF=accf, 
+                       unusedAllowanceCF=ucf)
+        } else {
+          results
+        }
+    }
   }
 }

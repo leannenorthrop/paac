@@ -279,7 +279,7 @@ class PensionAllowanceCalculatorSpec extends UnitSpec {
       results(4) shouldBe TaxYearResults(inputs(4), SummaryResult(0,0,5000000,4100000,17900000,12600000,17000000))
       results(5) shouldBe TaxYearResults(inputs(5), SummaryResult(0,0,5000000,4000000,17600000,12300000,16600000))
       results(6) shouldBe TaxYearResults(inputs(6), SummaryResult(0,0,4000000,2900000,16300000,11000000,15200000))
-      results(7) shouldBe TaxYearResults(inputs(7), SummaryResult(0,0,8000000,6800000,19000000,13700000,17800000))
+      results(7) shouldBe TaxYearResults(inputs(7), SummaryResult(0,0,8000000,2800000,15000000,9700000,13800000))
     }
 
     "return correct allowances and carry forward values when all previous allowances used and input is 8000000" in new Contribution2015Fixture {
