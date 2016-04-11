@@ -25,7 +25,7 @@ import org.scalatest.prop._
 import org.scalacheck.Gen
 
 class Year2015Period1CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks {
-  "Year2014Calculator" should {
+  "Year 2015 Period 1 Calculator" should {
     "support defined benefits amounts for on 6 April but before 9th July 2015" in {
       (0 until 94).foreach {
         (day)=>
@@ -90,7 +90,7 @@ class Year2015Period1CalculatorSpec extends UnitSpec with GeneratorDrivenPropert
       }
     }
 
-    "return some results for contributions other than 2015 period 1" in {
+    "return some results for contributions in 2015 period 1" in {
       (0 until 94).foreach {
         (day)=>
         // first supported tax year starts on 6th April 2006
@@ -158,7 +158,7 @@ class Year2015Period1CalculatorSpec extends UnitSpec with GeneratorDrivenPropert
       }
 
       "return correct amount of 0 chargable amount for values under 8000000" in {
-        val validContributions = for (amount <- Gen.choose(0, 3999999)) yield Contribution(TaxPeriod(2015, 3, 7), 
+        val validContributions = for (amount <- Gen.choose(0, 7999999)) yield Contribution(TaxPeriod(2015, 3, 7), 
                                                                                            TaxPeriod(2015, 3, 9),
                                                                                            Some(InputAmounts(amount)))
 
@@ -178,7 +178,7 @@ class Year2015Period1CalculatorSpec extends UnitSpec with GeneratorDrivenPropert
       }
 
       "return correct amount of non-0 chargable amount for values over 8000000" in {
-        val validContributions = for (amount <- Gen.choose(4000001, Integer.MAX_VALUE)) yield Contribution(TaxPeriod(2015, 3, 7), 
+        val validContributions = for (amount <- Gen.choose(8000001, Integer.MAX_VALUE)) yield Contribution(TaxPeriod(2015, 3, 7), 
                                                                                                            TaxPeriod(2015, 3, 9),
                                                                                                            Some(InputAmounts(amount)))
 
