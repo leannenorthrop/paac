@@ -31,7 +31,7 @@ object Year2015Period1Calculator extends BasicCalculator {
   }
 
   override def summary(previousPeriods:Seq[SummaryResult], contribution: models.Contribution): Option[SummaryResult] = {
-    // Period 1 only allows maximum carry forward of £40k (here in pence values)
+    // Period 1 only allows maximum carry forward of 40k (here in pence values)
     super.summary(previousPeriods, contribution).map {
       (results) =>
       if (results.unusedAllowance > 4000000L) {
