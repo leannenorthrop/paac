@@ -16,11 +16,12 @@
 
 package logic
 
+import config.PaacConfiguration
 import models._
 import java.util._
 
 object Year2014Calculator extends BasicCalculator {
-  protected def getAnnualAllowanceInPounds: Long = 40000L
+  protected def getAnnualAllowanceInPounds: Long = PaacConfiguration.config.flatMap[Long](_.getLong("annualallowances.Year2014Calculator")).getOrElse(50000L)
   protected val PERIOD_START_AFTER = new GregorianCalendar(2014, 3, 5)
   protected val PERIOD_END_BEFORE = new GregorianCalendar(2015, 3, 6)
 

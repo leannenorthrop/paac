@@ -16,14 +16,27 @@
 
 package logic
 
+import play.api.Play
 import uk.gov.hmrc.play.test.UnitSpec
-
+import org.scalatest.BeforeAndAfterAll
+import play.api.test.{FakeApplication}
 import models._
 
-import org.scalatest._
-//import org.scalacheck.Prop.forAll
 
-class PensionAllowanceCalculatorSpec extends UnitSpec {
+class PensionAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
+  val app = FakeApplication()
+
+  override def beforeAll() {
+    Play.start(app)
+    super.beforeAll() // To be stackable, must call super.beforeEach
+  }
+
+  override def afterAll() {
+    try {
+      super.afterAll()
+    } finally Play.stop()
+  }
+
   trait ContributionPre2014Fixture {
     val contribution0 = Contribution(2008, 500000)
     val contribution1 = Contribution(2009, 600000)
