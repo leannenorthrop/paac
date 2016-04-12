@@ -121,7 +121,7 @@ class Year2015Period1CalculatorSpec extends UnitSpec with GeneratorDrivenPropert
         val results = Year2015Period1Calculator.summary(Seq[SummaryResult](), contribution)
 
         // check it
-        withClue(s"Contributions with date '$taxDay/${taxMonth+1}/$taxYear' should be supported but") { results shouldBe Some(SummaryResult(0,0,8000000,3995000,4000000,3995000,3995000)) }
+        withClue(s"Contributions with date '$taxDay/${taxMonth+1}/$taxYear' should be supported but") { results shouldBe Some(SummaryResult(0,0,8000000,4000000,8000000,3995000,7995000)) }
       }
     }
 
@@ -132,7 +132,7 @@ class Year2015Period1CalculatorSpec extends UnitSpec with GeneratorDrivenPropert
                                                                               TaxPeriod(2015, 3, 9),
                                                                               Some(InputAmounts(0L))))
         // check it
-        results shouldBe Some(SummaryResult(0,0,8000000,4000000,4000000,4000000,4000000))
+        results shouldBe Some(SummaryResult(0,0,8000000,4000000,8000000,4000000,8000000))
       }
 
       "return annual allowance of 8000000 pence for all valid amounts" in {
@@ -216,7 +216,7 @@ class Year2015Period1CalculatorSpec extends UnitSpec with GeneratorDrivenPropert
             results.get.unusedAllowance should not be 0
             val db = contribution.amounts.get.definedBenefit.get
             if (8000000L - db > 4000000) {
-              results.get.unusedAllowance shouldBe (8000000L - db - 4000000).max(0)
+              results.get.unusedAllowance shouldBe (if ((8000000L - db)>4000000) 4000000 else 8000000L - db).max(0)
             } else {
               results.get.unusedAllowance shouldBe (8000000L - db).max(0)
             }

@@ -39,13 +39,41 @@ case class TaxPeriod(year: Int, month: Int, day: Int) {
 }
 
 case class Contribution(taxPeriodStart: TaxPeriod, taxPeriodEnd: TaxPeriod, amounts: Option[InputAmounts]) extends CalculationParam {
-  def taxYearLabel() : String = s"${taxPeriodStart.year}/${taxPeriodEnd.year.toString().drop(2)}"
+  def taxYearLabel() : String = {
+    if (taxPeriodStart.year == 2015 && taxPeriodStart.month == 6) {
+      s"2015 P2"  
+    } else if (taxPeriodStart.year == 2015 && taxPeriodStart.month == 3) {
+      s"2015 P1"  
+    } else {
+      s"${taxPeriodStart.year}/${taxPeriodEnd.year.toString().drop(2)}"
+    }
+  }
   
-  def isEmpty() : Boolean = {
+  def isEmpty(): Boolean = {
     amounts == None || (amounts.isDefined && amounts.get.isEmpty)
   }
 
-  def +(that:Contribution) = {
+  def isPeriod1(): Boolean = {
+    val PERIOD_START_AFTER = TaxPeriod.PERIOD_1_2015_START.toCalendar
+    val PERIOD_END_BEFORE = TaxPeriod.PERIOD_1_2015_END.toCalendar
+    PERIOD_START_AFTER.add(java.util.Calendar.DAY_OF_MONTH, -1)
+    PERIOD_END_BEFORE.add(java.util.Calendar.DAY_OF_MONTH, 1)
+    val start = taxPeriodStart.toCalendar
+    val end = taxPeriodEnd.toCalendar
+    start.after(PERIOD_START_AFTER) && start.before(PERIOD_END_BEFORE) && end.after(PERIOD_START_AFTER) && end.before(PERIOD_END_BEFORE)    
+  }
+
+  def isPeriod2(): Boolean = {
+    val PERIOD_START_AFTER = TaxPeriod.PERIOD_2_2015_START.toCalendar
+    val PERIOD_END_BEFORE = TaxPeriod.PERIOD_2_2015_END.toCalendar
+    PERIOD_START_AFTER.add(java.util.Calendar.DAY_OF_MONTH, -1)
+    PERIOD_END_BEFORE.add(java.util.Calendar.DAY_OF_MONTH, 1)    
+    val start = taxPeriodStart.toCalendar
+    val end = taxPeriodEnd.toCalendar
+    start.after(PERIOD_START_AFTER) && start.before(PERIOD_END_BEFORE) && end.after(PERIOD_START_AFTER) && end.before(PERIOD_END_BEFORE)    
+  }
+
+  def +(that:Contribution): Contribution = {
     if (amounts.isDefined && that.amounts.isDefined) {
       val thisAmounts = amounts.get
       val thatAmounts = that.amounts.get
@@ -66,6 +94,11 @@ object TaxPeriod {
 
   val MIN_VALUE:Int = 0
   val MIN_DAY_VALUE:Int = 1
+
+  val PERIOD_1_2015_START = TaxPeriod(2015, 3, 6)
+  val PERIOD_1_2015_END = TaxPeriod(2015, 6, 8)
+  val PERIOD_2_2015_START = TaxPeriod(2015, 6, 9)
+  val PERIOD_2_2015_END = TaxPeriod(2016, 3, 5)  
 
   implicit val taxPeriodWrites: Writes[TaxPeriod] = (
     (JsPath \ "year").write[Int] and

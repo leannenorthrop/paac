@@ -83,6 +83,21 @@ class ContributionSpec extends ModelSpec {
       firstValidationError.message shouldBe "error.min"
       firstValidationError.args(0) shouldBe 2006
     }
+
+    "convert to GregorianCalendar" in {
+      // set up
+      val year = 2014
+      val month = 3
+      val day = 2
+
+      // do it
+      val calendar = TaxPeriod(year, month, day).toCalendar
+
+      // check 
+      calendar.get(java.util.Calendar.YEAR) shouldBe year
+      calendar.get(java.util.Calendar.MONTH) shouldBe month
+      calendar.get(java.util.Calendar.DAY_OF_MONTH) shouldBe day
+    }
   }
 
   "InputAmounts" can {
@@ -250,116 +265,202 @@ class ContributionSpec extends ModelSpec {
   }
 
   "A Contribution" can {
-    "have a tax year" in new ContributionFixture {
-      // check
-      contribution.taxPeriodStart.year shouldBe taxYear
+    "label" can {
+      "have a simple tax year label" in {
+        // set up
+        val c = Contribution(2008, 0)
+
+        // do it 
+        val label = c.taxYearLabel
+
+        // check
+        label shouldBe "2008/09"
+      }
+
+      "have a 2015 Period 1 tax year label" in {
+        // set up
+        val c = Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(0,0)))
+
+        // do it 
+        val label = c.taxYearLabel
+
+        // check
+        label shouldBe "2015 P1"
+      }
+
+      "have a 2015 Period 2 tax year label" in {
+        // set up
+        val c = Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(0,0)))
+
+        // do it 
+        val label = c.taxYearLabel
+
+        // check
+        label shouldBe "2015 P2"
+      }
     }
 
-    "have a tax year label" in {
-      // set up
-      val c = Contribution(2008, 0)
+    "construction and properties" can {
+      "have a tax year" in new ContributionFixture {
+        // check
+        contribution.taxPeriodStart.year shouldBe taxYear
+      }
+      "apply creates a proper full tax year period" in {
+        // set up
+        val c = Contribution(2008, 0)
 
-      // do it 
-      val label = c.taxYearLabel
+        // check
+        c.taxPeriodStart.year shouldBe 2008
+        c.taxPeriodStart.month shouldBe 3
+        c.taxPeriodStart.day shouldBe 6
+        c.taxPeriodEnd.year shouldBe 2009
+        c.taxPeriodEnd.month shouldBe 3
+        c.taxPeriodEnd.day shouldBe 5
+      }
 
-      // check
-      label shouldBe "2008/09"
+      "have a defined benefit input amount in pounds" in new ContributionFixture {
+        // setup
+        val dbAmountInPounds = 39342
+        val amountsInPounds:InputAmounts = InputAmounts(dbAmountInPounds)
+
+        // do it
+        val contrib = contribution.copy(amounts=Some(amountsInPounds))
+
+        // check
+        contrib.amounts.get.definedBenefit shouldBe Some(dbAmountInPounds)
+      }
+
+      "have a money purchase input amount in pounds" in new ContributionFixture {
+        // setup
+        val mpAmountInPounds = 6789234
+        val amountsInPounds:InputAmounts = InputAmounts(moneyPurchase=Some(mpAmountInPounds))
+
+        // do it
+        val contrib = contribution.copy(amounts=Some(amountsInPounds))
+
+        // check
+        contrib.amounts.get.moneyPurchase shouldBe Some(mpAmountInPounds)
+      }
     }
 
-    "apply creates a proper full tax year period" in {
-      // set up
-      val c = Contribution(2008, 0)
+    "isEmpty" can {
+      "return true if both definedBenefit and money purchase are none or amounts is none" in new ContributionFixture {
+        Contribution(TaxPeriod(2008, 2, 11), TaxPeriod(2008, 8, 12), None).isEmpty shouldBe true
+        Contribution(TaxPeriod(2008, 2, 11), TaxPeriod(2008, 8, 12), Some(InputAmounts(None,None))).isEmpty shouldBe true
+      }
 
-      // check
-      c.taxPeriodStart.year shouldBe 2008
-      c.taxPeriodStart.month shouldBe 3
-      c.taxPeriodStart.day shouldBe 6
-      c.taxPeriodEnd.year shouldBe 2009
-      c.taxPeriodEnd.month shouldBe 3
-      c.taxPeriodEnd.day shouldBe 5
+      "return false if both definedBenefit and money purchase are none" in new ContributionFixture {
+        contribution.isEmpty shouldBe false
+      }
+
+      "return false if either definedBenefit or money purchase are some value" in new ContributionFixture {
+        Contribution(TaxPeriod(2008, 2, 11), TaxPeriod(2008, 8, 12), Some(InputAmounts(8980,897797))).isEmpty shouldBe false
+        Contribution(TaxPeriod(2008, 2, 11), TaxPeriod(2008, 8, 12), Some(InputAmounts(8980))).isEmpty shouldBe false
+      }
     }
 
-    "have a defined benefit input amount in pounds" in new ContributionFixture {
-      // setup
-      val dbAmountInPounds = 39342
-      val amountsInPounds:InputAmounts = InputAmounts(dbAmountInPounds)
-
-      // do it
-      val contrib = contribution.copy(amounts=Some(amountsInPounds))
-
-      // check
-      contrib.amounts.get.definedBenefit shouldBe Some(dbAmountInPounds)
+    "isPeriod1" can {
+      "return true if is period 1" in {
+        Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(0,0))).isPeriod1 shouldBe true
+      }
+      "return false if is period 1" in {
+        Contribution(2014, 123L).isPeriod1 shouldBe false
+      }
     }
 
-    "have a money purchase input amount in pounds" in new ContributionFixture {
-      // setup
-      val mpAmountInPounds = 6789234
-      val amountsInPounds:InputAmounts = InputAmounts(moneyPurchase=Some(mpAmountInPounds))
-
-      // do it
-      val contrib = contribution.copy(amounts=Some(amountsInPounds))
-
-      // check
-      contrib.amounts.get.moneyPurchase shouldBe Some(mpAmountInPounds)
+    "isPeriod2" can {
+      "return true if is period 2" in {
+        Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(0,0))).isPeriod2 shouldBe true
+      }
+      "return false if is period 2" in {
+        Contribution(2014, 123L).isPeriod2 shouldBe false
+      }
     }
 
-    "marshall to JSON" in new ContributionFixture {
-      // do it
-      val json = Json.toJson(contribution)
+    "+" should{
+      "sum definedBenefit of two contributions regardless of year" in {
+        // set up
+        val c1 = Contribution(2014, 123L)
+        val c2 = Contribution(2014, 456L)
 
-      // check
-      val jsonTaxYear = json \ "taxPeriodStart" \ "year"
-      jsonTaxYear.as[Int] shouldBe taxYear
-      val jsonDefinedBenfitInPounds = json \ "amounts" \ "definedBenefit"
-      jsonDefinedBenfitInPounds.as[Long] shouldBe definedBenefit
-      val jsonMoneyPurchaseInPounds = json \ "amounts" \ "moneyPurchase"
-      jsonMoneyPurchaseInPounds.as[Long] shouldBe moneyPurchase
+        // test
+        val c3 = c1 + c2
+
+        // check
+        c3 shouldBe Contribution(TaxPeriod(2014,3,6),TaxPeriod(2015,3,5),Some(InputAmounts(579L,0L)))
+      }
+      "not fail if amounts not defined" in {
+        // set up
+        val c1 = Contribution(TaxPeriod(2014,3,6),TaxPeriod(2015,3,5),None)
+        val c2 = Contribution(TaxPeriod(2014,3,6),TaxPeriod(2015,3,5),None)
+
+        // test
+        val c3 = c1 + c2
+
+        // check
+        c3 shouldBe c1
+      }
     }
 
-    "marshall None amounts to JSON" in {
-      // do it
-      val json = Json.toJson(Contribution(TaxPeriod(2010,3,5),TaxPeriod(2010,3,6),None))
+    "JSON" can {
+      "marshall to JSON" in new ContributionFixture {
+        // do it
+        val json = Json.toJson(contribution)
 
-      // check
-      val jsonTaxYear = json \ "taxPeriodStart" \ "year"
-      jsonTaxYear.as[Int] shouldBe 2010
-      val v = json \ "amounts" 
-      v.as[Option[InputAmounts]] shouldBe Some(InputAmounts(None,None))
-    }
+        // check
+        val jsonTaxYear = json \ "taxPeriodStart" \ "year"
+        jsonTaxYear.as[Int] shouldBe taxYear
+        val jsonDefinedBenfitInPounds = json \ "amounts" \ "definedBenefit"
+        jsonDefinedBenfitInPounds.as[Long] shouldBe definedBenefit
+        val jsonMoneyPurchaseInPounds = json \ "amounts" \ "moneyPurchase"
+        jsonMoneyPurchaseInPounds.as[Long] shouldBe moneyPurchase
+      }
 
-    "unmarshall from JSON" in new ContributionFixture {
-      // setup
-      val json = Json.parse(getExpectedContributionJson)
+      "marshall None amounts to JSON" in {
+        // do it
+        val json = Json.toJson(Contribution(TaxPeriod(2010,3,5),TaxPeriod(2010,3,6),None))
 
-      // do it
-      val contributionOption : Option[Contribution] = json.validate[Contribution].fold(invalid = { _ => None }, valid = { contribution => Some(contribution)})
+        // check
+        val jsonTaxYear = json \ "taxPeriodStart" \ "year"
+        jsonTaxYear.as[Int] shouldBe 2010
+        val v = json \ "amounts" 
+        v.as[Option[InputAmounts]] shouldBe Some(InputAmounts(None,None))
+      }
 
-      contributionOption shouldBe Some(contribution)
-    }
+      "unmarshall from JSON" in new ContributionFixture {
+        // setup
+        val json = Json.parse(getExpectedContributionJson)
 
-    "unmarshall from JSON allows tax year of 2008" in {
-      // setup
-      val json = Json.parse("""{"taxPeriodStart": {"year":2008, "month" : 2, "day" : 11}, "taxPeriodEnd": {"year":2008, "month" : 8, "day" : 12}, "amounts": {"definedBenefit": 12345, "moneyPurchase": 67890}}""")
+        // do it
+        val contributionOption : Option[Contribution] = json.validate[Contribution].fold(invalid = { _ => None }, valid = { contribution => Some(contribution)})
 
-      // do it
-      val contributionOption : Option[Contribution] = json.validate[Contribution].fold(invalid = { _ => None }, valid = { contribution => Some(contribution)})
+        contributionOption shouldBe Some(contribution)
+      }
 
-      contributionOption shouldBe Some(Contribution(TaxPeriod(2008, 2, 11), TaxPeriod(2008, 8, 12), Some(InputAmounts(12345, 67890))))
-    }
+      "unmarshall from JSON allows tax year of 2008" in {
+        // setup
+        val json = Json.parse("""{"taxPeriodStart": {"year":2008, "month" : 2, "day" : 11}, "taxPeriodEnd": {"year":2008, "month" : 8, "day" : 12}, "amounts": {"definedBenefit": 12345, "moneyPurchase": 67890}}""")
 
-    "unmashall from JSON ensuring tax year must not be less than 2006" in {
-      // setup
-      val json = Json.parse("""{"taxPeriodStart": {"year":1918, "month" : 2, "day" : 12}, "taxPeriodEnd": {"year":1918, "month" : 8, "day" : 11}, "amounts": {"definedBenefit": 12345, "moneyPurchase": 67890}}""")
+        // do it
+        val contributionOption : Option[Contribution] = json.validate[Contribution].fold(invalid = { _ => None }, valid = { contribution => Some(contribution)})
 
-      // do it
-      val option : Option[Seq[(play.api.libs.json.JsPath, Seq[play.api.data.validation.ValidationError])]] = json.validate[Contribution].fold(invalid = { errors => Some(errors) }, valid = { _ => None })
-      val firstValidationErrorPath = option.head(0)._1
-      val firstValidationError = option.head(0)._2(0)
+        contributionOption shouldBe Some(Contribution(TaxPeriod(2008, 2, 11), TaxPeriod(2008, 8, 12), Some(InputAmounts(12345, 67890))))
+      }
 
-      // check
-      firstValidationErrorPath.toString shouldBe "/taxPeriodEnd/year"
-      firstValidationError.message shouldBe "error.min"
-      firstValidationError.args(0) shouldBe 2006
+      "unmashall from JSON ensuring tax year must not be less than 2006" in {
+        // setup
+        val json = Json.parse("""{"taxPeriodStart": {"year":1918, "month" : 2, "day" : 12}, "taxPeriodEnd": {"year":1918, "month" : 8, "day" : 11}, "amounts": {"definedBenefit": 12345, "moneyPurchase": 67890}}""")
+
+        // do it
+        val option : Option[Seq[(play.api.libs.json.JsPath, Seq[play.api.data.validation.ValidationError])]] = json.validate[Contribution].fold(invalid = { errors => Some(errors) }, valid = { _ => None })
+        val firstValidationErrorPath = option.head(0)._1
+        val firstValidationError = option.head(0)._2(0)
+
+        // check
+        firstValidationErrorPath.toString shouldBe "/taxPeriodEnd/year"
+        firstValidationError.message shouldBe "error.min"
+        firstValidationError.args(0) shouldBe 2006
+      }
     }
 
     "unmashalling null" can {
@@ -465,22 +566,6 @@ class ContributionSpec extends ModelSpec {
       // do it
       val contributionsOption : Option[Contribution] = (json(0)).validate[Contribution].fold(invalid = { _ => None }, valid = { contribution => Some(contribution)})
       contributionsOption shouldBe Some(expectedContributions(0))
-    }
-  }
-
-  "isEmpty" can {
-    "return true if both definedBenefit and money purchase are none or amounts is none" in new ContributionFixture {
-      Contribution(TaxPeriod(2008, 2, 11), TaxPeriod(2008, 8, 12), None).isEmpty shouldBe true
-      Contribution(TaxPeriod(2008, 2, 11), TaxPeriod(2008, 8, 12), Some(InputAmounts(None,None))).isEmpty shouldBe true
-    }
-
-    "return false if both definedBenefit and money purchase are none" in new ContributionFixture {
-      contribution.isEmpty shouldBe false
-    }
-
-    "return false if either definedBenefit or money purchase are some value" in new ContributionFixture {
-      Contribution(TaxPeriod(2008, 2, 11), TaxPeriod(2008, 8, 12), Some(InputAmounts(8980,897797))).isEmpty shouldBe false
-      Contribution(TaxPeriod(2008, 2, 11), TaxPeriod(2008, 8, 12), Some(InputAmounts(8980))).isEmpty shouldBe false
     }
   }
 }
