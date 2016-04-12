@@ -40,9 +40,22 @@ case class TaxPeriod(year: Int, month: Int, day: Int) {
 
 case class Contribution(taxPeriodStart: TaxPeriod, taxPeriodEnd: TaxPeriod, amounts: Option[InputAmounts]) extends CalculationParam {
   def taxYearLabel() : String = s"${taxPeriodStart.year}/${taxPeriodEnd.year.toString().drop(2)}"
+  
   def isEmpty() : Boolean = {
     amounts == None || (amounts.isDefined && amounts.get.isEmpty)
   }
+
+  def +(that:Contribution) = {
+    if (amounts.isDefined && that.amounts.isDefined) {
+      val thisAmounts = amounts.get
+      val thatAmounts = that.amounts.get
+      val db = thisAmounts.definedBenefit.map((v:Long)=>v+thatAmounts.definedBenefit.getOrElse(0L)).getOrElse(thatAmounts.definedBenefit.getOrElse(0L))
+      val dc = thisAmounts.moneyPurchase.map((v:Long)=>v+thatAmounts.moneyPurchase.getOrElse(0L)).getOrElse(thatAmounts.moneyPurchase.getOrElse(0L))
+      this.copy(amounts=Some(InputAmounts(db,dc)))
+    } else {
+      this
+    }
+  }  
 }
 
 object TaxPeriod {

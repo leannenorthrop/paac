@@ -288,5 +288,16 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
         }
       }
     }
+
+    "return some if defined benefit is none but defined contribution is some in 2014" in {
+      // set up
+      val contribution = Contribution(TaxPeriod(2010,3,5),TaxPeriod(2011,3,6), Some(InputAmounts(None,Some(123L))))
+
+      // test
+      val results = Pre2014Calculator.summary(Seq[SummaryResult](), contribution)
+
+      // check it
+      results shouldBe Some(SummaryResult(-1,0,5000000,4999877,5000000,4999877,4999877))
+    }
   }
 } 

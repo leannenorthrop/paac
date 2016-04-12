@@ -22,9 +22,14 @@ trait BasicCalculator extends Calculator {
   protected def getAnnualAllowanceInPounds: Long
 
   def summary(previousPeriods:Seq[SummaryResult], contribution: models.Contribution): Option[SummaryResult] = {
-    if (contribution.amounts.isDefined &&
-        contribution.amounts.get.definedBenefit.isDefined) {
-      val definedBenefit = contribution.amounts.get.definedBenefit.get
+    if (contribution.amounts.isDefined && (contribution.amounts.get.definedBenefit.isDefined || contribution.amounts.get.moneyPurchase.isDefined)) {
+      val amounts = contribution.amounts.get
+      var definedBenefit = if (amounts.definedBenefit.isDefined) amounts.definedBenefit.get else 0L
+      val definedContribution = if (amounts.moneyPurchase.isDefined) amounts.moneyPurchase.get else 0L
+      
+      if (contribution.taxPeriodStart.year < 2015)
+        definedBenefit += definedContribution
+
       if (isSupported(contribution) && definedBenefit >= 0) {
         // convert allowance from pounds to pence
         val annualAllowance: Long = getAnnualAllowanceInPounds*100L
