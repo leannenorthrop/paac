@@ -392,6 +392,54 @@ class ContributionSpec extends ModelSpec {
 
         contributionOption shouldBe Some(Contribution(TaxPeriod(2008, 2, 11), TaxPeriod(2008, 8, 12), Some(InputAmounts(Some(9898080L),None))))
       }
+
+      "be added to another contribution" in {
+        // set up
+        val c1 = Contribution(TaxPeriod(2008, 2, 11), TaxPeriod(2008, 8, 12), Some(InputAmounts(None, Some(123L))))
+        val c2 = Contribution(TaxPeriod(2008, 2, 11), TaxPeriod(2008, 8, 12), Some(InputAmounts(Some(456L), Some(0L))))
+
+        // test
+        val c3 = c1 + c2
+
+        // check
+        c3 shouldBe Contribution(TaxPeriod(2008, 2, 11), TaxPeriod(2008, 8, 12), Some(InputAmounts(Some(456L), Some(123L))))
+      }
+
+      "be added to another contribution summing defined benefit" in {
+        // set up
+        val c1 = Contribution(TaxPeriod(2008, 2, 11), TaxPeriod(2008, 8, 12), Some(InputAmounts(Some(123L), None)))
+        val c2 = Contribution(TaxPeriod(2008, 2, 11), TaxPeriod(2008, 8, 12), Some(InputAmounts(Some(456L), None)))
+
+        // test
+        val c3 = c1 + c2
+
+        // check
+        c3 shouldBe Contribution(TaxPeriod(2008, 2, 11), TaxPeriod(2008, 8, 12), Some(InputAmounts(579L, 0L)))
+      }
+
+      "be added to another contribution summing defined contribution" in {
+        // set up
+        val c1 = Contribution(TaxPeriod(2008, 2, 11), TaxPeriod(2008, 8, 12), Some(InputAmounts(None, Some(123L))))
+        val c2 = Contribution(TaxPeriod(2008, 2, 11), TaxPeriod(2008, 8, 12), Some(InputAmounts(None, Some(456L))))
+
+        // test
+        val c3 = c1 + c2
+
+        // check
+        c3 shouldBe Contribution(TaxPeriod(2008, 2, 11), TaxPeriod(2008, 8, 12), Some(InputAmounts(0L, 579L)))
+      }
+
+      "is not added to another contribution when amounts is None" in {
+        // set up
+        val c1 = Contribution(TaxPeriod(2008, 2, 11), TaxPeriod(2008, 8, 12), None);
+        val c2 = Contribution(TaxPeriod(2008, 2, 11), TaxPeriod(2008, 8, 12), Some(InputAmounts(None, Some(456L))))
+
+        // test
+        val c3 = c1 + c2
+
+        // check
+        c3 shouldBe c1
+      }
     }    
   }
 
