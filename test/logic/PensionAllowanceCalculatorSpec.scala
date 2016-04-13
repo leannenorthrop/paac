@@ -64,7 +64,7 @@ class PensionAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
     val contribution4 = Contribution(2012, 900000)
     val contribution5 = Contribution(2013, 1000000)
     val contribution6 = Contribution(2014, 1100000)
-    val contribution7 = Contribution(TaxPeriod(2015, 3, 7), TaxPeriod(2015, 3, 9), Some(InputAmounts(1200000)))
+    val contribution7 = Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(1200000)))
   }
 
   trait Contribution2015Period2Fixture {
@@ -75,8 +75,8 @@ class PensionAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
     val contribution4 = Contribution(2012, 900000)
     val contribution5 = Contribution(2013, 1000000)
     val contribution6 = Contribution(2014, 1100000)
-    val contribution7 = Contribution(TaxPeriod(2015, 3, 7), TaxPeriod(2015, 3, 9), Some(InputAmounts(1200000)))
-    val contribution8 = Contribution(TaxPeriod(2015, 6, 10), TaxPeriod(2016, 3, 1), Some(InputAmounts(1300000)))
+    val contribution7 = Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(1200000)))
+    val contribution8 = Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(1300000)))
   }
 
   "PensionAllowanceCalculator" should {
@@ -296,15 +296,16 @@ class PensionAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       val results = PensionAllowanceCalculator.calculateAllowances(inputs)
 
       // check it
-      results.size shouldBe 8
-      results(0) shouldBe TaxYearResults(inputs(0), SummaryResult(-1,0,5000000,4500000,5000000,4500000,4500000))
-      results(1) shouldBe TaxYearResults(inputs(1), SummaryResult(-1,0,5000000,4400000,9500000,8900000,8900000))
-      results(2) shouldBe TaxYearResults(inputs(2), SummaryResult(-1,0,5000000,4300000,13900000,13200000,13200000))
-      results(3) shouldBe TaxYearResults(inputs(3), SummaryResult(0,0,5000000,4200000,18200000,12900000,17400000))
-      results(4) shouldBe TaxYearResults(inputs(4), SummaryResult(0,0,5000000,4100000,17900000,12600000,17000000))
-      results(5) shouldBe TaxYearResults(inputs(5), SummaryResult(0,0,5000000,4000000,17600000,12300000,16600000))
-      results(6) shouldBe TaxYearResults(inputs(6), SummaryResult(0,0,4000000,2900000,16300000,11000000,15200000))
-      results(7) shouldBe TaxYearResults(inputs(7), SummaryResult(0,0,8000000,2800000,15000000,9700000,13800000))
+      results.size shouldBe 9
+      results(0).summaryResult shouldBe SummaryResult(-1,0,5000000,4500000,5000000,4500000,4500000)
+      results(1).summaryResult shouldBe SummaryResult(-1,0,5000000,4400000,9500000,8900000,8900000)
+      results(2).summaryResult shouldBe SummaryResult(-1,0,5000000,4300000,13900000,13200000,13200000)
+      results(3).summaryResult shouldBe SummaryResult(0,0,5000000,4200000,18200000,12900000,17400000)
+      results(4).summaryResult shouldBe SummaryResult(0,0,5000000,4100000,17900000,12600000,17000000)
+      results(5).summaryResult shouldBe SummaryResult(0,0,5000000,4000000,17600000,12300000,16600000)
+      results(6).summaryResult shouldBe SummaryResult(0,0,4000000,2900000,16300000,11000000,15200000)
+      results(8).summaryResult shouldBe SummaryResult(0,0,4000000,4000000,14900000,10900000,14900000)
+      results(7).summaryResult shouldBe SummaryResult(0,0,8000000,4000000,19000000,9700000,17800000)
     }
 
     "return correct allowances and carry forward values when all previous allowances used and input is 8000000" in new Contribution2015Fixture {
@@ -318,7 +319,7 @@ class PensionAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       val results = PensionAllowanceCalculator.calculateAllowances(inputs)
 
       // check it
-      results.size shouldBe 4
+      results.size shouldBe 5
       results(0).summaryResult shouldBe SummaryResult(0,0,5000000,0,5000000,0,0)
       results(1).summaryResult shouldBe SummaryResult(0,0,5000000,0,5000000,0,0)
       results(2).summaryResult shouldBe SummaryResult(0,0,4000000,0,4000000,0,0) 
@@ -336,11 +337,11 @@ class PensionAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       val results = PensionAllowanceCalculator.calculateAllowances(inputs)
 
       // check it
-      results.size shouldBe 4
+      results.size shouldBe 5
       results(0).summaryResult shouldBe SummaryResult(0,0,5000000,0,5000000,0,0)
       results(1).summaryResult shouldBe SummaryResult(0,0,5000000,0,5000000,0,0)
       results(2).summaryResult shouldBe SummaryResult(0,0,4000000,0,4000000,0,0) 
-      results(3).summaryResult shouldBe SummaryResult(0,0,8000000,100000,8000000,100000,100000) 
+      results(3).summaryResult shouldBe SummaryResult(0,0,8000000,100000,8000000,100000,100000)
     }
 
     "return correct allowances and carry forward values when all previous allowances used and input is 8100000" in new Contribution2015Fixture {
@@ -354,7 +355,7 @@ class PensionAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       val results = PensionAllowanceCalculator.calculateAllowances(inputs)
 
       // check it
-      results.size shouldBe 4
+      results.size shouldBe 5
       results(0).summaryResult shouldBe SummaryResult(0,0,5000000,0,5000000,0,0)
       results(1).summaryResult shouldBe SummaryResult(0,0,5000000,0,5000000,0,0)
       results(2).summaryResult shouldBe SummaryResult(0,0,4000000,0,4000000,0,0) 
@@ -366,13 +367,13 @@ class PensionAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       val inputs = List(Contribution(2012, 4000000),
                         Contribution(2013, 4500000),
                         Contribution(2014, 3700000),
-                        Contribution(TaxPeriod(2015, 3, 7), TaxPeriod(2015, 3, 9), Some(InputAmounts(6500000L))))
+                        Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(6500000L))))
 
       // do it
       val results = PensionAllowanceCalculator.calculateAllowances(inputs)
 
       // check it
-      results.size shouldBe 4
+      results.size shouldBe 5
       results(0).summaryResult shouldBe SummaryResult(0,0,5000000,1000000,5000000,1000000,1000000)
       results(1).summaryResult shouldBe SummaryResult(0,0,5000000,500000,6000000,1500000,1500000)
       results(2).summaryResult shouldBe SummaryResult(0,0,4000000,300000,5500000,1800000,1800000)
@@ -383,19 +384,18 @@ class PensionAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       // set up
       val inputs = List(Contribution(2013, 4500000),
                         Contribution(2014, 3700000),
-                        Contribution(TaxPeriod(2015, 3, 6), TaxPeriod(2015, 3, 9), Some(InputAmounts(6500000L))),
-                        Contribution(TaxPeriod(2016, 0, 1), TaxPeriod(2016, 3, 1), Some(InputAmounts(7000000L))))
+                        Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(6500000L))),
+                        Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(7000000L))))
 
       // do it
       val results = PensionAllowanceCalculator.calculateAllowances(inputs)
 
       // check it
-      println(results)
       results.size shouldBe 4
       results(0).summaryResult shouldBe SummaryResult(0,0,5000000,500000,5000000,500000,500000)
       results(1).summaryResult shouldBe SummaryResult(0,0,4000000,300000,4500000,800000,800000) 
       results(2).summaryResult shouldBe SummaryResult(0,0,8000000,1500000,8800000,2300000,2300000)
-      results(3).summaryResult shouldBe SummaryResult(700000,3000000,4000000,0,6300000,1800000,0) 
+      results(3).summaryResult shouldBe SummaryResult(700000,3000000,4000000,0,6300000,1800000,0)
     }
   }
 } 

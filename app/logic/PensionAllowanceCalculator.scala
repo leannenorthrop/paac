@@ -20,22 +20,53 @@ import models._
 
 trait PensionAllowanceCalculator {
 
-  def calculateAllowances(contributions : Seq[Contribution]) : Seq[TaxYearResults] = {
+  protected def provideMissingYearContributions(contributions : Seq[Contribution]): List[Contribution] = {
+    def sortByYearAndPeriod(left: Contribution, right: Contribution): Boolean = {
+      if (left.taxPeriodStart.year == right.taxPeriodStart.year &&
+          left.taxPeriodStart.year == 2015) {
+        left.isPeriod1 && right.isPeriod2
+      } else {  
+        left.taxPeriodStart.year < right.taxPeriodStart.year
+      }
+    }
+
+    def generatePeriod1And2Contributions(inputsByTaxYear: Map[Int,Seq[Contribution]],
+                                         lst:List[Contribution]): List[Contribution] = {
+      val y2015Contributions = inputsByTaxYear(2015).groupBy(_.isPeriod1)
+      val p1Contributions = if (y2015Contributions.contains(true)) y2015Contributions(true).toList else List[Contribution]()
+      val p2Contributions = if (y2015Contributions.contains(false)) y2015Contributions(false).toList else List[Contribution]()
+      if (!p1Contributions.isEmpty && !p2Contributions.isEmpty) {
+        (p1Contributions ++ p2Contributions ++ lst)
+      } else if (p1Contributions.isEmpty && !p2Contributions.isEmpty) {
+        List(Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(0,0)))) ++ p2Contributions ++ lst
+      } else if (!p1Contributions.isEmpty && p2Contributions.isEmpty) {
+        List(Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(0,0)))) ++ p1Contributions ++ lst
+      } else {
+        List(Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(0,0))),
+             Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(0,0)))) ++ lst
+      }
+    }
+
     // Ensure sequential tax years have values converted none amounts to 0 for calculation purposes
     val inputsByTaxYear = contributions.groupBy(_.taxPeriodStart.year)
     val allContributions = (inputsByTaxYear.keys.min to inputsByTaxYear.keys.max).foldLeft(List[Contribution]()) {
       (lst:List[Contribution], year:Int) =>
-      // TODO implement support partial tax years
-      val contribution = inputsByTaxYear.get(year).getOrElse(List(Contribution(year,0))).head
-      (if (contribution.isEmpty) contribution.copy(amounts=Some(InputAmounts(0,0))) else contribution) :: lst
-    }.sortWith(_.taxPeriodStart.year < _.taxPeriodStart.year)
+        if (year != 2015) {
+          val contribution = inputsByTaxYear.get(year).getOrElse(List(Contribution(year,0))).head
+          (if (contribution.isEmpty) contribution.copy(amounts=Some(InputAmounts(0,0))) else contribution) :: lst
+        } else { generatePeriod1And2Contributions(inputsByTaxYear, lst) }
+    }
 
+    allContributions.sortWith(sortByYearAndPeriod _)
+  }
+
+  def calculateAllowances(contributions : Seq[Contribution]) : Seq[TaxYearResults] = {
     // Calculate results
-    allContributions.foldLeft(List[TaxYearResults]()) {
+    provideMissingYearContributions(contributions).foldLeft(List[TaxYearResults]()) {
       (lst, contribution) =>
 
-      val factory = CalculatorFactory.get(contribution)
-      val maybeSummary = factory.map(_.summary(lst.map(_.summaryResult), contribution).getOrElse(SummaryResult()))
+      val calculator = CalculatorFactory.get(contribution)
+      val maybeSummary = calculator.map(_.summary(lst.map(_.summaryResult), contribution).getOrElse(SummaryResult()))
       val summary: SummaryResult = maybeSummary.getOrElse(SummaryResult())
       
       TaxYearResults(contribution, summary) :: lst

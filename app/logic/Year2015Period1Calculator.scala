@@ -18,18 +18,13 @@ package logic
 
 import config.PaacConfiguration
 import models._
-import java.util._
 
 object Year2015Period1Calculator extends BasicCalculator {
   protected def getAnnualAllowanceInPounds: Long =
     PaacConfiguration.config.flatMap[Long](_.getLong("annualallowances.Year2015Period1Calculator")).getOrElse(80000L)
-  protected val PERIOD_START_AFTER = new GregorianCalendar(2015, 3, 5)
-  protected val PERIOD_END_BEFORE = new GregorianCalendar(2015, 6, 9)
 
   def isSupported(contribution:Contribution):Boolean = {
-    val start = contribution.taxPeriodStart.toCalendar
-    val end = contribution.taxPeriodEnd.toCalendar
-    start.after(PERIOD_START_AFTER) && start.before(PERIOD_END_BEFORE) && end.after(PERIOD_START_AFTER) && end.before(PERIOD_END_BEFORE)
+    contribution.isPeriod1()
   }
 
   override def summary(previousPeriods:Seq[SummaryResult], contribution: models.Contribution): Option[SummaryResult] = {
@@ -37,14 +32,10 @@ object Year2015Period1Calculator extends BasicCalculator {
     super.summary(previousPeriods, contribution).map {
       (results) =>
       if (results.unusedAllowance > 4000000L) {
-          val ua = results.unusedAllowance-4000000L
-          val acf = results.availableAAWithCF-4000000L
-          val accf = results.availableAAWithCCF-4000000L
-          val ucf = results.unusedAllowanceCF-4000000L
+          val ua = if (results.unusedAllowance > 4000000L) 4000000L else results.unusedAllowance
+          val accf = if (results.availableAAWithCCF > 4000000L) results.availableAAWithCCF - 4000000L else results.availableAAWithCCF
           results.copy(unusedAllowance=ua,
-                       availableAAWithCF=acf, 
-                       availableAAWithCCF=accf, 
-                       unusedAllowanceCF=ucf)
+                       availableAAWithCCF=accf)
         } else {
           results
         }
