@@ -29,8 +29,8 @@ case class SummaryResult(chargableAmount: Long = 0,
                          exceedingAAAmount: Long = 0,
                          availableAllowance: Long = 0,
                          unusedAllowance: Long = 0,
-                         availableAAWithCF: Long = 0,
-                         availableAAWithCCF: Long = 0,
+                         availableAAWithCF: Long = 0,    // total available allowance for current year should be renamed to totalAA
+                         availableAAWithCCF: Long = 0,   // available allowance carried forward to following year
                          unusedAllowanceCF: Long = 0) extends PensionCalculationResult
 
 object SummaryResult {

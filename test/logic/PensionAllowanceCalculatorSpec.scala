@@ -22,7 +22,6 @@ import org.scalatest.BeforeAndAfterAll
 import play.api.test.{FakeApplication}
 import models._
 
-
 class PensionAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
   val app = FakeApplication()
 
@@ -304,8 +303,8 @@ class PensionAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       results(4).summaryResult shouldBe SummaryResult(0,0,5000000,4100000,17900000,12600000,17000000)
       results(5).summaryResult shouldBe SummaryResult(0,0,5000000,4000000,17600000,12300000,16600000)
       results(6).summaryResult shouldBe SummaryResult(0,0,4000000,2900000,16300000,11000000,15200000)
-      results(8).summaryResult shouldBe SummaryResult(0,0,4000000,4000000,14900000,10900000,14900000)
-      results(7).summaryResult shouldBe SummaryResult(0,0,8000000,4000000,19000000,9700000,17800000)
+      results(8).summaryResult shouldBe SummaryResult(0,0,0,4000000,15000000,10900000,10900000)
+      results(7).summaryResult shouldBe SummaryResult(0,0,8000000,4000000,19000000,13800000,17800000)
     }
 
     "return correct allowances and carry forward values when all previous allowances used and input is 8000000" in new Contribution2015Fixture {
@@ -382,9 +381,9 @@ class PensionAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
 
     "return correct allowances and carry forward values when all previous allowances used and input is 7000000 for period 2 2015" in {
       // set up
-      val inputs = List(Contribution(2013, 4500000),
-                        Contribution(2014, 3700000),
-                        Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(6500000L))),
+      val inputs = List(Contribution(2013, 5000000),
+                        Contribution(2014, 4000000),
+                        Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(8000000L))),
                         Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(7000000L))))
 
       // do it
@@ -392,10 +391,10 @@ class PensionAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
 
       // check it
       results.size shouldBe 4
-      results(0).summaryResult shouldBe SummaryResult(0,0,5000000,500000,5000000,500000,500000)
-      results(1).summaryResult shouldBe SummaryResult(0,0,4000000,300000,4500000,800000,800000) 
-      results(2).summaryResult shouldBe SummaryResult(0,0,8000000,1500000,8800000,2300000,2300000)
-      results(3).summaryResult shouldBe SummaryResult(700000,3000000,4000000,0,6300000,1800000,0)
+      results(0).summaryResult shouldBe SummaryResult(0,0,5000000,0,5000000,0,0)
+      results(1).summaryResult shouldBe SummaryResult(0,0,4000000,0,4000000,0,0) 
+      results(2).summaryResult shouldBe SummaryResult(0,0,8000000,0,8000000,0,0)
+      results(3).summaryResult shouldBe SummaryResult(3000000,7000000,0,0,4000000,0,0)
     }
   }
 } 

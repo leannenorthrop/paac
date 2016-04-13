@@ -139,7 +139,8 @@ class Year2015Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropert
         val results = Year2015Period2Calculator.summary(Seq[SummaryResult](), contribution)  
 
         // check it
-        withClue(s"Contributions with date '$taxDay/${taxMonth+1}/$taxYear' should be supported but") { results shouldBe Some(SummaryResult(0,0,4000000,3995000,4000000,3995000,3995000)) }
+        // With no previous inputs as period 2 has no allowance then exceeding is same as defined benefit input
+        withClue(s"Contributions with date '$taxDay/${taxMonth+1}/$taxYear' should be supported but") { results shouldBe Some(SummaryResult(0,5000,0,0,4000000,0,0)) }
       }
     }
 
@@ -151,43 +152,9 @@ class Year2015Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropert
                                                                               TaxPeriod(2015, 6, 9),
                                                                               Some(InputAmounts(0L))))
         // check it
-        results shouldBe Some(SummaryResult(0,0,4000000,4000000,4000000,4000000,4000000))
+        results shouldBe Some(SummaryResult(0,0,0,0,4000000,0,0))
       }
 
-      "return annual allowance of 4000000 pence for all valid amounts" in {
-        val validContributions = for (amount <- Gen.choose(0, Integer.MAX_VALUE)) yield Contribution(TaxPeriod(2015, 6, 9), 
-                                                                                                     TaxPeriod(2015, 6, 9),
-                                                                                                     Some(InputAmounts(amount)))
-
-        forAll(validContributions) { (contribution: Contribution) =>
-          whenever (contribution.amounts.get.definedBenefit.get >= 0) { 
-            val results = Year2015Period2Calculator.summary(Seq[SummaryResult](), contribution)
-            results.get.availableAllowance shouldBe 4000000L
-          }
-        }
-      }
-
-      "return correct amount of 0 Exceeding Annual Allowance for value of 4000000" in {
-        val results = Year2015Period2Calculator.summary(Seq[SummaryResult](), Contribution(TaxPeriod(2015, 6, 9), 
-                                                                                           TaxPeriod(2015, 6, 9),
-                                                                                           Some(InputAmounts(4000000L))))
-        results.get.exceedingAAAmount shouldBe 0 
-      }
-
-      "return correct amount of 0 Exceeding Annual Allowance for values over 4000000" in {
-        val validContributions = for (amount <- Gen.choose(4000001, Integer.MAX_VALUE)) yield Contribution(TaxPeriod(2015, 6, 9), 
-                                                                                                           TaxPeriod(2015, 6, 9),
-                                                                                                           Some(InputAmounts(amount)))
-
-        forAll(validContributions) { (contribution: Contribution) =>
-          whenever (contribution.amounts.get.definedBenefit.get > 4000000) { 
-            val results = Year2015Period2Calculator.summary(Seq[SummaryResult](), contribution)
-            results.get.exceedingAAAmount should not be 0 
-            val db = contribution.amounts.get.definedBenefit.get
-            results.get.exceedingAAAmount shouldBe (db - 4000000L).max(0) 
-          }
-        }
-      }
 
       "return correct amount of 0 chargable amount for values under 4000000" in {
         val validContributions = for (amount <- Gen.choose(0, 3999999)) yield Contribution(TaxPeriod(2015, 6, 9), 
@@ -220,21 +187,6 @@ class Year2015Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropert
             results.get.chargableAmount should not be 0 
             val db = contribution.amounts.get.definedBenefit.get
             results.get.chargableAmount shouldBe (db - 4000000L).max(0) 
-          }
-        }
-      }
-
-      "return correct amount of non-0 unused allowance for values under 4000000" in {
-        val validContributions = for (amount <- Gen.choose(0, 3999999)) yield Contribution(TaxPeriod(2015, 6, 9), 
-                                                                                           TaxPeriod(2015, 6, 9),
-                                                                                           Some(InputAmounts(amount)))
-
-        forAll(validContributions) { (contribution: Contribution) =>
-          whenever (contribution.amounts.get.definedBenefit.get < 4000000) { 
-            val results = Year2015Period2Calculator.summary(Seq[SummaryResult](), contribution)
-            results.get.unusedAllowance should not be 0 
-            val db = contribution.amounts.get.definedBenefit.get
-            results.get.unusedAllowance shouldBe (4000000L - db).max(0)
           }
         }
       }
