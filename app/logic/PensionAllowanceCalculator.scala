@@ -45,7 +45,7 @@ trait PensionAllowanceCalculator {
 
     // Ensure sequential tax years have values converted none amounts to 0 for calculation purposes
     val inputsByTaxYear = contributions.groupBy(_.taxPeriodStart.year)
-    val allContributions = (inputsByTaxYear.keys.min to inputsByTaxYear.keys.max).foldLeft(List[Contribution]()) {
+    val allContributions = ((2006).min(inputsByTaxYear.keys.min) to inputsByTaxYear.keys.max).foldLeft(List[Contribution]()) {
       (lst:List[Contribution], year:Int) =>
         if (year != 2015) {
           val contribution = inputsByTaxYear.get(year).getOrElse(List(Contribution(year,0))).head
@@ -58,7 +58,8 @@ trait PensionAllowanceCalculator {
 
   def calculateAllowances(contributions : Seq[Contribution]) : Seq[TaxYearResults] = {
     // Calculate results
-    provideMissingYearContributions(contributions).foldLeft(List[TaxYearResults]()) {
+    val inputsByTaxYear = contributions.groupBy(_.taxYearLabel)
+    val results = provideMissingYearContributions(contributions).foldLeft(List[TaxYearResults]()) {
       (lst, contribution) =>
 
       val calculator = CalculatorFactory.get(contribution)
@@ -66,7 +67,9 @@ trait PensionAllowanceCalculator {
       val summary: SummaryResult = maybeSummary.getOrElse(SummaryResult())
       
       TaxYearResults(contribution, summary) :: lst
-    }.reverse
+    }.dropWhile(_.input.taxYearLabel > inputsByTaxYear.keys.max).toList.reverse
+    val v = results.dropWhile(_.input.taxYearLabel < inputsByTaxYear.keys.min).toList
+    v
   }
 }
 
