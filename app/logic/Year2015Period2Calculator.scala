@@ -32,7 +32,7 @@ object Year2015Period2Calculator extends BasicCalculator {
     super.summary(previousPeriods, contribution).map {
       (results) =>
       val amounts = contribution.amounts.get
-      var definedBenefit = if (amounts.definedBenefit.isDefined) amounts.definedBenefit.get else 0L
+      var definedBenefit = amounts.definedBenefit.getOrElse(0L)
 
       // key to understanding period 2 is that there is no allowance 
       // only unused carried forward allowance up to maximum of 40K from period 1
@@ -48,7 +48,7 @@ object Year2015Period2Calculator extends BasicCalculator {
       val availableAAWithCF: Long = previousPeriods.drop(1).slice(0,3).foldLeft(if (period1UnusedAllowance == 0) 4000000L else period1UnusedAllowance)(_+_.unusedAllowance)
       val availableAAWithCCF: Long = (previousPeriods.drop(1).slice(0,2).foldLeft(period1UnusedAllowance)(_+_.unusedAllowance) - (definedBenefit-exceedingAAAmount)).max(0)
       
-      val chargableAmount: Long = if (contribution.taxPeriodStart.year < 2011) -1 else (definedBenefit - (previous3YearsUnusedAllowances + period1UnusedAllowance)).max(0)
+      val chargableAmount: Long = (definedBenefit - (previous3YearsUnusedAllowances + period1UnusedAllowance)).max(0)
 
       results.copy(availableAAWithCF = availableAAWithCF,    // total available allowance for current year
                    availableAAWithCCF = availableAAWithCCF,  // available allowance carried forward to following year

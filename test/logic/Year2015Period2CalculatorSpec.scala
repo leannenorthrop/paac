@@ -195,15 +195,15 @@ class Year2015Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropert
       }
 
       "return correct amount of 0 unused allowance for value of 4000000" in {
-        val results = Year2015Period2Calculator.summary(Seq[SummaryResult](), Contribution(TaxPeriod(2015, 6, 9), 
-                                                                                           TaxPeriod(2015, 6, 9),
+        val results = Year2015Period2Calculator.summary(Seq[SummaryResult](), Contribution(TaxPeriod.PERIOD_2_2015_START, 
+                                                                                           TaxPeriod.PERIOD_2_2015_END,
                                                                                            Some(InputAmounts(4000000L))))
         results.get.unusedAllowance shouldBe 0 
       }
 
       "return correct amount of 0 unused allowance for values over 4000000" in {
-        val validContributions = for (amount <- Gen.choose(4000001, Integer.MAX_VALUE)) yield Contribution(TaxPeriod(2015, 6, 9), 
-                                                                                                           TaxPeriod(2015, 6, 9),
+        val validContributions = for (amount <- Gen.choose(4000001, Integer.MAX_VALUE)) yield Contribution(TaxPeriod.PERIOD_2_2015_START, 
+                                                                                                           TaxPeriod.PERIOD_2_2015_END,
                                                                                                            Some(InputAmounts(amount)))
 
         forAll(validContributions) { (contribution: Contribution) =>
@@ -212,6 +212,15 @@ class Year2015Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropert
             results.get.unusedAllowance shouldBe 0  
           }
         }
+      }
+
+      "return None when defined benefit is None" in {
+        // do it
+        val results = Year2015Period2Calculator.summary(Seq[SummaryResult](), Contribution(TaxPeriod.PERIOD_2_2015_START, 
+                                                                                           TaxPeriod.PERIOD_2_2015_END,
+                                                                                           Some(InputAmounts(None, None))))
+        // check it
+        results shouldBe None
       }
     }
   }
