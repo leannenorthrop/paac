@@ -66,9 +66,9 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
         // check it
         results.size shouldBe 6
         val table = """:year   | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
-                       :2008   | 0                   | -1               | 50000                      | 50000        | 50000
-                       :2009   | 0                   | -1               | 100000                     | 50000        | 100000
-                       :2010   | 0                   | -1               | 150000                     | 50000        | 150000
+                       :2008   | 0                   | -1               | 150000                     | 50000        | 150000
+                       :2009   | 0                   | -1               | 200000                     | 50000        | 150000
+                       :2010   | 0                   | -1               | 200000                     | 50000        | 150000
                        :2011   | 0                   | 0                | 200000                     | 50000        | 150000
                        :2012   | 0                   | 0                | 200000                     | 50000        | 150000
                        :2013   | 0                   | 0                | 200000                     | 50000        | 150000
@@ -91,9 +91,9 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
         // check it
         results.size shouldBe 6
         val table = """:year   | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
-                       :2008   | 0                   | -1               | 50000                      | 0            | 0
-                       :2009   | 0                   | -1               | 50000                      | 0            | 0 
-                       :2010   | 0                   | -1               | 50000                      | 0            | 0 
+                       :2008   | 0                   | -1               | 150000                     | 0            | 100000
+                       :2009   | 0                   | -1               | 150000                     | 0            | 50000
+                       :2010   | 0                   | -1               | 100000                     | 0            | 0 
                        :2011   | 0                   | 0                | 50000                      | 0            | 0 
                        :2012   | 0                   | 0                | 50000                      | 0            | 0 
                        :2013   | 0                   | 0                | 50000                      | 0            | 0 
@@ -116,9 +116,9 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
         // check it
         results.size shouldBe 6
         val table = """:year   | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
-                       :2008   | 0                   | -1               | 50000                      | 10000        | 10000
-                       :2009   | 0                   | -1               | 60000                      | 10000        | 20000 
-                       :2010   | 0                   | -1               | 70000                      | 10000        | 30000 
+                       :2008   | 0                   | -1               | 150000                     | 10000        | 110000
+                       :2009   | 0                   | -1               | 160000                     | 10000        | 70000 
+                       :2010   | 0                   | -1               | 120000                     | 10000        | 30000 
                        :2011   | 0                   | 0                | 80000                      | 10000        | 30000 
                        :2012   | 0                   | 0                | 80000                      | 10000        | 30000 
                        :2013   | 0                   | 0                | 80000                      | 10000        | 30000 
@@ -141,9 +141,9 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
         // check it
         results.size shouldBe 6
         val table = """:year   | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
-                       :2008   | 10000               | -1               | 50000                      | 0            | 0
-                       :2009   | 10000               | -1               | 50000                      | 0            | 0
-                       :2010   | 10000               | -1               | 50000                      | 0            | 0
+                       :2008   | 10000               | -1               | 150000                     | 0            | 100000
+                       :2009   | 10000               | -1               | 150000                     | 0            | 50000
+                       :2010   | 10000               | -1               | 100000                     | 0            | 0
                        :2011   | 10000               | 10000            | 50000                      | 0            | 0
                        :2012   | 10000               | 10000            | 50000                      | 0            | 0
                        :2013   | 10000               | 10000            | 50000                      | 0            | 0
@@ -166,9 +166,9 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
         // check it
         results.size shouldBe 6
         val table = """:year   | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
-                       :2008   | 0                   | -1               | 50000                      | 50000        | 50000
-                       :2009   | 0                   | -1               | 100000                     | 0            | 50000
-                       :2010   | 10000               | -1               | 100000                     | 0            | 50000
+                       :2008   | 0                   | -1               | 150000                     | 50000        | 150000
+                       :2009   | 0                   | -1               | 200000                     | 0            | 100000
+                       :2010   | 10000               | -1               | 150000                     | 0            | 50000
                        :2011   | 100000              | 50000            | 100000                     | 0            | 0
                        :2012   | 0                   | 0                | 50000                      | 10000        | 10000
                        :2013   | 0                   | 0                | 60000                      | 0            | 10000
@@ -183,9 +183,9 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
         // check it
         results.size shouldBe 6
         val table = """:year   | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
-                       :2008   | 0                   | -1               | 50000                      | 45000        | 45000
-                       :2009   | 0                   | -1               | 95000                      | 44000        | 89000
-                       :2010   | 0                   | -1               | 139000                     | 43000        | 132000
+                       :2008   | 0                   | -1               | 150000                     | 45000        | 145000
+                       :2009   | 0                   | -1               | 195000                     | 44000        | 139000
+                       :2010   | 0                   | -1               | 189000                     | 43000        | 132000
                        :2011   | 0                   | 0                | 182000                     | 42000        | 129000
                        :2012   | 0                   | 0                | 179000                     | 41000        | 126000
                        :2013   | 0                   | 0                | 176000                     | 40000        | 123000
@@ -202,9 +202,9 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
         // check it
         results.size shouldBe 7
         val table = """:year   | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
-                       :2008   | 0                   | -1               | 50000                      | 45000        | 45000
-                       :2009   | 0                   | -1               | 95000                      | 44000        | 89000
-                       :2010   | 0                   | -1               | 139000                     | 43000        | 132000
+                       :2008   | 0                   | -1               | 150000                     | 45000        | 145000
+                       :2009   | 0                   | -1               | 195000                     | 44000        | 139000
+                       :2010   | 0                   | -1               | 189000                     | 43000        | 132000
                        :2011   | 0                   | 0                | 182000                     | 42000        | 129000
                        :2012   | 0                   | 0                | 179000                     | 41000        | 126000
                        :2013   | 0                   | 0                | 176000                     | 40000        | 123000
@@ -220,16 +220,35 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
         val results = PensionAllowanceCalculator.calculateAllowances(inputs)
 
         // check it
-        results.size shouldBe 9
+        results.size shouldBe 8
         val table = """:year   | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
-                       :2008   | 0                   | -1               | 50000                      | 45000        | 45000
-                       :2009   | 0                   | -1               | 95000                      | 44000        | 89000
-                       :2010   | 0                   | -1               | 139000                     | 43000        | 132000
+                       :2008   | 0                   | -1               | 150000                     | 45000        | 145000
+                       :2009   | 0                   | -1               | 195000                     | 44000        | 139000
+                       :2010   | 0                   | -1               | 189000                     | 43000        | 132000
                        :2011   | 0                   | 0                | 182000                     | 42000        | 129000
                        :2012   | 0                   | 0                | 179000                     | 41000        | 126000
                        :2013   | 0                   | 0                | 176000                     | 40000        | 123000
                        :2014   | 0                   | 0                | 163000                     | 29000        | 110000
                        :2015P1 | 0                   | 0                | 190000                     | 40000        | 150000
+                       :""".stripMargin(':')
+        Utilties.assertResults(table, results)
+      }
+
+      "when defined benefit is 0" in {
+        // set up
+        val inputs = Utilties.generateContributions(Map("2013"->45000L,
+                                                        "2014"->40000L,
+                                                        "2015P1"->0L))
+
+        // do it
+        val results = PensionAllowanceCalculator.calculateAllowances(inputs)
+
+        // check it
+        results.size shouldBe 3
+        val table = """:year   | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
+                       :2013   | 0                   | 0                | 200000                     | 5000         | 105000
+                       :2014   | 0                   | 0                | 145000                     | 0            | 55000
+                       :2015P1 | 0                   | 0                | 135000                     | 40000        | 95000
                        :""".stripMargin(':')
         Utilties.assertResults(table, results)
       }
@@ -254,9 +273,9 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
         // check it
         results.size shouldBe 9
         val table = """:year   | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
-                       :2008   | 0                   | -1               | 50000                      | 50000        | 50000
-                       :2009   | 0                   | -1               | 100000                     | 50000        | 100000
-                       :2010   | 0                   | -1               | 150000                     | 50000        | 150000
+                       :2008   | 0                   | -1               | 150000                     | 50000        | 150000
+                       :2009   | 0                   | -1               | 200000                     | 50000        | 150000
+                       :2010   | 0                   | -1               | 200000                     | 50000        | 150000
                        :2011   | 0                   | 0                | 200000                     | 50000        | 150000
                        :2012   | 0                   | 0                | 200000                     | 50000        | 150000
                        :2013   | 0                   | 0                | 200000                     | 50000        | 150000
@@ -284,9 +303,9 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
         // check it
         results.size shouldBe 9
         val table = """:year   | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
-                       :2008   | 0                   | -1               | 50000                      | 45000        | 45000
-                       :2009   | 0                   | -1               | 95000                      | 44000        | 89000
-                       :2010   | 0                   | -1               | 139000                     | 43000        | 132000
+                       :2008   | 0                   | -1               | 150000                     | 45000        | 145000
+                       :2009   | 0                   | -1               | 195000                     | 44000        | 139000
+                       :2010   | 0                   | -1               | 189000                     | 43000        | 132000
                        :2011   | 0                   | 0                | 182000                     | 42000        | 129000
                        :2012   | 0                   | 0                | 179000                     | 41000        | 126000
                        :2013   | 0                   | 0                | 176000                     | 40000        | 123000
@@ -315,9 +334,9 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
         // check it
         results.size shouldBe 9
         val table = """:year   | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
-                       :2008   | 0                   | -1               | 50000                      | 0            | 0
-                       :2009   | 0                   | -1               | 50000                      | 0            | 0
-                       :2010   | 0                   | -1               | 50000                      | 0            | 0
+                       :2008   | 0                   | -1               | 150000                     | 0            | 100000
+                       :2009   | 0                   | -1               | 150000                     | 0            | 50000
+                       :2010   | 0                   | -1               | 100000                     | 0            | 0
                        :2011   | 0                   | 0                | 50000                      | 0            | 0
                        :2012   | 0                   | 0                | 50000                      | 0            | 0
                        :2013   | 0                   | 0                | 50000                      | 0            | 0
@@ -346,9 +365,9 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
         // check it
         results.size shouldBe 9
         val table = """:year   | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
-                       :2008   | 0                   | -1               | 50000                      | 0            | 0
-                       :2009   | 0                   | -1               | 50000                      | 0            | 0
-                       :2010   | 0                   | -1               | 50000                      | 0            | 0
+                       :2008   | 0                   | -1               | 150000                     | 0            | 100000
+                       :2009   | 0                   | -1               | 150000                     | 0            | 50000
+                       :2010   | 0                   | -1               | 100000                     | 0            | 0
                        :2011   | 0                   | 0                | 50000                      | 0            | 0
                        :2012   | 0                   | 0                | 50000                      | 0            | 0
                        :2013   | 0                   | 0                | 50000                      | 0            | 0
@@ -377,9 +396,9 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
         // check it
         results.size shouldBe 9
         val table = """:year   | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
-                       :2008   | 1000                | -1               | 50000                      | 0            | 0
-                       :2009   | 1000                | -1               | 50000                      | 0            | 0
-                       :2010   | 1000                | -1               | 50000                      | 0            | 0
+                       :2008   | 1000                | -1               | 150000                     | 0            | 100000
+                       :2009   | 1000                | -1               | 150000                     | 0            | 50000
+                       :2010   | 1000                | -1               | 100000                     | 0            | 0
                        :2011   | 1000                | 1000             | 50000                      | 0            | 0
                        :2012   | 1000                | 1000             | 50000                      | 0            | 0
                        :2013   | 1000                | 1000             | 50000                      | 0            | 0
@@ -408,9 +427,9 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
         // check it
         results.size shouldBe 9
         val table = """:year   | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
-                       :2008   | 40000               | -1               | 50000                      | 0            | 0
-                       :2009   | 0                   | -1               | 50000                      | 20000        | 20000
-                       :2010   | 0                   | -1               | 70000                      | 29000        | 49000
+                       :2008   | 40000               | -1               | 150000                     | 0            | 100000
+                       :2009   | 0                   | -1               | 150000                     | 20000        | 70000
+                       :2010   | 0                   | -1               | 120000                     | 29000        | 49000
                        :2011   | 0                   | 0                | 99000                      | 0            | 49000
                        :2012   | 0                   | 0                | 99000                      | 5000         | 34000
                        :2013   | 0                   | 0                | 84000                      | 30000        | 35000
@@ -435,10 +454,10 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
         // check it
         results.size shouldBe 4
         val table = """:year   | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
-                       :2013   | 0                   | 0                | 50000                      | 0            | 0
-                       :2014   | 0                   | 0                | 40000                      | 0            | 0
-                       :2015P1 | 0                   | 0                | 80000                      | 0            | 0
-                       :2015P2 | 70000               | 70000            | 40000                      | 0            | 0
+                       :2013   | 0                   | 0                | 200000                     | 0            | 100000
+                       :2014   | 0                   | 0                | 140000                     | 0            | 50000
+                       :2015P1 | 0                   | 0                | 130000                     | 0            | 0
+                       :2015P2 | 20000               | 20000            | 90000                      | 0            | 0
                        :""".stripMargin(':')
         Utilties.assertResults(table, results)
       }
