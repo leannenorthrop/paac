@@ -394,7 +394,7 @@ class PensionAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       results(0).summaryResult shouldBe SummaryResult(0,0,5000000,0,5000000,0,0)
       results(1).summaryResult shouldBe SummaryResult(0,0,4000000,0,4000000,0,0) 
       results(2).summaryResult shouldBe SummaryResult(0,0,8000000,0,8000000,0,0)
-      results(3).summaryResult shouldBe SummaryResult(3000000,7000000,0,0,4000000,0,0)
+      results(3).summaryResult shouldBe SummaryResult(7000000,7000000,0,0,4000000,0,0)
     }
   }
 } 
