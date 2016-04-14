@@ -396,5 +396,24 @@ class PensionAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       results(2).summaryResult shouldBe SummaryResult(0,0,8000000,0,8000000,0,0)
       results(3).summaryResult shouldBe SummaryResult(7000000,7000000,0,0,4000000,0,0)
     }
+
+    "provideMissingYearContributions" should {
+      "create period 1 contribution of 0 when period 2 supplied" in {
+        // set up
+        val period2 = Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(5000L)))
+        object Test extends PensionAllowanceCalculator {
+          def test(contributions : Seq[Contribution]): List[Contribution] = {
+            provideMissingYearContributions(contributions)
+          }
+        }
+
+        // test
+        val results = Test.test(Seq(Contribution(2014, 500000L),period2))
+
+        // check
+        results.size shouldBe 3
+        results(1) shouldBe Contribution(TaxPeriod(2015,3,6),TaxPeriod(2015,6,8),Some(InputAmounts(Some(0L),Some(0L))))
+      }
+    }
   }
 } 
