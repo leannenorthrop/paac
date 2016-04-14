@@ -40,195 +40,187 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
   "Group 1" should {
     "when defined benefit is 0 carry forwards and chargable amounts should be correct" in {
       // set up
-      val c2008 = Contribution(2008, 0L)
-      val c2009 = Contribution(2009, 0L)
-      val c2010 = Contribution(2010, 0L)
-      val c2011 = Contribution(2011, 0L)
-      val c2012 = Contribution(2012, 0L)
-      val c2013 = Contribution(2013, 0L)
-      val c2014 = Contribution(2014, 0L)
-      val c2015p1 = Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(0L,0L)))
-      val c2015p2 = Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(0L,0L)))
-      val inputs = List(c2008, c2009, c2010, c2011, c2012, c2013, c2014, c2015p1, c2015p2)
+      val inputs = Utilties.generateContributions(Map("2008"->0L,
+                                                      "2009"->0L,
+                                                      "2010"->0L,
+                                                      "2011"->0L,
+                                                      "2012"->0L,
+                                                      "2013"->0L,
+                                                      "2014"->0L,
+                                                      "2015P1"->0L,
+                                                      "2015P2"->0L))
 
       // do it
       val results = PensionAllowanceCalculator.calculateAllowances(inputs)
 
       // check it
       results.size shouldBe 9
-      // total available allowance for current year
-      val expectedAACF = List(5000000L,10000000L,15000000L,20000000L,20000000L,20000000L,19000000L,22000000L,18000000L)
-      // available allowance carried forward to following year
-      val expectedAACCF = List(5000000L,10000000L,15000000L,15000000L,15000000L,15000000L,14000000L,18000000L,13000000L)
-      // unused AA
-      val expectedUnusedAA = List(5000000L,5000000L,5000000L,5000000L,5000000L,5000000L,4000000L,4000000L,4000000L)
-      results.zipWithIndex.foreach {
-        case (result,i)=>
-          withClue (s"${result.input.taxYearLabel} unused allowance"){ result.summaryResult.unusedAllowance shouldBe expectedUnusedAA(i)}
-          withClue (s"${result.input.taxYearLabel} available AA with CF "){ result.summaryResult.availableAAWithCF shouldBe expectedAACF(i)}
-          withClue (s"${result.input.taxYearLabel} available AA with CCF"){ result.summaryResult.availableAAWithCCF shouldBe expectedAACCF(i)}
-          withClue (s"${result.input.taxYearLabel} chargable amount"){ result.summaryResult.chargableAmount shouldBe (if (result.input.taxPeriodStart.year < 2011) -1L else 0L)}
-      }
+      val table = """:year   | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
+                     :2008   | 0                   | -1               | 50000                      | 50000        | 50000
+                     :2009   | 0                   | -1               | 100000                     | 50000        | 100000
+                     :2010   | 0                   | -1               | 150000                     | 50000        | 150000
+                     :2011   | 0                   | 0                | 200000                     | 50000        | 150000
+                     :2012   | 0                   | 0                | 200000                     | 50000        | 150000
+                     :2013   | 0                   | 0                | 200000                     | 50000        | 150000
+                     :2014   | 0                   | 0                | 190000                     | 40000        | 140000
+                     :2015P1 | 0                   | 0                | 220000                     | 40000        | 180000
+                     :2015P2 | 0                   | 0                | 180000                     | 40000        | 130000
+                     :""".stripMargin(':')
+      Utilties.assertResults(table, results)
     }
 
     "when defined benefit is non-0 carry forwards and chargable amounts should be correct" in {
       // set up
-      val c2008 = Contribution(2008, 500000L)
-      val c2009 = Contribution(2009, 600000L)
-      val c2010 = Contribution(2010, 700000L)
-      val c2011 = Contribution(2011, 800000L)
-      val c2012 = Contribution(2012, 900000L)
-      val c2013 = Contribution(2013, 1000000L)
-      val c2014 = Contribution(2014, 1100000L)
-      val c2015p1 = Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(1200000L,0L)))
-      val c2015p2 = Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(1300000L,0L)))
-      val inputs = List(c2008, c2009, c2010, c2011, c2012, c2013, c2014, c2015p1, c2015p2)
-
+      val inputs = Utilties.generateContributions(Map("2008"->500000L,
+                                                      "2009"->600000L,
+                                                      "2010"->700000L,
+                                                      "2011"->800000L,
+                                                      "2012"->900000L,
+                                                      "2013"->1000000L,
+                                                      "2014"->1100000L,
+                                                      "2015P1"->1200000L,
+                                                      "2015P2"->1300000L))
       // do it
       val results = PensionAllowanceCalculator.calculateAllowances(inputs)
 
       // check it
       results.size shouldBe 9
-      // total available allowance for current year
-      val expectedAACF = List(5000000L,9500000L,13900000L,18200000L,17900000L,17600000L,16300000L,19000000L,15000000L)
-      // available allowance carried forward to following year
-      val expectedAACCF = List(4500000L,8900000L,13200000L,12900000L,12600000L,12300000L,11000000L,13800000L,9600000L)
-      // unused AA
-      val expectedUnusedAA = List(4500000L,4400000L,4300000L,4200000L,4100000L,4000000L,2900000L,4000000L,2700000L)
-      results.zipWithIndex.foreach {
-        case (result,i)=>
-          withClue (s"${result.input.taxYearLabel} unused allowance"){ result.summaryResult.unusedAllowance shouldBe expectedUnusedAA(i)}
-          withClue (s"${result.input.taxYearLabel} available AA with CF "){ result.summaryResult.availableAAWithCF shouldBe expectedAACF(i)}
-          withClue (s"${result.input.taxYearLabel} available AA with CCF"){ result.summaryResult.availableAAWithCCF shouldBe expectedAACCF(i)}
-          withClue (s"${result.input.taxYearLabel} chargable amount"){ result.summaryResult.chargableAmount shouldBe (if (result.input.taxPeriodStart.year < 2011) -1L else 0L)}
-      }
+      val table = """:year   | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
+                     :2008   | 0                   | -1               | 50000                      | 45000        | 45000
+                     :2009   | 0                   | -1               | 95000                      | 44000        | 89000
+                     :2010   | 0                   | -1               | 139000                     | 43000        | 132000
+                     :2011   | 0                   | 0                | 182000                     | 42000        | 129000
+                     :2012   | 0                   | 0                | 179000                     | 41000        | 126000
+                     :2013   | 0                   | 0                | 176000                     | 40000        | 123000
+                     :2014   | 0                   | 0                | 163000                     | 29000        | 110000
+                     :2015P1 | 0                   | 0                | 190000                     | 40000        | 138000
+                     :2015P2 | 0                   | 0                | 150000                     | 27000        | 96000
+                     :""".stripMargin(':')
+      Utilties.assertResults(table, results)
     }
 
     "when defined benefit is equal to allowances carry forwards and chargable amounts should be correct" in {
       // set up
-      val c2008 = Contribution(2008, 5000000L)
-      val c2009 = Contribution(2009, 5000000L)
-      val c2010 = Contribution(2010, 5000000L)
-      val c2011 = Contribution(2011, 5000000L)
-      val c2012 = Contribution(2012, 5000000L)
-      val c2013 = Contribution(2013, 5000000L)
-      val c2014 = Contribution(2014, 4000000L)
-      val c2015p1 = Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(8000000L,0L)))
-      val c2015p2 = Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(0L,0L)))
-      val inputs = List(c2008, c2009, c2010, c2011, c2012, c2013, c2014, c2015p1, c2015p2)
+      val inputs = Utilties.generateContributions(Map("2008"->5000000L,
+                                                      "2009"->5000000L,
+                                                      "2010"->5000000L,
+                                                      "2011"->5000000L,
+                                                      "2012"->5000000L,
+                                                      "2013"->5000000L,
+                                                      "2014"->4000000L,
+                                                      "2015P1"->8000000L,
+                                                      "2015P2"->0L))
 
       // do it
       val results = PensionAllowanceCalculator.calculateAllowances(inputs)
 
       // check it
       results.size shouldBe 9
-      // total available allowance for current year
-      val expectedAACF = List(5000000L,5000000L,5000000L,5000000L,5000000L,5000000L,4000000L,8000000L,4000000L)
-      results.zipWithIndex.foreach {
-        case (result,i)=>
-          withClue (s"${result.input.taxYearLabel} unused allowance"){ result.summaryResult.unusedAllowance shouldBe 0L}
-          withClue (s"${result.input.taxYearLabel} available AA with CF "){ result.summaryResult.availableAAWithCF shouldBe expectedAACF(i)}
-          withClue (s"${result.input.taxYearLabel} available AA with CCF"){ result.summaryResult.availableAAWithCCF shouldBe 0L}
-          withClue (s"${result.input.taxYearLabel} chargable amount"){ result.summaryResult.chargableAmount shouldBe (if (result.input.taxPeriodStart.year < 2011) -1L else 0L)}
-      }
+      val table = """:year   | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
+                     :2008   | 0                   | -1               | 50000                      | 0            | 0
+                     :2009   | 0                   | -1               | 50000                      | 0            | 0
+                     :2010   | 0                   | -1               | 50000                      | 0            | 0
+                     :2011   | 0                   | 0                | 50000                      | 0            | 0
+                     :2012   | 0                   | 0                | 50000                      | 0            | 0
+                     :2013   | 0                   | 0                | 50000                      | 0            | 0
+                     :2014   | 0                   | 0                | 40000                      | 0            | 0
+                     :2015P1 | 0                   | 0                | 80000                      | 0            | 0
+                     :2015P2 | 0                   | 0                | 40000                      | 0            | 0
+                     :""".stripMargin(':')
+      Utilties.assertResults(table, results)
     }
 
-    "when defined benefit is equal to allowances carry forwards and chargable amounts should be correct2" in {
+    "when defined benefit is equal to allowances to 2015 carry forwards and chargable amounts should be correct" in {
       // set up
-      val c2008 = Contribution(2008, 5000000L)
-      val c2009 = Contribution(2009, 5000000L)
-      val c2010 = Contribution(2010, 5000000L)
-      val c2011 = Contribution(2011, 5000000L)
-      val c2012 = Contribution(2012, 5000000L)
-      val c2013 = Contribution(2013, 5000000L)
-      val c2014 = Contribution(2014, 4000000L)
-      val c2015p1 = Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(4000000L,0L)))
-      val c2015p2 = Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(4000000L,0L)))
-      val inputs = List(c2008, c2009, c2010, c2011, c2012, c2013, c2014, c2015p1, c2015p2)
+      val inputs = Utilties.generateContributions(Map("2008"->5000000L,
+                                                      "2009"->5000000L,
+                                                      "2010"->5000000L,
+                                                      "2011"->5000000L,
+                                                      "2012"->5000000L,
+                                                      "2013"->5000000L,
+                                                      "2014"->4000000L,
+                                                      "2015P1"->4000000L,
+                                                      "2015P2"->4000000L))
 
       // do it
       val results = PensionAllowanceCalculator.calculateAllowances(inputs)
 
       // check it
       results.size shouldBe 9
-      // total available allowance for current year
-      val expectedAACF = List(5000000L,5000000L,5000000L,5000000L,5000000L,5000000L,4000000L,8000000L,4000000L)
-      results.zipWithIndex.foreach {
-        case (result,i)=>
-          withClue (s"${result.input.taxYearLabel} unused allowance"){ result.summaryResult.unusedAllowance shouldBe (if (result.input.isPeriod1()) 4000000L else 0L)}
-          withClue (s"${result.input.taxYearLabel} available AA with CF "){ result.summaryResult.availableAAWithCF shouldBe expectedAACF(i)}
-          withClue (s"${result.input.taxYearLabel} available AA with CCF"){ result.summaryResult.availableAAWithCCF shouldBe (if (result.input.isPeriod1()) 4000000L else 0L)}
-          withClue (s"${result.input.taxYearLabel} chargable amount"){ result.summaryResult.chargableAmount shouldBe (if (result.input.taxPeriodStart.year < 2011) -1L else 0L)}
-      }
+      val table = """:year   | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
+                     :2008   | 0                   | -1               | 50000                      | 0            | 0
+                     :2009   | 0                   | -1               | 50000                      | 0            | 0
+                     :2010   | 0                   | -1               | 50000                      | 0            | 0
+                     :2011   | 0                   | 0                | 50000                      | 0            | 0
+                     :2012   | 0                   | 0                | 50000                      | 0            | 0
+                     :2013   | 0                   | 0                | 50000                      | 0            | 0
+                     :2014   | 0                   | 0                | 40000                      | 0            | 0
+                     :2015P1 | 0                   | 0                | 80000                      | 40000        | 40000
+                     :2015P2 | 0                   | 0                | 40000                      | 0            | 0
+                     :""".stripMargin(':')
+      Utilties.assertResults(table, results)
     }
 
     "when defined benefit is above annual allowances carry forwards and chargable amounts should be correct" in {
       // set up
-      val c2008 = Contribution(2008, 5100000L)
-      val c2009 = Contribution(2009, 5100000L)
-      val c2010 = Contribution(2010, 5100000L)
-      val c2011 = Contribution(2011, 5100000L)
-      val c2012 = Contribution(2012, 5100000L)
-      val c2013 = Contribution(2013, 5100000L)
-      val c2014 = Contribution(2014, 4100000L)
-      val c2015p1 = Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(8100000L,0L)))
-      val c2015p2 = Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(4100000L,0L)))
-      val inputs = List(c2008, c2009, c2010, c2011, c2012, c2013, c2014, c2015p1, c2015p2)
+      val inputs = Utilties.generateContributions(Map("2008"->5100000L,
+                                                      "2009"->5100000L,
+                                                      "2010"->5100000L,
+                                                      "2011"->5100000L,
+                                                      "2012"->5100000L,
+                                                      "2013"->5100000L,
+                                                      "2014"->4100000L,
+                                                      "2015P1"->8100000L,
+                                                      "2015P2"->4100000L))
 
       // do it
       val results = PensionAllowanceCalculator.calculateAllowances(inputs)
 
       // check it
       results.size shouldBe 9
-      // total available allowance for current year
-      val expectedAACF = List(5000000L,5000000L,5000000L,5000000L,5000000L,5000000L,4000000L,8000000L,4000000L)
-      // chargable
-      val expectedCharge = List(-1L,-1L,-1L,100000L,100000L,100000L,100000L,100000L,4100000L)
-      val expectedExceeding = List(-1L,-1L,-1L,100000L,100000L,100000L,100000L,100000L,4100000L)
-      results.zipWithIndex.foreach {
-        case (result,i)=>
-          withClue (s"${result.input.taxYearLabel} unused allowance"){ result.summaryResult.unusedAllowance shouldBe 0L}
-          withClue (s"${result.input.taxYearLabel} available AA with CF "){ result.summaryResult.availableAAWithCF shouldBe expectedAACF(i)}
-          withClue (s"${result.input.taxYearLabel} available AA with CCF"){ result.summaryResult.availableAAWithCCF shouldBe 0L}
-          withClue (s"${result.input.taxYearLabel} chargable amount"){ result.summaryResult.chargableAmount shouldBe expectedCharge(i)}
-          withClue (s"${result.input.taxYearLabel} exceeding"){ result.summaryResult.chargableAmount shouldBe expectedExceeding(i)}
-      }
+      val table = """:year   | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
+                     :2008   | 1000                | -1               | 50000                      | 0            | 0
+                     :2009   | 1000                | -1               | 50000                      | 0            | 0
+                     :2010   | 1000                | -1               | 50000                      | 0            | 0
+                     :2011   | 1000                | 1000             | 50000                      | 0            | 0
+                     :2012   | 1000                | 1000             | 50000                      | 0            | 0
+                     :2013   | 1000                | 1000             | 50000                      | 0            | 0
+                     :2014   | 1000                | 1000             | 40000                      | 0            | 0
+                     :2015P1 | 1000                | 1000             | 80000                      | 0            | 0
+                     :2015P2 | 41000               | 41000            | 40000                      | 0            | 0
+                     :""".stripMargin(':')
+      Utilties.assertResults(table, results)
     }
 
     "when defined benefit is either below, same or above annual allowances carry forwards and chargable amounts should be correct" in {
       // set up
-      val c2008 = Contribution(2008, 9000000L)
-      val c2009 = Contribution(2009, 3000000L)
-      val c2010 = Contribution(2010, 2100000L)
-      val c2011 = Contribution(2011, 5000000L)
-      val c2012 = Contribution(2012, 4500000L)
-      val c2013 = Contribution(2013, 2000000L)
-      val c2014 = Contribution(2014, 3200000L)
-      val c2015p1 = Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(6500000L,0L)))
-      val c2015p2 = Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(2010000L,0L)))
-      val inputs = List(c2008, c2009, c2010, c2011, c2012, c2013, c2014, c2015p1, c2015p2)
+      val inputs = Utilties.generateContributions(Map("2008"->9000000L,
+                                                      "2009"->3000000L,
+                                                      "2010"->2100000L,
+                                                      "2011"->5000000L,
+                                                      "2012"->4500000L,
+                                                      "2013"->2000000L,
+                                                      "2014"->3200000L,
+                                                      "2015P1"->6500000L,
+                                                      "2015P2"->2010000L))
 
       // do it
       val results = PensionAllowanceCalculator.calculateAllowances(inputs)
 
       // check it
       results.size shouldBe 9
-      // total available allowance for current year
-      val expectedAACF = List(5000000L,5000000L,7000000L,9900000L,9900000L,8400000L,7500000L,12300000L,5800000L)
-      // available allowance carried forward to following year
-      val expectedAACCF = List(0L,2000000L,4900000L,4900000L,3400000L,3500000L,4300000L,5300000L,3290000L)
-      // chargable
-      val expectedCharge = List(-1L,-1L,-1L,0L,0L,0L,0L,0L,0L)
-      val expectedExceeding = List(-1L,-1L,-1L,0L,0L,0L,0L,0L,0L)
-      val expectedUnused = List(0L,2000000L,2900000,0L,500000L,3000000L,800000L,1500000L,0L)
-      results.zipWithIndex.foreach {
-        case (result,i)=>
-          withClue (s"${result.input.taxYearLabel} unused allowance"){ result.summaryResult.unusedAllowance shouldBe expectedUnused(i)}
-          withClue (s"${result.input.taxYearLabel} available AA with CF "){ result.summaryResult.availableAAWithCF shouldBe expectedAACF(i)}
-          withClue (s"${result.input.taxYearLabel} available AA with CCF"){ result.summaryResult.availableAAWithCCF shouldBe expectedAACCF(i)}
-          withClue (s"${result.input.taxYearLabel} chargable amount"){ result.summaryResult.chargableAmount shouldBe expectedCharge(i)}
-          withClue (s"${result.input.taxYearLabel} exceeding"){ result.summaryResult.chargableAmount shouldBe expectedExceeding(i)}
-      }
+      val table = """:year   | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
+                     :2008   | 40000               | -1               | 50000                      | 0            | 0
+                     :2009   | 0                   | -1               | 50000                      | 20000        | 20000
+                     :2010   | 0                   | -1               | 70000                      | 29000        | 49000
+                     :2011   | 0                   | 0                | 99000                      | 0            | 49000
+                     :2012   | 0                   | 0                | 99000                      | 5000         | 34000
+                     :2013   | 0                   | 0                | 84000                      | 30000        | 35000
+                     :2014   | 0                   | 0                | 75000                      | 8000         | 43000
+                     :2015P1 | 0                   | 0                | 123000                     | 15000        | 53000
+                     :2015P2 | 0                   | 0                | 58000                      | 0            | 32900
+                     :""".stripMargin(':')
+      Utilties.assertResults(table, results)
     }
   }
 }
