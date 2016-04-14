@@ -39,15 +39,16 @@ object Year2015Period2Calculator extends BasicCalculator {
       // summed with previous 3 years
       val period1UnusedAllowance: Long = previousPeriods.headOption.map(_.unusedAllowance).getOrElse(0L)
       val previous3YearsUnusedAllowances: Long = previousPeriods.drop(1).slice(0,3).foldLeft(0L)(_+_.unusedAllowance) // drop 1 to ignore period 1 and get only 3 previous years
+      val previous2YearsUnusedAllowances: Long = previousPeriods.drop(1).slice(0,2).foldLeft(0L)(_+_.unusedAllowance) // drop 1 to ignore period 1 and get only 2 previous years
 
       // Unused and exceeding
       val unusedAllowance: Long = (period1UnusedAllowance - definedBenefit).max(0)
-      val exceedingAAAmount: Long = (definedBenefit - (previous3YearsUnusedAllowances + period1UnusedAllowance)).max(0)
+      val exceedingAAAmount: Long = (definedBenefit - period1UnusedAllowance).max(0)
 
       // Carry forwards for allowances
-      val availableAAWithCF: Long = previousPeriods.drop(1).slice(0,3).foldLeft(if (period1UnusedAllowance == 0) 4000000L else period1UnusedAllowance)(_+_.unusedAllowance)
-      val availableAAWithCCF: Long = (previousPeriods.drop(1).slice(0,2).foldLeft(period1UnusedAllowance)(_+_.unusedAllowance) - (definedBenefit-exceedingAAAmount)).max(0)
-      
+      val availableAAWithCF: Long = previousPeriods.drop(1).slice(0,3).foldLeft(if (period1UnusedAllowance == 0) 0L else period1UnusedAllowance)(_+_.unusedAllowance)
+      val availableAAWithCCF: Long = previous2YearsUnusedAllowances + unusedAllowance
+
       val chargableAmount: Long = (definedBenefit - (previous3YearsUnusedAllowances + period1UnusedAllowance)).max(0)
 
       results.copy(availableAAWithCF = availableAAWithCF,    // total available allowance for current year

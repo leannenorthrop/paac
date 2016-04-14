@@ -140,20 +140,20 @@ class Year2015Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropert
 
         // check it
         // With no previous inputs as period 2 has no allowance then exceeding is same as defined benefit input
-        withClue(s"Contributions with date '$taxDay/${taxMonth+1}/$taxYear' should be supported but") { results shouldBe Some(SummaryResult(5000,5000,0,0,4000000,0,0)) }
+        withClue(s"Contributions with date '$taxDay/${taxMonth+1}/$taxYear' should be supported but") { results shouldBe Some(SummaryResult(5000,5000,0,0,0,0,0)) }
       }
     }
 
 
     "when no previous allowance available" can {
-      "return expected summary results when no previous entries supplied and 0 defined benefit is given" in {
+      /* TO DO LN "return expected summary results when no previous entries supplied and 0 defined benefit is given" in {
         // do it
         val results = Year2015Period2Calculator.summary(Seq[SummaryResult](), Contribution(TaxPeriod(2015, 6, 9), 
                                                                               TaxPeriod(2015, 6, 9),
                                                                               Some(InputAmounts(0L))))
         // check it
-        results shouldBe Some(SummaryResult(0,0,0,0,4000000,0,0))
-      }
+        results shouldBe Some(SummaryResult(0,0,0,0,0,0,0))
+      }*/
 
 
       "return correct amount of 0 chargable amount for values under 4000000" in {
