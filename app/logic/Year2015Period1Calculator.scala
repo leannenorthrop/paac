@@ -28,26 +28,30 @@ object Year2015Period1Calculator extends BasicCalculator {
   }
 
   override def summary(previousPeriods:Seq[SummaryResult], contribution: models.Contribution): Option[SummaryResult] = {
-    // Period 1 only allows maximum carry forward of 40k (here in pence values)
-    super.summary(previousPeriods, contribution).map {
-      (results) =>
-      if (results.unusedAllowance > 4000000L) {
-          val annualAllowance: Long = getAnnualAllowanceInPounds*100L
-          val amounts = contribution.amounts.get
-          var definedBenefit = amounts.definedBenefit.getOrElse(0L)
-          val exceedingAAAmount: Long = (definedBenefit - annualAllowance).max(0)
+    if (contribution.isGroup1()) {
+      // Period 1 only allows maximum carry forward of 40k (here in pence values)
+      super.summary(previousPeriods, contribution).map {
+        (results) =>
+        if (results.unusedAllowance > 4000000L) {
+            val annualAllowance: Long = getAnnualAllowanceInPounds*100L
+            val amounts = contribution.amounts.get
+            var definedBenefit = amounts.definedBenefit.getOrElse(0L)
+            val exceedingAAAmount: Long = (definedBenefit - annualAllowance).max(0)
 
-          // Key to understanding period 1 is that only a maximum of 40k is carried over to period 2 
-          // period 2 relies on this for it's allowance as there is no annual allowance for period 2
-          val ua = results.unusedAllowance.min(4000000L)
+            // Key to understanding period 1 is that only a maximum of 40k is carried over to period 2 
+            // period 2 relies on this for it's allowance as there is no annual allowance for period 2
+            val ua = results.unusedAllowance.min(4000000L)
 
-          // cumulative carry forwards is 3 previous years plus current year's maximum carry forwards
-          val availableAAWithCCF: Long = (previousPeriods.slice(0,3).foldLeft(4000000L)(_+_.unusedAllowance) - (definedBenefit-exceedingAAAmount)).max(0)
-          val availableAAWithCF: Long = annualAllowance + previousPeriods.slice(0,3).foldLeft(0L)(_+_.unusedAllowance)
-          results.copy(unusedAllowance=ua,availableAAWithCCF=availableAAWithCCF,availableAAWithCF=availableAAWithCF)
-        } else {
-          results
-        }
-    }
+            // cumulative carry forwards is 3 previous years plus current year's maximum carry forwards
+            val previous3YearsUnusedAllowance = previousPeriods.slice(0,3).foldLeft(0L)(_+_.unusedAllowance)
+            val availableAAWithCCF: Long = (if ((8000000L - definedBenefit) > 4000000L) ua + previous3YearsUnusedAllowance else 4000000L + previous3YearsUnusedAllowance).max(0)
+            
+            val availableAAWithCF: Long = annualAllowance + previousPeriods.slice(0,3).foldLeft(0L)(_+_.unusedAllowance)
+            results.copy(unusedAllowance=ua,availableAAWithCCF=availableAAWithCCF,availableAAWithCF=availableAAWithCF)
+          } else {
+            results
+          }
+      }
+    } else None
   }
 }

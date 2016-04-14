@@ -229,7 +229,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2012   | 0                   | 0                | 179000                     | 41000        | 126000
                        :2013   | 0                   | 0                | 176000                     | 40000        | 123000
                        :2014   | 0                   | 0                | 163000                     | 29000        | 110000
-                       :2015P1 | 0                   | 0                | 190000                     | 40000        | 138000
+                       :2015P1 | 0                   | 0                | 190000                     | 40000        | 150000
                        :""".stripMargin(':')
         Utilties.assertResults(table, results)
       }
@@ -291,7 +291,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2012   | 0                   | 0                | 179000                     | 41000        | 126000
                        :2013   | 0                   | 0                | 176000                     | 40000        | 123000
                        :2014   | 0                   | 0                | 163000                     | 29000        | 110000
-                       :2015P1 | 0                   | 0                | 190000                     | 40000        | 138000
+                       :2015P1 | 0                   | 0                | 190000                     | 40000        | 150000
                        :2015P2 | 0                   | 0                | 150000                     | 27000        | 96000
                        :""".stripMargin(':')
         Utilties.assertResults(table, results)

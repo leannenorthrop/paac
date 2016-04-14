@@ -121,7 +121,7 @@ class Year2015Period1CalculatorSpec extends UnitSpec with GeneratorDrivenPropert
         val results = Year2015Period1Calculator.summary(Seq[SummaryResult](), contribution)
 
         // check it
-        withClue(s"Contributions with date '$taxDay/${taxMonth+1}/$taxYear' should be supported but") { results shouldBe Some(SummaryResult(0,0,8000000,4000000,8000000,3995000,7995000)) }
+        withClue(s"Contributions with date '$taxDay/${taxMonth+1}/$taxYear' should be supported but") { results shouldBe Some(SummaryResult(0L,0L,8000000L,4000000L,8000000L,4000000L,7995000L)) }
       }
     }
 

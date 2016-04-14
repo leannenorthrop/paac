@@ -81,7 +81,9 @@ case class Contribution(taxPeriodStart: TaxPeriod, taxPeriodEnd: TaxPeriod, amou
     } else {
       this
     }
-  }  
+  }
+
+  def isGroup1(): Boolean = amounts.isDefined && (amounts.get.moneyPurchase == None || amounts.get.moneyPurchase == Some(0))
 }
 
 object TaxPeriod {
