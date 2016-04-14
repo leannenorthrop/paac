@@ -24,9 +24,9 @@ object Utilties {
     map.keys.toList.map {
       (key)=>
       key match {
-        case "2015P1" => Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(map(key),0L))) 
-        case "2015P2" => Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(map(key),0L))) 
-        case _ => Contribution(key.toInt, map(key))
+        case "2015P1" => Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(map(key)*100L,0L))) 
+        case "2015P2" => Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(map(key)*100L,0L))) 
+        case _ => Contribution(key.toInt, map(key)*100L)
       }
     }
   }

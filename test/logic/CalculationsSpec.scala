@@ -38,189 +38,191 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
   }
 
   "Group 1" should {
-    "when defined benefit is 0 carry forwards and chargable amounts should be correct" in {
-      // set up
-      val inputs = Utilties.generateContributions(Map("2008"->0L,
-                                                      "2009"->0L,
-                                                      "2010"->0L,
-                                                      "2011"->0L,
-                                                      "2012"->0L,
-                                                      "2013"->0L,
-                                                      "2014"->0L,
-                                                      "2015P1"->0L,
-                                                      "2015P2"->0L))
+    "2015 Period 2" should {
+      "when defined benefit is 0 carry forwards and chargable amounts should be correct" in {
+        // set up
+        val inputs = Utilties.generateContributions(Map("2008"->0L,
+                                                        "2009"->0L,
+                                                        "2010"->0L,
+                                                        "2011"->0L,
+                                                        "2012"->0L,
+                                                        "2013"->0L,
+                                                        "2014"->0L,
+                                                        "2015P1"->0L,
+                                                        "2015P2"->0L))
 
-      // do it
-      val results = PensionAllowanceCalculator.calculateAllowances(inputs)
+        // do it
+        val results = PensionAllowanceCalculator.calculateAllowances(inputs)
 
-      // check it
-      results.size shouldBe 9
-      val table = """:year   | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
-                     :2008   | 0                   | -1               | 50000                      | 50000        | 50000
-                     :2009   | 0                   | -1               | 100000                     | 50000        | 100000
-                     :2010   | 0                   | -1               | 150000                     | 50000        | 150000
-                     :2011   | 0                   | 0                | 200000                     | 50000        | 150000
-                     :2012   | 0                   | 0                | 200000                     | 50000        | 150000
-                     :2013   | 0                   | 0                | 200000                     | 50000        | 150000
-                     :2014   | 0                   | 0                | 190000                     | 40000        | 140000
-                     :2015P1 | 0                   | 0                | 220000                     | 40000        | 180000
-                     :2015P2 | 0                   | 0                | 180000                     | 40000        | 130000
-                     :""".stripMargin(':')
-      Utilties.assertResults(table, results)
-    }
+        // check it
+        results.size shouldBe 9
+        val table = """:year   | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
+                       :2008   | 0                   | -1               | 50000                      | 50000        | 50000
+                       :2009   | 0                   | -1               | 100000                     | 50000        | 100000
+                       :2010   | 0                   | -1               | 150000                     | 50000        | 150000
+                       :2011   | 0                   | 0                | 200000                     | 50000        | 150000
+                       :2012   | 0                   | 0                | 200000                     | 50000        | 150000
+                       :2013   | 0                   | 0                | 200000                     | 50000        | 150000
+                       :2014   | 0                   | 0                | 190000                     | 40000        | 140000
+                       :2015P1 | 0                   | 0                | 220000                     | 40000        | 180000
+                       :2015P2 | 0                   | 0                | 180000                     | 40000        | 130000
+                       :""".stripMargin(':')
+        Utilties.assertResults(table, results)
+      }
 
-    "when defined benefit is non-0 carry forwards and chargable amounts should be correct" in {
-      // set up
-      val inputs = Utilties.generateContributions(Map("2008"->500000L,
-                                                      "2009"->600000L,
-                                                      "2010"->700000L,
-                                                      "2011"->800000L,
-                                                      "2012"->900000L,
-                                                      "2013"->1000000L,
-                                                      "2014"->1100000L,
-                                                      "2015P1"->1200000L,
-                                                      "2015P2"->1300000L))
-      // do it
-      val results = PensionAllowanceCalculator.calculateAllowances(inputs)
+      "when defined benefit is non-0 carry forwards and chargable amounts should be correct" in {
+        // set up
+        val inputs = Utilties.generateContributions(Map("2008"->5000L,
+                                                        "2009"->6000L,
+                                                        "2010"->7000L,
+                                                        "2011"->8000L,
+                                                        "2012"->9000L,
+                                                        "2013"->10000L,
+                                                        "2014"->11000L,
+                                                        "2015P1"->12000L,
+                                                        "2015P2"->13000L))
+        // do it
+        val results = PensionAllowanceCalculator.calculateAllowances(inputs)
 
-      // check it
-      results.size shouldBe 9
-      val table = """:year   | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
-                     :2008   | 0                   | -1               | 50000                      | 45000        | 45000
-                     :2009   | 0                   | -1               | 95000                      | 44000        | 89000
-                     :2010   | 0                   | -1               | 139000                     | 43000        | 132000
-                     :2011   | 0                   | 0                | 182000                     | 42000        | 129000
-                     :2012   | 0                   | 0                | 179000                     | 41000        | 126000
-                     :2013   | 0                   | 0                | 176000                     | 40000        | 123000
-                     :2014   | 0                   | 0                | 163000                     | 29000        | 110000
-                     :2015P1 | 0                   | 0                | 190000                     | 40000        | 138000
-                     :2015P2 | 0                   | 0                | 150000                     | 27000        | 96000
-                     :""".stripMargin(':')
-      Utilties.assertResults(table, results)
-    }
+        // check it
+        results.size shouldBe 9
+        val table = """:year   | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
+                       :2008   | 0                   | -1               | 50000                      | 45000        | 45000
+                       :2009   | 0                   | -1               | 95000                      | 44000        | 89000
+                       :2010   | 0                   | -1               | 139000                     | 43000        | 132000
+                       :2011   | 0                   | 0                | 182000                     | 42000        | 129000
+                       :2012   | 0                   | 0                | 179000                     | 41000        | 126000
+                       :2013   | 0                   | 0                | 176000                     | 40000        | 123000
+                       :2014   | 0                   | 0                | 163000                     | 29000        | 110000
+                       :2015P1 | 0                   | 0                | 190000                     | 40000        | 138000
+                       :2015P2 | 0                   | 0                | 150000                     | 27000        | 96000
+                       :""".stripMargin(':')
+        Utilties.assertResults(table, results)
+      }
 
-    "when defined benefit is equal to allowances carry forwards and chargable amounts should be correct" in {
-      // set up
-      val inputs = Utilties.generateContributions(Map("2008"->5000000L,
-                                                      "2009"->5000000L,
-                                                      "2010"->5000000L,
-                                                      "2011"->5000000L,
-                                                      "2012"->5000000L,
-                                                      "2013"->5000000L,
-                                                      "2014"->4000000L,
-                                                      "2015P1"->8000000L,
-                                                      "2015P2"->0L))
+      "when defined benefit is equal to allowances carry forwards and chargable amounts should be correct" in {
+        // set up
+        val inputs = Utilties.generateContributions(Map("2008"->50000L,
+                                                        "2009"->50000L,
+                                                        "2010"->50000L,
+                                                        "2011"->50000L,
+                                                        "2012"->50000L,
+                                                        "2013"->50000L,
+                                                        "2014"->40000L,
+                                                        "2015P1"->80000L,
+                                                        "2015P2"->0L))
 
-      // do it
-      val results = PensionAllowanceCalculator.calculateAllowances(inputs)
+        // do it
+        val results = PensionAllowanceCalculator.calculateAllowances(inputs)
 
-      // check it
-      results.size shouldBe 9
-      val table = """:year   | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
-                     :2008   | 0                   | -1               | 50000                      | 0            | 0
-                     :2009   | 0                   | -1               | 50000                      | 0            | 0
-                     :2010   | 0                   | -1               | 50000                      | 0            | 0
-                     :2011   | 0                   | 0                | 50000                      | 0            | 0
-                     :2012   | 0                   | 0                | 50000                      | 0            | 0
-                     :2013   | 0                   | 0                | 50000                      | 0            | 0
-                     :2014   | 0                   | 0                | 40000                      | 0            | 0
-                     :2015P1 | 0                   | 0                | 80000                      | 0            | 0
-                     :2015P2 | 0                   | 0                | 40000                      | 0            | 0
-                     :""".stripMargin(':')
-      Utilties.assertResults(table, results)
-    }
+        // check it
+        results.size shouldBe 9
+        val table = """:year   | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
+                       :2008   | 0                   | -1               | 50000                      | 0            | 0
+                       :2009   | 0                   | -1               | 50000                      | 0            | 0
+                       :2010   | 0                   | -1               | 50000                      | 0            | 0
+                       :2011   | 0                   | 0                | 50000                      | 0            | 0
+                       :2012   | 0                   | 0                | 50000                      | 0            | 0
+                       :2013   | 0                   | 0                | 50000                      | 0            | 0
+                       :2014   | 0                   | 0                | 40000                      | 0            | 0
+                       :2015P1 | 0                   | 0                | 80000                      | 0            | 0
+                       :2015P2 | 0                   | 0                | 40000                      | 0            | 0
+                       :""".stripMargin(':')
+        Utilties.assertResults(table, results)
+      }
 
-    "when defined benefit is equal to allowances to 2015 carry forwards and chargable amounts should be correct" in {
-      // set up
-      val inputs = Utilties.generateContributions(Map("2008"->5000000L,
-                                                      "2009"->5000000L,
-                                                      "2010"->5000000L,
-                                                      "2011"->5000000L,
-                                                      "2012"->5000000L,
-                                                      "2013"->5000000L,
-                                                      "2014"->4000000L,
-                                                      "2015P1"->4000000L,
-                                                      "2015P2"->4000000L))
+      "when defined benefit is equal to allowances to 2015 carry forwards and chargable amounts should be correct" in {
+        // set up
+        val inputs = Utilties.generateContributions(Map("2008"->50000L,
+                                                        "2009"->50000L,
+                                                        "2010"->50000L,
+                                                        "2011"->50000L,
+                                                        "2012"->50000L,
+                                                        "2013"->50000L,
+                                                        "2014"->40000L,
+                                                        "2015P1"->40000L,
+                                                        "2015P2"->40000L))
 
-      // do it
-      val results = PensionAllowanceCalculator.calculateAllowances(inputs)
+        // do it
+        val results = PensionAllowanceCalculator.calculateAllowances(inputs)
 
-      // check it
-      results.size shouldBe 9
-      val table = """:year   | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
-                     :2008   | 0                   | -1               | 50000                      | 0            | 0
-                     :2009   | 0                   | -1               | 50000                      | 0            | 0
-                     :2010   | 0                   | -1               | 50000                      | 0            | 0
-                     :2011   | 0                   | 0                | 50000                      | 0            | 0
-                     :2012   | 0                   | 0                | 50000                      | 0            | 0
-                     :2013   | 0                   | 0                | 50000                      | 0            | 0
-                     :2014   | 0                   | 0                | 40000                      | 0            | 0
-                     :2015P1 | 0                   | 0                | 80000                      | 40000        | 40000
-                     :2015P2 | 0                   | 0                | 40000                      | 0            | 0
-                     :""".stripMargin(':')
-      Utilties.assertResults(table, results)
-    }
+        // check it
+        results.size shouldBe 9
+        val table = """:year   | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
+                       :2008   | 0                   | -1               | 50000                      | 0            | 0
+                       :2009   | 0                   | -1               | 50000                      | 0            | 0
+                       :2010   | 0                   | -1               | 50000                      | 0            | 0
+                       :2011   | 0                   | 0                | 50000                      | 0            | 0
+                       :2012   | 0                   | 0                | 50000                      | 0            | 0
+                       :2013   | 0                   | 0                | 50000                      | 0            | 0
+                       :2014   | 0                   | 0                | 40000                      | 0            | 0
+                       :2015P1 | 0                   | 0                | 80000                      | 40000        | 40000
+                       :2015P2 | 0                   | 0                | 40000                      | 0            | 0
+                       :""".stripMargin(':')
+        Utilties.assertResults(table, results)
+      }
 
-    "when defined benefit is above annual allowances carry forwards and chargable amounts should be correct" in {
-      // set up
-      val inputs = Utilties.generateContributions(Map("2008"->5100000L,
-                                                      "2009"->5100000L,
-                                                      "2010"->5100000L,
-                                                      "2011"->5100000L,
-                                                      "2012"->5100000L,
-                                                      "2013"->5100000L,
-                                                      "2014"->4100000L,
-                                                      "2015P1"->8100000L,
-                                                      "2015P2"->4100000L))
+      "when defined benefit is above annual allowances carry forwards and chargable amounts should be correct" in {
+        // set up
+        val inputs = Utilties.generateContributions(Map("2008"->51000L,
+                                                        "2009"->51000L,
+                                                        "2010"->51000L,
+                                                        "2011"->51000L,
+                                                        "2012"->51000L,
+                                                        "2013"->51000L,
+                                                        "2014"->41000L,
+                                                        "2015P1"->81000L,
+                                                        "2015P2"->41000L))
 
-      // do it
-      val results = PensionAllowanceCalculator.calculateAllowances(inputs)
+        // do it
+        val results = PensionAllowanceCalculator.calculateAllowances(inputs)
 
-      // check it
-      results.size shouldBe 9
-      val table = """:year   | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
-                     :2008   | 1000                | -1               | 50000                      | 0            | 0
-                     :2009   | 1000                | -1               | 50000                      | 0            | 0
-                     :2010   | 1000                | -1               | 50000                      | 0            | 0
-                     :2011   | 1000                | 1000             | 50000                      | 0            | 0
-                     :2012   | 1000                | 1000             | 50000                      | 0            | 0
-                     :2013   | 1000                | 1000             | 50000                      | 0            | 0
-                     :2014   | 1000                | 1000             | 40000                      | 0            | 0
-                     :2015P1 | 1000                | 1000             | 80000                      | 0            | 0
-                     :2015P2 | 41000               | 41000            | 40000                      | 0            | 0
-                     :""".stripMargin(':')
-      Utilties.assertResults(table, results)
-    }
+        // check it
+        results.size shouldBe 9
+        val table = """:year   | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
+                       :2008   | 1000                | -1               | 50000                      | 0            | 0
+                       :2009   | 1000                | -1               | 50000                      | 0            | 0
+                       :2010   | 1000                | -1               | 50000                      | 0            | 0
+                       :2011   | 1000                | 1000             | 50000                      | 0            | 0
+                       :2012   | 1000                | 1000             | 50000                      | 0            | 0
+                       :2013   | 1000                | 1000             | 50000                      | 0            | 0
+                       :2014   | 1000                | 1000             | 40000                      | 0            | 0
+                       :2015P1 | 1000                | 1000             | 80000                      | 0            | 0
+                       :2015P2 | 41000               | 41000            | 40000                      | 0            | 0
+                       :""".stripMargin(':')
+        Utilties.assertResults(table, results)
+      }
 
-    "when defined benefit is either below, same or above annual allowances carry forwards and chargable amounts should be correct" in {
-      // set up
-      val inputs = Utilties.generateContributions(Map("2008"->9000000L,
-                                                      "2009"->3000000L,
-                                                      "2010"->2100000L,
-                                                      "2011"->5000000L,
-                                                      "2012"->4500000L,
-                                                      "2013"->2000000L,
-                                                      "2014"->3200000L,
-                                                      "2015P1"->6500000L,
-                                                      "2015P2"->2010000L))
+      "when defined benefit is either below, same or above annual allowances carry forwards and chargable amounts should be correct" in {
+        // set up
+        val inputs = Utilties.generateContributions(Map("2008"->90000L,
+                                                        "2009"->30000L,
+                                                        "2010"->21000L,
+                                                        "2011"->50000L,
+                                                        "2012"->45000L,
+                                                        "2013"->20000L,
+                                                        "2014"->32000L,
+                                                        "2015P1"->65000L,
+                                                        "2015P2"->20100L))
 
-      // do it
-      val results = PensionAllowanceCalculator.calculateAllowances(inputs)
+        // do it
+        val results = PensionAllowanceCalculator.calculateAllowances(inputs)
 
-      // check it
-      results.size shouldBe 9
-      val table = """:year   | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
-                     :2008   | 40000               | -1               | 50000                      | 0            | 0
-                     :2009   | 0                   | -1               | 50000                      | 20000        | 20000
-                     :2010   | 0                   | -1               | 70000                      | 29000        | 49000
-                     :2011   | 0                   | 0                | 99000                      | 0            | 49000
-                     :2012   | 0                   | 0                | 99000                      | 5000         | 34000
-                     :2013   | 0                   | 0                | 84000                      | 30000        | 35000
-                     :2014   | 0                   | 0                | 75000                      | 8000         | 43000
-                     :2015P1 | 0                   | 0                | 123000                     | 15000        | 53000
-                     :2015P2 | 0                   | 0                | 58000                      | 0            | 32900
-                     :""".stripMargin(':')
-      Utilties.assertResults(table, results)
+        // check it
+        results.size shouldBe 9
+        val table = """:year   | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
+                       :2008   | 40000               | -1               | 50000                      | 0            | 0
+                       :2009   | 0                   | -1               | 50000                      | 20000        | 20000
+                       :2010   | 0                   | -1               | 70000                      | 29000        | 49000
+                       :2011   | 0                   | 0                | 99000                      | 0            | 49000
+                       :2012   | 0                   | 0                | 99000                      | 5000         | 34000
+                       :2013   | 0                   | 0                | 84000                      | 30000        | 35000
+                       :2014   | 0                   | 0                | 75000                      | 8000         | 43000
+                       :2015P1 | 0                   | 0                | 123000                     | 15000        | 53000
+                       :2015P2 | 0                   | 0                | 58000                      | 0            | 32900
+                       :""".stripMargin(':')
+        Utilties.assertResults(table, results)
+      }
     }
   }
 }
