@@ -32,19 +32,15 @@ trait PensionAllowanceCalculator {
 
     def generatePeriod1And2Contributions(inputsByTaxYear: Map[Int,Seq[Contribution]],
                                          lst:List[Contribution]): List[Contribution] = {
-      val y2015Contributions = inputsByTaxYear(2015).groupBy(_.isPeriod1)
-      val p1Contributions = if (y2015Contributions.contains(true)) y2015Contributions(true).toList else List[Contribution]()
-      val p2Contributions = if (y2015Contributions.contains(false)) y2015Contributions(false).toList else List[Contribution]()
-      if (!p1Contributions.isEmpty && !p2Contributions.isEmpty) {
-        (p1Contributions ++ p2Contributions ++ lst)
-      } else if (p1Contributions.isEmpty && !p2Contributions.isEmpty) {
-        List(Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(0,0)))) ++ p2Contributions ++ lst
-      } else if (!p1Contributions.isEmpty && p2Contributions.isEmpty) {
-        List(Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(0,0)))) ++ p1Contributions ++ lst
-      } else {
-        List(Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(0,0))),
-             Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(0,0)))) ++ lst
+      def getPeriodContributions(): (List[Contribution], List[Contribution]) = {
+        val contributions = inputsByTaxYear(2015).groupBy(_.isPeriod1)
+
+        (contributions.get(true).map(_.toList).getOrElse(List(Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(0,0))))),
+         contributions.get(false).map(_.toList).getOrElse(List(Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(0,0))))))
       }
+
+      val (p1Contributions, p2Contributions) = getPeriodContributions()
+      (p1Contributions ++ p2Contributions ++ lst)
     }
 
     // Ensure sequential tax years have values converted none amounts to 0 for calculation purposes

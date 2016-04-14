@@ -34,7 +34,7 @@ object Year2015Period1Calculator extends BasicCalculator {
       if (results.unusedAllowance > 4000000L) {
           val annualAllowance: Long = getAnnualAllowanceInPounds*100L
           val amounts = contribution.amounts.get
-          var definedBenefit = if (amounts.definedBenefit.isDefined) amounts.definedBenefit.get else 0L
+          var definedBenefit = amounts.definedBenefit.getOrElse(0L)
           val exceedingAAAmount: Long = (definedBenefit - annualAllowance).max(0)
 
           // Key to understanding period 1 is that only a maximum of 40k is carried over to period 2 
