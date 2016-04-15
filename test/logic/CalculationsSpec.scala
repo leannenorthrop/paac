@@ -50,6 +50,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
   }
 
   "Group 1" should {
+
     "Pre-2014" should {
       "return correct calculations when pension contributions are 0" in {
         // set up
@@ -342,7 +343,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2013   | 0                   | 0                | 50000                      | 0            | 0
                        :2014   | 0                   | 0                | 40000                      | 0            | 0
                        :2015P1 | 0                   | 0                | 80000                      | 0            | 0
-                       :2015P2 | 0                   | 0                | 40000                      | 0            | 0
+                       :2015P2 | 0                   | 0                | 0                          | 0            | 0
                        :""".stripMargin(':')
         Utilties.assertResults(table, results)
       }
@@ -404,7 +405,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2013   | 1000                | 1000             | 50000                      | 0            | 0
                        :2014   | 1000                | 1000             | 40000                      | 0            | 0
                        :2015P1 | 1000                | 1000             | 80000                      | 0            | 0
-                       :2015P2 | 41000               | 41000            | 40000                      | 0            | 0
+                       :2015P2 | 41000               | 41000            | 0                          | 0            | 0
                        :""".stripMargin(':')
         Utilties.assertResults(table, results)
       }
@@ -434,8 +435,8 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2012   | 0                   | 0                | 99000                      | 5000         | 34000
                        :2013   | 0                   | 0                | 84000                      | 30000        | 35000
                        :2014   | 0                   | 0                | 75000                      | 8000         | 43000
-                       :2015P1 | 0                   | 0                | 123000                     | 15000        | 53000
-                       :2015P2 | 0                   | 0                | 58000                      | 0            | 32900
+                       :2015P1 | 0                   | 0                | 123000                     | 15000        | 58000
+                       :2015P2 | 5100                | 0                | 58000                      | 0            | 38000
                        :""".stripMargin(':')
         Utilties.assertResults(table, results)
       }
@@ -456,8 +457,27 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
         val table = """:year   | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
                        :2013   | 0                   | 0                | 200000                     | 0            | 100000
                        :2014   | 0                   | 0                | 140000                     | 0            | 50000
-                       :2015P1 | 0                   | 0                | 130000                     | 0            | 0
-                       :2015P2 | 20000               | 20000            | 90000                      | 0            | 0
+                       :2015P1 | 0                   | 0                | 130000                     | 0            | 50000
+                       :2015P2 | 70000               | 20000            | 50000                      | 0            | 0
+                       :""".stripMargin(':')
+        Utilties.assertResults(table, results)
+      }
+
+      "when input is 40000 for period 2 2015 should calculate correct amounts" in {
+        // set up
+        val inputs = Utilties.generateContributions(Map("2014"->25000L,
+                                                        "2015P1"->80000L,
+                                                        "2015P2"->40000L))
+
+        // do it
+        val results = PensionAllowanceCalculator.calculateAllowances(inputs)
+
+        // check it
+        results.size shouldBe 3
+        val table = """:year   | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
+                       :2014   | 0                   | 0                | 190000                     | 15000        | 115000
+                       :2015P1 | 0                   | 0                | 195000                     | 0            | 115000
+                       :2015P2 | 40000               | 0                | 115000                     | 0            | 65000
                        :""".stripMargin(':')
         Utilties.assertResults(table, results)
       }
