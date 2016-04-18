@@ -36,7 +36,8 @@ object Utilties {
                        "Liable to Charge"-> { (r:TaxYearResults) => r.summaryResult.chargableAmount },
                        "Available Annual Allowance"-> { (r:TaxYearResults) => r.summaryResult.availableAAWithCF },
                        "Unused AA CF"-> { (r:TaxYearResults) => r.summaryResult.unusedAllowance },
-                       "Cumulative Carry Forward"-> { (r:TaxYearResults) => r.summaryResult.availableAAWithCCF })
+                       "Cumulative Carry Forward"-> { (r:TaxYearResults) => r.summaryResult.availableAAWithCCF }
+                       )
     val headings = table.split("\n")(0).split('|').map(_.trim)
     val expectedResults = table.split("\n").drop(1).toList.map(_.split('|').toList.map((v)=>if (v.contains("2015P1")) 2015 else if (v.contains("2015P2")) 15 else v.trim.toInt))
     val expected = expectedResults.map(headings.zip(_).groupBy(_._1).map{case (k,v)=>(k,v.map(_._2))})
@@ -50,7 +51,7 @@ object Utilties {
       }
       row.foreach {
         case (k:String,v:Array[Int])=>
-        if (k != "year")
+        if (k != "year" && k != "Defined Benefit" && k != "Defined Contribution")
           assertResult(if (v(0) != (-1)) v(0)*100 else v(0),s"${result.input.taxYearLabel} ${k} (converted to pence)")(valueFor(k).apply(result))
       }
     }
