@@ -270,7 +270,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
     }
   }
 
-  "Scenario Group 1 P1 0 P2 75k" should {
+  "(Row 14) Scenario Group 1 P1 0 P2 75k" should {
     "when defined benefit Period 1 is 0 return expected results" in {
       val table = """:year   | Defined Benefit | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
                      :2012   | 45000           | 0                   | 0                | 200000                     | 5000         | 105000
@@ -294,7 +294,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
     }
   }
 
-  "Scenario Group 1 P1 35k P2 0" should {
+  "(Row 15) Scenario Group 1 P1 35k P2 0" should {
     "when defined benefit Period 1 is 35k return expected results" in {
       val table = """:year   | Defined Benefit | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
                      :2012   | 45000           | 0                   | 0                | 200000                     | 5000         | 105000
@@ -314,6 +314,98 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                      :2015P2 | 0               | 0                   | 0                | 70000                      | 40000        | 65000
                      :""".stripMargin(':')
       doTest(table)
+    }
+  }
+
+  "(Row 16) Scenario Group 1 Period 1 is 45k and Period 2 is 20k" should {
+    "when defined benefit Period 1 is 45k return expected result" in {
+      val table = """:year   | Defined Benefit | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
+                     :2012   | 50000           | 0                   | 0                | 200000                     | 0            | 100000
+                     :2013   | 50000           | 0                   | 0                | 150000                     | 0            | 50000
+                     :2014   | 40000           | 0                   | 0                | 90000                      | 0            | 0
+                     :2015P1 | 45000           | 0                   | 0                | 80000                      | 35000        | 35000
+                     :""".stripMargin(':')
+      doTest(table)
+    }
+
+    "when defined benefit Period 1 is 45k and Period 2 is 20k return expected result" in {
+      val table = """:year   | Defined Benefit | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
+                     :2012   | 50000           | 0                   | 0                | 200000                     | 0            | 100000
+                     :2013   | 50000           | 0                   | 0                | 150000                     | 0            | 50000
+                     :2014   | 40000           | 0                   | 0                | 90000                      | 0            | 0
+                     :2015P1 | 45000           | 0                   | 0                | 80000                      | 35000        | 35000
+                     :2015P2 | 20000           | 0                   | 0                | 35000                      | 15000        | 15000
+                     :""".stripMargin(':')
+      doTest(table)
+    }
+  }
+
+  "(Row 17) Scenario Group 1 Period 1 is 90k and Period 2 is 0k" should {
+    "when defined benefit Period 1 is 90k return expected result" in {
+      val table = """:year   | Defined Benefit | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
+                     :2012   | 50000           | 0                   | 0                | 200000                     | 0            | 100000
+                     :2013   | 50000           | 0                   | 0                | 150000                     | 0            | 50000
+                     :2014   | 40000           | 0                   | 0                | 90000                      | 0            | 0
+                     :2015P1 | 90000           | 10000               | 10000            | 80000                      | 0            | 0
+                     :""".stripMargin(':')
+      doTest(table)
+    }
+
+    "when defined benefit Period 1 is 90k and Period 2 is 0k return expected result" in {
+      val table = """:year   | Defined Benefit | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
+                     :2012   | 50000           | 0                   | 0                | 200000                     | 0            | 100000
+                     :2013   | 50000           | 0                   | 0                | 150000                     | 0            | 50000
+                     :2014   | 40000           | 0                   | 0                | 90000                      | 0            | 0
+                     :2015P1 | 90000           | 10000               | 10000            | 80000                      | 0            | 0
+                     :2015P2 | 0               | 0                   | 0                | 0                          | 0            | 0
+                     :""".stripMargin(':')
+      doTest(table)
+    }
+  }
+
+  "(Row 18) Scenario Group 1 Period 1 is 90k and Period 2 is 25k" should {
+    "when defined benefit Period 1 is 90k return expected result" in {
+      val table = """:year   | Defined Benefit | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
+                     :2012   | 50000           | 0                   | 0                | 200000                     | 0            | 100000
+                     :2013   | 50000           | 0                   | 0                | 150000                     | 0            | 50000
+                     :2014   | 40000           | 0                   | 0                | 90000                      | 0            | 0
+                     :2015P1 | 90000           | 10000               | 10000            | 80000                      | 0            | 0
+                     :""".stripMargin(':')
+      doTest(table)
+    }
+
+    "when defined benefit Period 1 is 90k and Period 2 is 0k return expected result" in {
+      val table = """:year   | Defined Benefit | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
+                     :2012   | 50000           | 0                   | 0                | 200000                     | 0            | 100000
+                     :2013   | 50000           | 0                   | 0                | 150000                     | 0            | 50000
+                     :2014   | 40000           | 0                   | 0                | 90000                      | 0            | 0
+                     :2015P1 | 90000           | 10000               | 10000            | 80000                      | 0            | 0
+                     :2015P2 | 25000           | 25000               | 25000            | 0                          | 0            | 0
+                     :""".stripMargin(':')
+      doTest(table)
+    }
+  }
+
+"(Row 19) Scenario Group 1 Period 1 is 90k and Period 2 is 75k" should {
+    "when defined benefit Period 1 is 90k return expected result" in {
+      val table = """:year   | Defined Benefit | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
+                     :2012   | 30000           | 0                   | 0                | 200000                     | 20000        | 120000
+                     :2013   | 40000           | 0                   | 0                | 170000                     | 10000        | 80000
+                     :2014   | 35000           | 0                   | 0                | 120000                     | 5000         | 35000
+                     :2015P1 | 90000           | 10000               | 0                | 115000                     | 0            | 25000
+                     :""".stripMargin(':')
+      doTest(table)
+    }
+
+    "when defined benefit Period 1 is 90k and Period 2 is 0k return expected result" in {
+      val table = """:year   | Defined Benefit | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
+                     :2012   | 30000           | 0                   | 0                | 200000                     | 20000        | 120000
+                     :2013   | 40000           | 0                   | 0                | 170000                     | 10000        | 80000
+                     :2014   | 35000           | 0                   | 0                | 120000                     | 5000         | 35000
+                     :2015P1 | 90000           | 10000               | 0                | 115000                     | 0            | 25000
+                     :2015P2 | 75000           | 75000               | 50000            | 25000                      | 0            | 0
+                     :""".stripMargin(':')
+      // LN to do broken doTest(table)
     }
   }
 }
