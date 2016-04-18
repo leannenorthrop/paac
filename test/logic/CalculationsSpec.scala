@@ -42,47 +42,45 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
     Utilties.assertResults(expectedValuesTable, results)
   }
 
-  def doTest(table: String): Unit = {
+  def doTest(table: String, print: Boolean = false): Unit = {
     val years = table.split('\n').drop(1).toList.map(_.split('|').toList(0).trim)
     val definedBenefit = table.split('\n').drop(1).toList.map(_.split('|').toList(1).trim.toLong)
     val inputs = Map(years.zip(definedBenefit): _*)
     val results = PensionAllowanceCalculator.calculateAllowances(Utilties.generateContributions(inputs))
-    Utilties.assertResults(table, results)
+    Utilties.assertResults(table, results, print)
   }
-
+  
   "Group 1" should {
-
-    "Pre-2014" should {
+    "pre-2014" should {
       "return correct calculations when pension contributions are 0" in {
         val table = """:year   | Defined Benefit | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
-                       :2008   | 0               | 0                   | -1               | 150000                     | 50000        | 150000
-                       :2009   | 0               | 0                   | -1               | 200000                     | 50000        | 150000
-                       :2010   | 0               | 0                   | -1               | 200000                     | 50000        | 150000
+                       :2008   | 0               | 0                   | -1               | 50000                      | 50000        | 50000
+                       :2009   | 0               | 0                   | -1               | 100000                     | 50000        | 100000
+                       :2010   | 0               | 0                   | -1               | 150000                     | 50000        | 150000
                        :2011   | 0               | 0                   | 0                | 200000                     | 50000        | 150000
                        :2012   | 0               | 0                   | 0                | 200000                     | 50000        | 150000
                        :2013   | 0               | 0                   | 0                | 200000                     | 50000        | 150000
                        :""".stripMargin(':')
         doTest(table)
-      }
+      } 
 
       "return correct calculations when pension contributions are 50000" in {
         // check it
         val table = """:year   | Defined Benefit | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
-                       :2008   | 50000           | 0                   | -1               | 150000                     | 0            | 100000
-                       :2009   | 50000           | 0                   | -1               | 150000                     | 0            | 50000
-                       :2010   | 50000           | 0                   | -1               | 100000                     | 0            | 0 
+                       :2008   | 50000           | 0                   | -1               | 50000                      | 0            | 0
+                       :2009   | 50000           | 0                   | -1               | 50000                      | 0            | 0
+                       :2010   | 50000           | 0                   | -1               | 50000                      | 0            | 0 
                        :2011   | 50000           | 0                   | 0                | 50000                      | 0            | 0 
                        :2012   | 50000           | 0                   | 0                | 50000                      | 0            | 0 
                        :2013   | 50000           | 0                   | 0                | 50000                      | 0            | 0 
                        :""".stripMargin(':')
         doTest(table)
-      }
-
+      } 
       "return correct calculations when pension contributions are 40000" in {
         val table = """:year   | Defined Benefit | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
-                       :2008   | 40000           | 0                   | -1               | 150000                     | 10000        | 110000
-                       :2009   | 40000           | 0                   | -1               | 160000                     | 10000        | 70000 
-                       :2010   | 40000           | 0                   | -1               | 120000                     | 10000        | 30000 
+                       :2008   | 40000           | 0                   | -1               | 50000                      | 10000        | 10000
+                       :2009   | 40000           | 0                   | -1               | 60000                      | 10000        | 20000 
+                       :2010   | 40000           | 0                   | -1               | 70000                      | 10000        | 30000 
                        :2011   | 40000           | 0                   | 0                | 80000                      | 10000        | 30000 
                        :2012   | 40000           | 0                   | 0                | 80000                      | 10000        | 30000 
                        :2013   | 40000           | 0                   | 0                | 80000                      | 10000        | 30000 
@@ -90,11 +88,12 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
         doTest(table)
       }
 
+
       "return correct calculations when pension contributions are 60000" in {
         val table = """:year   | Defined Benefit | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
-                       :2008   | 60000           | 10000               | -1               | 150000                     | 0            | 100000
-                       :2009   | 60000           | 10000               | -1               | 150000                     | 0            | 50000
-                       :2010   | 60000           | 10000               | -1               | 100000                     | 0            | 0
+                       :2008   | 60000           | 10000               | -1               | 50000                      | 0            | 0
+                       :2009   | 60000           | 10000               | -1               | 50000                      | 0            | 0
+                       :2010   | 60000           | 10000               | -1               | 50000                      | 0            | 0
                        :2011   | 60000           | 10000               | 10000            | 50000                      | 0            | 0
                        :2012   | 60000           | 10000               | 10000            | 50000                      | 0            | 0
                        :2013   | 60000           | 10000               | 10000            | 50000                      | 0            | 0
@@ -104,35 +103,35 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
 
       "return correct calculations when pension contributions are variable amounts above and below allowance" in {
         val table = """:year   | Defined Benefit | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
-                       :2008   | 0               | 0                   | -1               | 150000                     | 50000        | 150000
-                       :2009   | 50000           | 0                   | -1               | 200000                     | 0            | 100000
-                       :2010   | 60000           | 10000               | -1               | 150000                     | 0            | 50000
+                       :2008   | 0               | 0                   | -1               | 50000                      | 50000        | 50000
+                       :2009   | 50000           | 0                   | -1               | 100000                     | 0            | 50000
+                       :2010   | 60000           | 10000               | -1               | 100000                     | 0            | 50000
                        :2011   | 150000          | 100000              | 50000            | 100000                     | 0            | 0
                        :2012   | 40000           | 0                   | 0                | 50000                      | 10000        | 10000
                        :2013   | 50000           | 0                   | 0                | 60000                      | 0            | 10000
                        :""".stripMargin(':')
         doTest(table)
-      }
+      } 
 
       "return correct allowances and carry forward values" in {
         val table = """:year   | Defined Benefit | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
-                       :2008   | 5000            | 0                   | -1               | 150000                     | 45000        | 145000
-                       :2009   | 6000            | 0                   | -1               | 195000                     | 44000        | 139000
-                       :2010   | 7000            | 0                   | -1               | 189000                     | 43000        | 132000
+                       :2008   | 5000            | 0                   | -1               | 50000                      | 45000        | 45000
+                       :2009   | 6000            | 0                   | -1               | 95000                      | 44000        | 89000
+                       :2010   | 7000            | 0                   | -1               | 139000                     | 43000        | 132000
                        :2011   | 8000            | 0                   | 0                | 182000                     | 42000        | 129000
                        :2012   | 9000            | 0                   | 0                | 179000                     | 41000        | 126000
                        :2013   | 10000           | 0                   | 0                | 176000                     | 40000        | 123000
                        :""".stripMargin(':')
         doTest(table)
-      }
+      }   
     }
 
     "2014 Calculations" should {
       "return correct allowances and carry forward values" in {
         val table = """:year   | Defined Benefit | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
-                       :2008   | 5000            | 0                   | -1               | 150000                     | 45000        | 145000
-                       :2009   | 6000            | 0                   | -1               | 195000                     | 44000        | 139000
-                       :2010   | 7000            | 0                   | -1               | 189000                     | 43000        | 132000
+                       :2008   | 5000            | 0                   | -1               | 50000                      | 45000        | 45000
+                       :2009   | 6000            | 0                   | -1               | 95000                      | 44000        | 89000
+                       :2010   | 7000            | 0                   | -1               | 139000                     | 43000        | 132000
                        :2011   | 8000            | 0                   | 0                | 182000                     | 42000        | 129000
                        :2012   | 9000            | 0                   | 0                | 179000                     | 41000        | 126000
                        :2013   | 10000           | 0                   | 0                | 176000                     | 40000        | 123000
@@ -145,9 +144,9 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
     "2015 Period 1" should {
       "when defined benefit is 0 carry forwards and chargable amounts should be correct" in {
         val table = """:year   | Defined Benefit | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
-                       :2008   | 5000            | 0                   | -1               | 150000                     | 45000        | 145000
-                       :2009   | 6000            | 0                   | -1               | 195000                     | 44000        | 139000
-                       :2010   | 7000            | 0                   | -1               | 189000                     | 43000        | 132000
+                       :2008   | 5000            | 0                   | -1               | 50000                      | 45000        | 45000
+                       :2009   | 6000            | 0                   | -1               | 95000                      | 44000        | 89000
+                       :2010   | 7000            | 0                   | -1               | 139000                     | 43000        | 132000
                        :2011   | 8000            | 0                   | 0                | 182000                     | 42000        | 129000
                        :2012   | 9000            | 0                   | 0                | 179000                     | 41000        | 126000
                        :2013   | 10000           | 0                   | 0                | 176000                     | 40000        | 123000
@@ -161,9 +160,9 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
     "2015 Period 2" should {
       "when defined benefit is 0 carry forwards and chargable amounts should be correct" in {
         val table = """:year   | Defined Benefit | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
-                       :2008   | 0               | 0                   | -1               | 150000                     | 50000        | 150000
-                       :2009   | 0               | 0                   | -1               | 200000                     | 50000        | 150000
-                       :2010   | 0               | 0                   | -1               | 200000                     | 50000        | 150000
+                       :2008   | 0               | 0                   | -1               | 50000                      | 50000        | 50000
+                       :2009   | 0               | 0                   | -1               | 100000                     | 50000        | 100000
+                       :2010   | 0               | 0                   | -1               | 150000                     | 50000        | 150000
                        :2011   | 0               | 0                   | 0                | 200000                     | 50000        | 150000
                        :2012   | 0               | 0                   | 0                | 200000                     | 50000        | 150000
                        :2013   | 0               | 0                   | 0                | 200000                     | 50000        | 150000
@@ -176,9 +175,9 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
 
       "when defined benefit is non-0 carry forwards and chargable amounts should be correct" in {
         val table = """:year   | Defined Benefit | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
-                       :2008   | 5000            | 0                   | -1               | 150000                     | 45000        | 145000
-                       :2009   | 6000            | 0                   | -1               | 195000                     | 44000        | 139000
-                       :2010   | 7000            | 0                   | -1               | 189000                     | 43000        | 132000
+                       :2008   | 5000            | 0                   | -1               | 50000                      | 45000        | 45000
+                       :2009   | 6000            | 0                   | -1               | 95000                      | 44000        | 89000
+                       :2010   | 7000            | 0                   | -1               | 139000                     | 43000        | 132000
                        :2011   | 8000            | 0                   | 0                | 182000                     | 42000        | 129000
                        :2012   | 9000            | 0                   | 0                | 179000                     | 41000        | 126000
                        :2013   | 10000           | 0                   | 0                | 176000                     | 40000        | 123000
@@ -191,9 +190,9 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
 
       "when defined benefit is equal to allowances carry forwards and chargable amounts should be correct" in {
         val table = """:year   | Defined Benefit | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
-                       :2008   | 50000           | 0                   | -1               | 150000                     | 0            | 100000
-                       :2009   | 50000           | 0                   | -1               | 150000                     | 0            | 50000
-                       :2010   | 50000           | 0                   | -1               | 100000                     | 0            | 0
+                       :2008   | 50000           | 0                   | -1               | 50000                      | 0            | 0
+                       :2009   | 50000           | 0                   | -1               | 50000                      | 0            | 0
+                       :2010   | 50000           | 0                   | -1               | 50000                      | 0            | 0
                        :2011   | 50000           | 0                   | 0                | 50000                      | 0            | 0
                        :2012   | 50000           | 0                   | 0                | 50000                      | 0            | 0
                        :2013   | 50000           | 0                   | 0                | 50000                      | 0            | 0
@@ -206,9 +205,9 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
 
       "when defined benefit is equal to allowances to 2015 carry forwards and chargable amounts should be correct" in {
         val table = """:year   | Defined Benefit | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
-                       :2008   | 50000           | 0                   | -1               | 150000                     | 0            | 100000
-                       :2009   | 50000           | 0                   | -1               | 150000                     | 0            | 50000
-                       :2010   | 50000           | 0                   | -1               | 100000                     | 0            | 0
+                       :2008   | 50000           | 0                   | -1               | 50000                      | 0            | 0
+                       :2009   | 50000           | 0                   | -1               | 50000                      | 0            | 0
+                       :2010   | 50000           | 0                   | -1               | 50000                      | 0            | 0
                        :2011   | 50000           | 0                   | 0                | 50000                      | 0            | 0
                        :2012   | 50000           | 0                   | 0                | 50000                      | 0            | 0
                        :2013   | 50000           | 0                   | 0                | 50000                      | 0            | 0
@@ -221,9 +220,9 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
 
       "when defined benefit is above annual allowances carry forwards and chargable amounts should be correct" in {
         val table = """:year   | Defined Benefit | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
-                       :2008   | 51000           | 1000                | -1               | 150000                     | 0            | 100000
-                       :2009   | 51000           | 1000                | -1               | 150000                     | 0            | 50000
-                       :2010   | 51000           | 1000                | -1               | 100000                     | 0            | 0
+                       :2008   | 51000           | 1000                | -1               | 50000                      | 0            | 0
+                       :2009   | 51000           | 1000                | -1               | 50000                      | 0            | 0
+                       :2010   | 51000           | 1000                | -1               | 50000                      | 0            | 0
                        :2011   | 51000           | 1000                | 1000             | 50000                      | 0            | 0
                        :2012   | 51000           | 1000                | 1000             | 50000                      | 0            | 0
                        :2013   | 51000           | 1000                | 1000             | 50000                      | 0            | 0
@@ -235,10 +234,11 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
       }
 
       "when defined benefit is either below, same or above annual allowances carry forwards and chargable amounts should be correct" in {
+        // LN 38000 in period 2 CCF should be 37900
         val table = """:year   | Defined Benefit | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
-                       :2008   | 90000           | 40000               | -1               | 150000                     | 0            | 100000
-                       :2009   | 30000           | 0                   | -1               | 150000                     | 20000        | 70000
-                       :2010   | 21000           | 0                   | -1               | 120000                     | 29000        | 49000
+                       :2008   | 90000           | 40000               | -1               | 50000                      | 0            | 0
+                       :2009   | 30000           | 0                   | -1               | 50000                      | 20000        | 20000
+                       :2010   | 21000           | 0                   | -1               | 70000                      | 29000        | 49000
                        :2011   | 50000           | 0                   | 0                | 99000                      | 0            | 49000
                        :2012   | 45000           | 0                   | 0                | 99000                      | 5000         | 34000
                        :2013   | 20000           | 0                   | 0                | 84000                      | 30000        | 35000
@@ -282,12 +282,36 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
     }
 
     "when defined benefit Period 1 is 0 and Period 2 is 75000 return expected results" in {
+      // P2 CCF 10k should be 0k as no cf
       val table = """:year   | Defined Benefit | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
                      :2012   | 45000           | 0                   | 0                | 200000                     | 5000         | 105000
                      :2013   | 50000           | 0                   | 0                | 155000                     | 0            | 55000
                      :2014   | 30000           | 0                   | 0                | 95000                      | 10000        | 15000
                      :2015P1 | 0               | 0                   | 0                | 95000                      | 40000        | 55000
                      :2015P2 | 75000           | 35000               | 20000            | 55000                      | 0            | 10000
+                     :""".stripMargin(':')
+      doTest(table)
+    }
+  }
+
+  "Scenario Group 1 P1 35k P2 0" should {
+    "when defined benefit Period 1 is 35k return expected results" in {
+      val table = """:year   | Defined Benefit | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
+                     :2012   | 45000           | 0                   | 0                | 200000                     | 5000         | 105000
+                     :2013   | 40000           | 0                   | 0                | 155000                     | 10000        | 65000
+                     :2014   | 25000           | 0                   | 0                | 105000                     | 15000        | 30000
+                     :2015P1 | 35000           | 0                   | 0                | 110000                     | 40000        | 70000
+                     :""".stripMargin(':')
+      doTest(table)
+    }
+
+    "when defined benefit Period 1 is 35k and Period 2 is 0 return expected results" in {
+      val table = """:year   | Defined Benefit | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
+                     :2012   | 45000           | 0                   | 0                | 200000                     | 5000         | 105000
+                     :2013   | 40000           | 0                   | 0                | 155000                     | 10000        | 65000
+                     :2014   | 25000           | 0                   | 0                | 105000                     | 15000        | 30000
+                     :2015P1 | 35000           | 0                   | 0                | 110000                     | 40000        | 70000
+                     :2015P2 | 0               | 0                   | 0                | 70000                      | 40000        | 65000
                      :""".stripMargin(':')
       doTest(table)
     }

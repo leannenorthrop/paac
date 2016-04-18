@@ -78,7 +78,7 @@ class PensionAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
         val results = Test.test(Seq(Contribution(2014, 500000L),period2))
 
         // check
-        results.size shouldBe 11
+        results.size shouldBe 9
         results.find(_.taxYearLabel == "2015 P1").get shouldBe Contribution(TaxPeriod(2015,3,6),TaxPeriod(2015,6,8),Some(InputAmounts(Some(0L),Some(0L))))
       }
 

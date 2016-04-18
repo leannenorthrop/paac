@@ -31,7 +31,17 @@ object Utilties {
     }
   }
 
-  def assertResults(table:String, results:Seq[TaxYearResults]):Unit = {
+  def print(results: Seq[TaxYearResults]): Unit = {
+    println(f"Year            Defined Benefit            Chargable         Exceeding AA  Available Allowance     Unused Allowance                 AACF       Cummulative CF")
+    results.foreach {
+      (result)=>
+      println(f"${result.input.taxYearLabel}    ${result.input.amounts.get.definedBenefit.get/100.00}%20.2f ${result.summaryResult.chargableAmount/100.00}%20.2f ${result.summaryResult.exceedingAAAmount/100.00}%20.2f ${result.summaryResult.availableAllowance/100.00}%20.2f ${result.summaryResult.unusedAllowance/100.00}%20.2f ${result.summaryResult.availableAAWithCF/100.00}%20.2f ${result.summaryResult.availableAAWithCCF/100.00}%20.2f")
+    }
+  }
+
+  def assertResults(table:String, results:Seq[TaxYearResults], print:Boolean = false):Unit = {
+    if (print) Utilties.print(results)
+
     val valueFor = Map("Amount Exceeding AA"-> { (r:TaxYearResults) => r.summaryResult.exceedingAAAmount },
                        "Liable to Charge"-> { (r:TaxYearResults) => r.summaryResult.chargableAmount },
                        "Available Annual Allowance"-> { (r:TaxYearResults) => r.summaryResult.availableAAWithCF },
