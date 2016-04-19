@@ -43,7 +43,12 @@ object Year2015Period1Calculator extends BasicCalculator {
 
         // cumulative carry forwards is 3 previous years plus current year's maximum carry forwards
         val previous3YearsUnusedAllowance = previousPeriods.slice(0,3).foldLeft(0L)(_+_.unusedAllowance)
-        val availableAAWithCCF: Long = (ua + previous3YearsUnusedAllowance).max(0)
+        val availableAAWithCCF: Long = if (definedBenefit >= annualAllowance) {
+            (annualAllowance + previous3YearsUnusedAllowance - definedBenefit).max(0)
+          } else {
+            (ua + previous3YearsUnusedAllowance).max(0)
+          }
+                                       
         val availableAAWithCF: Long = annualAllowance + previousPeriods.slice(0,3).foldLeft(0L)(_+_.unusedAllowance)
         results.copy(unusedAllowance=ua,availableAAWithCCF=availableAAWithCCF,availableAAWithCF=availableAAWithCF)
       }

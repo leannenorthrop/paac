@@ -31,12 +31,23 @@ object Utilties {
     }
   }
 
-  def assertResults(table:String, results:Seq[TaxYearResults]):Unit = {
+  def print(results: Seq[TaxYearResults]): Unit = {
+    println(f"Year            Defined Benefit            Chargable         Exceeding AA  Available Allowance     Unused Allowance                 AACF       Cummulative CF")
+    results.foreach {
+      (result)=>
+      println(f"${result.input.taxYearLabel}    ${result.input.amounts.get.definedBenefit.get/100.00}%20.2f ${result.summaryResult.chargableAmount/100.00}%20.2f ${result.summaryResult.exceedingAAAmount/100.00}%20.2f ${result.summaryResult.availableAllowance/100.00}%20.2f ${result.summaryResult.unusedAllowance/100.00}%20.2f ${result.summaryResult.availableAAWithCF/100.00}%20.2f ${result.summaryResult.availableAAWithCCF/100.00}%20.2f")
+    }
+  }
+
+  def assertResults(table:String, results:Seq[TaxYearResults], print:Boolean = false):Unit = {
+    if (print) Utilties.print(results)
+
     val valueFor = Map("Amount Exceeding AA"-> { (r:TaxYearResults) => r.summaryResult.exceedingAAAmount },
                        "Liable to Charge"-> { (r:TaxYearResults) => r.summaryResult.chargableAmount },
                        "Available Annual Allowance"-> { (r:TaxYearResults) => r.summaryResult.availableAAWithCF },
                        "Unused AA CF"-> { (r:TaxYearResults) => r.summaryResult.unusedAllowance },
-                       "Cumulative Carry Forward"-> { (r:TaxYearResults) => r.summaryResult.availableAAWithCCF })
+                       "Cumulative Carry Forward"-> { (r:TaxYearResults) => r.summaryResult.availableAAWithCCF }
+                       )
     val headings = table.split("\n")(0).split('|').map(_.trim)
     val expectedResults = table.split("\n").drop(1).toList.map(_.split('|').toList.map((v)=>if (v.contains("2015P1")) 2015 else if (v.contains("2015P2")) 15 else v.trim.toInt))
     val expected = expectedResults.map(headings.zip(_).groupBy(_._1).map{case (k,v)=>(k,v.map(_._2))})
@@ -50,7 +61,7 @@ object Utilties {
       }
       row.foreach {
         case (k:String,v:Array[Int])=>
-        if (k != "year")
+        if (k != "year" && k != "Defined Benefit" && k != "Defined Contribution")
           assertResult(if (v(0) != (-1)) v(0)*100 else v(0),s"${result.input.taxYearLabel} ${k} (converted to pence)")(valueFor(k).apply(result))
       }
     }

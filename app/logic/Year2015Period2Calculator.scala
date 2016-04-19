@@ -46,10 +46,11 @@ object Year2015Period2Calculator extends BasicCalculator {
       val exceedingAAAmount: Long = (definedBenefit - period1UnusedAllowance).max(0)
 
       // Carry forwards for allowances
-      val availableAAWithCF: Long = previousPeriods.drop(1).slice(0,3).foldLeft(if (period1UnusedAllowance == 0) 0L else period1UnusedAllowance)(_+_.unusedAllowance)
-      val availableAAWithCCF: Long = previous2YearsUnusedAllowances + unusedAllowance
+      val availableAAWithCF: Long = if (previousPeriods.headOption.isDefined) previousPeriods.head.availableAAWithCCF else 0L
+      val availableAAWithCCF: Long = if (definedBenefit == 0) ((previous2YearsUnusedAllowances+period1UnusedAllowance) - definedBenefit).max(0) else (availableAAWithCF - definedBenefit).max(0)
 
-      val chargableAmount: Long = (definedBenefit - (previous3YearsUnusedAllowances + period1UnusedAllowance)).max(0)
+      val cf = if (previousPeriods.headOption.isDefined) previousPeriods.head.availableAAWithCCF else 0L
+      val chargableAmount: Long = if (definedBenefit > cf) definedBenefit - cf else 0L
 
       results.copy(availableAAWithCF = availableAAWithCF,    // total available allowance for current year
                    availableAAWithCCF = availableAAWithCCF,  // available allowance carried forward to following year

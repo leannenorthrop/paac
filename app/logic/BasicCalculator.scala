@@ -36,11 +36,15 @@ trait BasicCalculator extends Calculator {
         val exceedingAAAmount: Long = (definedBenefit - annualAllowance).max(0)
         val unusedAllowance: Long = (annualAllowance - definedBenefit).max(0)
         // total annual allowance possible
-        val availableAAWithCF: Long = annualAllowance + previousPeriods.slice(0,3).foldLeft(0L)(_+_.unusedAllowance) // previous 3 years + current annual allowance
-        // cumulative carry forwards is 2 previous years plus current year's annual allowance
-        val availableAAWithCCF: Long = (annualAllowance + previousPeriods.slice(0,2).foldLeft(0L)(_+_.unusedAllowance) - (definedBenefit-exceedingAAAmount)).max(0)
+        val availableAAWithCF: Long = previousPeriods.slice(0,3).foldLeft(0L)(_+_.unusedAllowance) + annualAllowance
+        // cumulative carry forwards is 2 previous years plus current year's annual allowance - used allowance
+        val availableAAWithCCF: Long = if (contribution.taxPeriodStart.year < 2011 && definedBenefit >= annualAllowance) {
+          (annualAllowance + previousPeriods.slice(0,2).foldLeft(0L)(_+_.unusedAllowance) - definedBenefit.min(annualAllowance)).max(0)
+        } else {
+          (annualAllowance + previousPeriods.slice(0,2).foldLeft(0L)(_+_.unusedAllowance) - definedBenefit).max(0)
+        }
         val chargableAmount: Long = if (contribution.taxPeriodStart.year < 2011) -1 else (definedBenefit - availableAAWithCF).max(0)
-        val unusedAllowanceCF: Long = (availableAAWithCF-definedBenefit).max(0)
+        val unusedAllowanceCF: Long = 0L
 
         Some(SummaryResult(chargableAmount, exceedingAAAmount, annualAllowance, unusedAllowance, availableAAWithCF, availableAAWithCCF, unusedAllowanceCF))
       } else None
