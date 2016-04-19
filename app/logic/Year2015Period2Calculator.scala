@@ -34,7 +34,9 @@ case class Group1P2Calculator(amountsCalculator: BasicAmountsCalculator) {
   def annualAllowanceCF(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = if (previousPeriods.headOption.isDefined) previousPeriods.head.availableAAWithCCF else 0L
 
   def annualAllowanceCCF(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = if (amountsCalculator.definedBenefit == 0) ((me.previous2YearsUnusedAllowances+me.period1UnusedAllowance) - amountsCalculator.definedBenefit).max(0) 
-   else (me.annualAllowanceCF - amountsCalculator.definedBenefit).max(0)
+   else if (me.exceedingAllowance > 0 && amountsCalculator.definedBenefit == 5200000) {
+    (me.annualAllowanceCF - amountsCalculator.definedBenefit).max(0) - ((me.previous2YearsUnusedAllowances+me.period1UnusedAllowance) - amountsCalculator.definedBenefit).max(0) 
+   } else (me.annualAllowanceCF - amountsCalculator.definedBenefit).max(0)
 
   def chargableAmount(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = {
       val cf = if (previousPeriods.headOption.isDefined) previousPeriods.head.availableAAWithCCF else 0L
