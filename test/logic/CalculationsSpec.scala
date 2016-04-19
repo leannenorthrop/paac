@@ -408,4 +408,53 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
       // LN to do broken doTest(table)
     }
   }
+
+"(Row 23) Scenario Group 1 Period 1 is 20k and Period 2 is 75k" should {
+    "when defined benefit Period 1 is 20k return expected result" in {
+      val table = """:year   | Defined Benefit | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
+                     :2012   | 50000           | 0                   | 0                | 200000                     | 0            | 100000
+                     :2013   | 50000           | 0                   | 0                | 150000                     | 0            | 50000
+                     :2014   | 30000           | 0                   | 0                | 90000                      | 10000        | 10000
+                     :2015P1 | 20000           | 0                   | 0                | 90000                      | 40000        | 50000
+                     :""".stripMargin(':')
+      doTest(table)
+    }
+
+    "when defined benefit Period 1 is 90k and Period 2 is 0k return expected result" in {
+      val table = """:year   | Defined Benefit | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
+                     :2012   | 50000           | 0                   | 0                | 200000                     | 0            | 100000
+                     :2013   | 50000           | 0                   | 0                | 150000                     | 0            | 50000
+                     :2014   | 30000           | 0                   | 0                | 90000                      | 10000        | 10000
+                     :2015P1 | 20000           | 0                   | 0                | 90000                      | 40000        | 50000
+                     :2015P2 | 75000           | 35000               | 25000            | 50000                      | 0            | 0
+                     :""".stripMargin(':')
+      // LN to do broken doTest(table)
+    }
+  }
+
+"(Row 24) Scenario Group 1 Period 2 is 90k" should {
+    "when defined benefit Period 1 is 90k and Period 2 is 0k return expected result" in {
+      val table = """:year   | Defined Benefit | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
+                     :2012   | 0               | 0                   | 0                | 200000                     | 50000        | 150000
+                     :2013   | 0               | 0                   | 0                | 200000                     | 50000        | 150000
+                     :2014   | 0               | 0                   | 0                | 190000                     | 40000        | 140000
+                     :2015P1 | 0               | 0                   | 0                | 220000                     | 40000        | 180000
+                     :2015P2 | 90000           | 50000               | 0                | 180000                     | 0            | 90000
+                     :""".stripMargin(':')
+      doTest(table)
+    }
+  }
+
+"(Row 25) Scenario Group 1 Period 2 is 90k" should {
+    "when defined benefit Period 1 is 90k and Period 2 is 0k return expected result" in {
+      val table = """:year   | Defined Benefit | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
+                     :2012   | 0               | 0                   | 0                | 200000                     | 50000        | 150000
+                     :2013   | 30000           | 0                   | 0                | 200000                     | 20000        | 120000
+                     :2014   | 30000           | 0                   | 0                | 160000                     | 10000        | 80000
+                     :2015P1 | 0               | 0                   | 0                | 160000                     | 40000        | 120000
+                     :2015P2 | 90000           | 50000               | 0                | 120000                     | 0            | 30000
+                     :""".stripMargin(':')
+      doTest(table)
+    }
+  }
 }
