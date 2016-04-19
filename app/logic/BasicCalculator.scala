@@ -31,12 +31,6 @@ case class BasicAmountsCalculator(annualAllowanceInPounds: Long) {
     definedBenefit
   }
 
-  def definedContribution(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = {
-    val amounts = contribution.amounts.get
-    val definedContribution = if (amounts.moneyPurchase.isDefined) amounts.moneyPurchase.get else 0L
-    definedContribution
-  }
-
   def annualAllowance(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = annualAllowanceInPounds*100L // convert allowance from pounds to pence
 
   def exceedingAllowance(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = (calc.definedBenefit - calc.annualAllowance).max(0)

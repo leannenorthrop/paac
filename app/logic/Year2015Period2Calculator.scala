@@ -23,8 +23,6 @@ case class Group1P2Calculator(amountsCalculator: BasicAmountsCalculator) {
   me => Group1P2Calculator
   def period1UnusedAllowance(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = previousPeriods.headOption.map(_.unusedAllowance).getOrElse(0L)
 
-  def previous3YearsUnusedAllowances(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = previousPeriods.drop(1).slice(0,3).foldLeft(0L)(_+_.unusedAllowance)
-
   def previous2YearsUnusedAllowances(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = previousPeriods.drop(1).slice(0,2).foldLeft(0L)(_+_.unusedAllowance) 
 
   def unusedAllowance(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = (me.period1UnusedAllowance - amountsCalculator.definedBenefit).max(0)
