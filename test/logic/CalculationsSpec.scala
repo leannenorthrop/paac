@@ -611,5 +611,22 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
         doTest(table)
       }
     }
+
+    "Scenario Period 2" should {
+      "when defined benefit high annual allowances carry forwards and chargable amounts should be correct" in {
+        val table = """:year   | Defined Benefit | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
+                       :2008   | 0               | 0                   | -1               | 50000                      | 50000        | 50000
+                       :2009   | 0               | 0                   | -1               | 100000                     | 50000        | 100000
+                       :2010   | 0               | 0                   | -1               | 150000                     | 50000        | 150000
+                       :2011   | 0               | 0                   | 0                | 200000                     | 50000        | 150000
+                       :2012   | 0               | 0                   | 0                | 200000                     | 50000        | 150000
+                       :2013   | 0               | 0                   | 0                | 200000                     | 50000        | 150000
+                       :2014   | 40000           | 0                   | 0                | 190000                     | 0            | 100000
+                       :2015P1 | 51000           | 0                   | 0                | 180000                     | 29000        | 129000
+                       :2015P2 | 52000           | 23000               | 0                | 129000                     | 0            | 50000
+                       :""".stripMargin(':')
+        doTest(table)
+      }
+    }
   }
 }

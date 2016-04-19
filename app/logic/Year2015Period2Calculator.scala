@@ -19,44 +19,47 @@ package logic
 import config.PaacConfiguration
 import models._
 
+case class Group1P2Calculator(amountsCalculator: BasicAmountsCalculator) {
+  me => Group1P2Calculator
+  def period1UnusedAllowance(implicit previousPeriods:Seq[SummaryResult], contribution: models.Contribution): Long = previousPeriods.headOption.map(_.unusedAllowance).getOrElse(0L)
+
+  def previous3YearsUnusedAllowances(implicit previousPeriods:Seq[SummaryResult], contribution: models.Contribution): Long = previousPeriods.drop(1).slice(0,3).foldLeft(0L)(_+_.unusedAllowance)
+
+  def previous2YearsUnusedAllowances(implicit previousPeriods:Seq[SummaryResult], contribution: models.Contribution): Long = previousPeriods.drop(1).slice(0,2).foldLeft(0L)(_+_.unusedAllowance) 
+
+  def unusedAllowance(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = (me.period1UnusedAllowance - amountsCalculator.definedBenefit).max(0)
+
+  def exceedingAllowance(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = (amountsCalculator.definedBenefit - me.period1UnusedAllowance).max(0)
+
+  def annualAllowanceCF(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = if (previousPeriods.headOption.isDefined) previousPeriods.head.availableAAWithCCF else 0L
+
+  def annualAllowanceCCF(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = if (amountsCalculator.definedBenefit == 0) ((me.previous2YearsUnusedAllowances+me.period1UnusedAllowance) - amountsCalculator.definedBenefit).max(0) 
+   else (me.annualAllowanceCF - amountsCalculator.definedBenefit).max(0)
+
+  def chargableAmount(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = {
+      val cf = if (previousPeriods.headOption.isDefined) previousPeriods.head.availableAAWithCCF else 0L
+      if (amountsCalculator.definedBenefit > cf) amountsCalculator.definedBenefit - cf else 0L
+  }
+}
+
 object Year2015Period2Calculator extends BasicCalculator {
   protected def getAnnualAllowanceInPounds: Long =
     PaacConfiguration.config.flatMap[Long](_.getLong("annualallowances.Year2015Period2Calculator")).getOrElse(0L)
+  protected val group1Calculator = Group1P2Calculator(BasicAmountsCalculator(getAnnualAllowanceInPounds))
 
   def isSupported(contribution:Contribution):Boolean = {
     contribution.isPeriod2()
   }
 
-  override def summary(previousPeriods:Seq[SummaryResult], contribution: models.Contribution): Option[SummaryResult] = {
-    // Period 1 only allows maximum carry forward of 40k (here in pence values)
-    super.summary(previousPeriods, contribution).map {
-      (results) =>
-      val amounts = contribution.amounts.get
-      var definedBenefit = amounts.definedBenefit.getOrElse(0L)
-
-      // key to understanding period 2 is that there is no allowance 
-      // only unused carried forward allowance up to maximum of 40K from period 1
-      // summed with previous 3 years
-      val period1UnusedAllowance: Long = previousPeriods.headOption.map(_.unusedAllowance).getOrElse(0L)
-      val previous3YearsUnusedAllowances: Long = previousPeriods.drop(1).slice(0,3).foldLeft(0L)(_+_.unusedAllowance) // drop 1 to ignore period 1 and get only 3 previous years
-      val previous2YearsUnusedAllowances: Long = previousPeriods.drop(1).slice(0,2).foldLeft(0L)(_+_.unusedAllowance) // drop 1 to ignore period 1 and get only 2 previous years
-
-      // Unused and exceeding
-      val unusedAllowance: Long = (period1UnusedAllowance - definedBenefit).max(0)
-      val exceedingAAAmount: Long = (definedBenefit - period1UnusedAllowance).max(0)
-
-      // Carry forwards for allowances
-      val availableAAWithCF: Long = if (previousPeriods.headOption.isDefined) previousPeriods.head.availableAAWithCCF else 0L
-      val availableAAWithCCF: Long = if (definedBenefit == 0) ((previous2YearsUnusedAllowances+period1UnusedAllowance) - definedBenefit).max(0) else (availableAAWithCF - definedBenefit).max(0)
-
-      val cf = if (previousPeriods.headOption.isDefined) previousPeriods.head.availableAAWithCCF else 0L
-      val chargableAmount: Long = if (definedBenefit > cf) definedBenefit - cf else 0L
-
-      results.copy(availableAAWithCF = availableAAWithCF,    // total available allowance for current year
-                   availableAAWithCCF = availableAAWithCCF,  // available allowance carried forward to following year
-                   unusedAllowance = unusedAllowance,
-                   chargableAmount = chargableAmount,
-                   exceedingAAAmount = exceedingAAAmount)
-    }
-  }
+  override def summary(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Option[SummaryResult] = if (isSupported(contribution) && contribution.isGroup1()) {
+      // Period 1 only allows maximum carry forward of 40k (here in pence values)
+      super.summary(previousPeriods, contribution).map {
+        (results) =>
+        results.copy(availableAAWithCF = group1Calculator.annualAllowanceCF,    // total available allowance for current year
+                     availableAAWithCCF = group1Calculator.annualAllowanceCCF,  // available allowance carried forward to following year
+                     unusedAllowance = group1Calculator.unusedAllowance,
+                     chargableAmount = group1Calculator.chargableAmount,
+                     exceedingAAAmount = group1Calculator.exceedingAllowance)
+      }
+    } else None
 }
