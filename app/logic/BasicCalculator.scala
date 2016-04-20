@@ -43,6 +43,8 @@ case class BasicAmountsCalculator(annualAllowanceInPounds: Long) {
   // cumulative carry forwards is 2 previous years plus current year's annual allowance - used allowance
   def annualAllowanceCCF(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = if (contribution.taxPeriodStart.year < 2011 && calc.definedBenefit >= calc.annualAllowance) {
         (calc.annualAllowance + previousPeriods.slice(0,2).foldLeft(0L)(_+_.unusedAllowance) - calc.definedBenefit.min(calc.annualAllowance)).max(0)
+      } else if (calc.exceedingAllowance > 0) {
+        previousPeriods.slice(0,2).foldLeft(0L)(_+_.unusedAllowance)
       } else {
         (calc.annualAllowance + previousPeriods.slice(0,2).foldLeft(0L)(_+_.unusedAllowance) - calc.definedBenefit).max(0)
       }

@@ -182,7 +182,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2013   | 10000           | 0                   | 0                | 176000                     | 40000        | 123000
                        :2014   | 11000           | 0                   | 0                | 163000                     | 29000        | 110000
                        :2015P1 | 12000           | 0                   | 0                | 190000                     | 40000        | 150000
-                       :2015P2 | 13000           | 0                   | 0                | 150000                     | 27000        | 137000
+                       :2015P2 | 13000           | 0                   | 0                | 150000                     | 27000        | 96000
                        :""".stripMargin(':')
         doTest(table)
       }
@@ -612,8 +612,8 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
       }
     }
 
-    "Scenario Period 2" should {
-      "when defined benefit high annual allowances carry forwards and chargable amounts should be correct" in {
+    "Period 2" should {
+      "when no p2 unused annual allowances carry forwards and chargable amounts should be correct" in {
         val table = """:year   | Defined Benefit | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
                        :2008   | 0               | 0                   | -1               | 50000                      | 50000        | 50000
                        :2009   | 0               | 0                   | -1               | 100000                     | 50000        | 100000
@@ -624,6 +624,66 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2014   | 40000           | 0                   | 0                | 190000                     | 0            | 100000
                        :2015P1 | 51000           | 0                   | 0                | 180000                     | 29000        | 129000
                        :2015P2 | 52000           | 23000               | 0                | 129000                     | 0            | 50000
+                       :""".stripMargin(':')
+        doTest(table)
+      }
+
+      "when p2 unused annual allowances carry forwards and chargable amounts should be correct" in {
+        val table = """:year   | Defined Benefit | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
+                       :2008   | 0               | 0                   | -1               | 50000                      | 50000        | 50000
+                       :2009   | 0               | 0                   | -1               | 100000                     | 50000        | 100000
+                       :2010   | 0               | 0                   | -1               | 150000                     | 50000        | 150000
+                       :2011   | 0               | 0                   | 0                | 200000                     | 50000        | 150000
+                       :2012   | 0               | 0                   | 0                | 200000                     | 50000        | 150000
+                       :2013   | 0               | 0                   | 0                | 200000                     | 50000        | 150000
+                       :2014   | 1000            | 0                   | 0                | 190000                     | 39000        | 139000
+                       :2015P1 | 2000            | 0                   | 0                | 219000                     | 40000        | 179000
+                       :2015P2 | 3000            | 0                   | 0                | 179000                     | 37000        | 126000
+                       :""".stripMargin(':')
+        doTest(table)
+      }
+
+      "when p2 unused annual allowances and previous year inputs carry forwards and chargable amounts should be correct" in {
+        val table = """:year   | Defined Benefit | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
+                       :2008   | 0               | 0                   | -1               | 50000                      | 50000        | 50000
+                       :2009   | 0               | 0                   | -1               | 100000                     | 50000        | 100000
+                       :2010   | 0               | 0                   | -1               | 150000                     | 50000        | 150000
+                       :2011   | 0               | 0                   | 0                | 200000                     | 50000        | 150000
+                       :2012   | 0               | 0                   | 0                | 200000                     | 50000        | 150000
+                       :2013   | 9000            | 0                   | 0                | 200000                     | 41000        | 141000
+                       :2014   | 1000            | 0                   | 0                | 181000                     | 39000        | 130000
+                       :2015P1 | 2000            | 0                   | 0                | 210000                     | 40000        | 170000
+                       :2015P2 | 3000            | 0                   | 0                | 170000                     | 37000        | 117000
+                       :""".stripMargin(':')
+        doTest(table)
+      }
+
+      "when p2 unused annual allowances (b) and previous year inputs carry forwards and chargable amounts should be correct" in {
+        val table = """:year   | Defined Benefit | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
+                       :2008   | 0               | 0                   | -1               | 50000                      | 50000        | 50000
+                       :2009   | 0               | 0                   | -1               | 100000                     | 50000        | 100000
+                       :2010   | 0               | 0                   | -1               | 150000                     | 50000        | 150000
+                       :2011   | 0               | 0                   | 0                | 200000                     | 50000        | 150000
+                       :2012   | 0               | 0                   | 0                | 200000                     | 50000        | 150000
+                       :2013   | 59000           | 9000                | 0                | 200000                     | 0            | 100000
+                       :2014   | 1000            | 0                   | 0                | 140000                     | 39000        | 89000
+                       :2015P1 | 2000            | 0                   | 0                | 169000                     | 40000        | 129000
+                       :2015P2 | 3000            | 0                   | 0                | 129000                     | 37000        | 76000
+                       :""".stripMargin(':')
+        doTest(table)
+      }
+
+      "when p2 unused annual allowances (c) and previous year inputs carry forwards and chargable amounts should be correct" in {
+        val table = """:year   | Defined Benefit | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
+                       :2008   | 0               | 0                   | -1               | 50000                      | 50000        | 50000
+                       :2009   | 0               | 0                   | -1               | 100000                     | 50000        | 100000
+                       :2010   | 0               | 0                   | -1               | 150000                     | 50000        | 150000
+                       :2011   | 0               | 0                   | 0                | 200000                     | 50000        | 150000
+                       :2012   | 0               | 0                   | 0                | 200000                     | 50000        | 150000
+                       :2013   | 59000           | 9000                | 0                | 200000                     | 0            | 100000
+                       :2014   | 49000           | 9000                | 0                | 140000                     | 0            | 50000
+                       :2015P1 | 2000            | 0                   | 0                | 130000                     | 40000        | 90000
+                       :2015P2 | 3000            | 0                   | 0                | 90000                      | 37000        | 37000
                        :""".stripMargin(':')
         doTest(table)
       }
