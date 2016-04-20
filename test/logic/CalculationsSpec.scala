@@ -261,7 +261,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
         val table = """:year   | Defined Benefit | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
                        :2014   | 25000           | 0                   | 0                | 190000                     | 15000        | 115000
                        :2015P1 | 80000           | 0                   | 0                | 195000                     | 0            | 115000
-                       :2015P2 | 40000           | 40000               | 0                | 115000                     | 0            | 75000
+                       :2015P2 | 40000           | 40000               | 0                | 115000                     | 0            | 65000
                        :""".stripMargin(':')
         doTest(table)
       }
@@ -493,7 +493,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
         doTest(table)
       }
     }
-
+    
     "Scenario 24: Period 2 is 90k" should {
       "when defined benefit Period 1 is 90k and Period 2 is 0k return expected result" in {
         val table = """:year   | Defined Benefit | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
