@@ -377,6 +377,20 @@ class ContributionSpec extends ModelSpec {
       }
     }
 
+    "isGroup1" can {
+      "return true if either defined benefit or defined contribution is not None prior to 2011" in {
+        val c = Contribution(2010, 50000L)
+        c.isGroup1 shouldBe true
+        c.copy(amounts=Some(InputAmounts(None,Some(5000L)))).isGroup1 shouldBe true
+      }
+      "return true if either defined benefit is not None prior after 2010" in {
+        Contribution(2012, 50000L).isGroup1 shouldBe true
+      }
+      "return false if defined contribution is defined after 2010" in {
+        Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(None,Some(474789L)))).isGroup1 shouldBe false
+      }
+    }
+
     "+" should{
       "sum definedBenefit of two contributions regardless of year" in {
         // set up

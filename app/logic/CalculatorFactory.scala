@@ -19,7 +19,7 @@ package logic
 import models._
 
 trait Calculator {
-  def summary(previousPeriods:Seq[SummaryResult], contribution:Contribution) : Option[SummaryResult]
+  def summary(implicit previousPeriods:Seq[SummaryResult], contribution:Contribution) : Option[SummaryResult]
   def isSupported(contribution:Contribution):Boolean
 }
 

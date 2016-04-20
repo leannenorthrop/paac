@@ -261,7 +261,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
         val table = """:year   | Defined Benefit | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
                        :2014   | 25000           | 0                   | 0                | 190000                     | 15000        | 115000
                        :2015P1 | 80000           | 0                   | 0                | 195000                     | 0            | 115000
-                       :2015P2 | 40000           | 40000               | 0                | 115000                     | 0            | 75000
+                       :2015P2 | 40000           | 40000               | 0                | 115000                     | 0            | 65000
                        :""".stripMargin(':')
         doTest(table)
       }
@@ -493,7 +493,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
         doTest(table)
       }
     }
-
+    
     "Scenario 24: Period 2 is 90k" should {
       "when defined benefit Period 1 is 90k and Period 2 is 0k return expected result" in {
         val table = """:year   | Defined Benefit | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
@@ -608,6 +608,23 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                       :2015P1 | 95000           | 15000               | 0                | 145000                     | 0            | 50000
                       :2015P2 | 30000           | 30000               | 0                | 50000                      | 0            | 20000
                       :""".stripMargin(':')
+        doTest(table)
+      }
+    }
+
+    "Scenario Period 2" should {
+      "when defined benefit high annual allowances carry forwards and chargable amounts should be correct" in {
+        val table = """:year   | Defined Benefit | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
+                       :2008   | 0               | 0                   | -1               | 50000                      | 50000        | 50000
+                       :2009   | 0               | 0                   | -1               | 100000                     | 50000        | 100000
+                       :2010   | 0               | 0                   | -1               | 150000                     | 50000        | 150000
+                       :2011   | 0               | 0                   | 0                | 200000                     | 50000        | 150000
+                       :2012   | 0               | 0                   | 0                | 200000                     | 50000        | 150000
+                       :2013   | 0               | 0                   | 0                | 200000                     | 50000        | 150000
+                       :2014   | 40000           | 0                   | 0                | 190000                     | 0            | 100000
+                       :2015P1 | 51000           | 0                   | 0                | 180000                     | 29000        | 129000
+                       :2015P2 | 52000           | 23000               | 0                | 129000                     | 0            | 50000
+                       :""".stripMargin(':')
         doTest(table)
       }
     }
