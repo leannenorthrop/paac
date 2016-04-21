@@ -31,28 +31,36 @@ case class Group1P2Calculator(amountsCalculator: BasicAmountsCalculator) {
 
   def annualAllowanceCF(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = if (previousPeriods.headOption.isDefined) previousPeriods.head.availableAAWithCCF else 0L
 
-  def annualAllowanceCCF(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = if (amountsCalculator.definedBenefit == 0) me.previous2YearsUnusedAllowances+me.period1UnusedAllowance 
-   else if (amountsCalculator.definedBenefit > me.period1UnusedAllowance &&
+  def annualAllowanceCCF(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = {
+    val definedBenefit = amountsCalculator.definedBenefit
+    val previous2YearsUnusedAllowances = me.previous2YearsUnusedAllowances
+    val period1UnusedAllowance = me.period1UnusedAllowance
+    if (definedBenefit == 0) 
+      previous2YearsUnusedAllowances + period1UnusedAllowance 
+    else if (definedBenefit > period1UnusedAllowance &&
             previousPeriods.headOption.map(_.exceedingAAAmount).getOrElse(0L) == 0 &&
             previousPeriods.slice(0,3).exists(_.unusedAllowance == 0 && me.chargableAmount == 0)) {
-    me.previous2YearsUnusedAllowances 
-   } else if (amountsCalculator.definedBenefit < me.period1UnusedAllowance &&
-            previousPeriods.headOption.map(_.exceedingAAAmount).getOrElse(0L) == 0) {
-    ((previous2YearsUnusedAllowances + me.period1UnusedAllowance) - amountsCalculator.definedBenefit).max(0)
-   } else {
-    (me.annualAllowanceCF - amountsCalculator.definedBenefit).max(0)
-   }
+      previous2YearsUnusedAllowances 
+    } else if (definedBenefit < period1UnusedAllowance &&
+               previousPeriods.headOption.map(_.exceedingAAAmount).getOrElse(0L) == 0) {
+      ((previous2YearsUnusedAllowances + period1UnusedAllowance) - definedBenefit).max(0)
+    } else {
+      (me.annualAllowanceCF - definedBenefit).max(0)
+    }
+  }
 
   def chargableAmount(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = {
-      val cf = if (previousPeriods.headOption.isDefined) previousPeriods.head.availableAAWithCCF else 0L
-      if (amountsCalculator.definedBenefit > cf) amountsCalculator.definedBenefit - cf else 0L
+    val definedBenefit = amountsCalculator.definedBenefit
+    val cf = previousPeriods.headOption.map(_.availableAAWithCCF).getOrElse(0L)
+    if (definedBenefit > cf) definedBenefit - cf else 0L
   }
 }
 
 object Year2015Period2Calculator extends BasicCalculator {
   protected def getAnnualAllowanceInPounds: Long =
     PaacConfiguration.config.flatMap[Long](_.getLong("annualallowances.Year2015Period2Calculator")).getOrElse(0L)
-  protected val group1Calculator = Group1P2Calculator(BasicAmountsCalculator(getAnnualAllowanceInPounds))
+  protected val amountsCalculator: BasicAmountsCalculator = BasicAmountsCalculator(getAnnualAllowanceInPounds)
+  protected val group1Calculator = Group1P2Calculator(amountsCalculator)
 
   def isSupported(contribution:Contribution):Boolean = {
     contribution.isPeriod2()

@@ -20,23 +20,31 @@ import config.PaacConfiguration
 import models._
 
 case class Group1P1Calculator(amountsCalculator: BasicAmountsCalculator) {
+  me => Group1P2Calculator
+  
   def unusedAllowance(summary: SummaryResult)(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = summary.unusedAllowance.min(4000000L)
 
   def previous3YearsUnusedAllowance()(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = previousPeriods.slice(0,3).foldLeft(0L)(_+_.unusedAllowance)
 
   def aaCF()(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = amountsCalculator.annualAllowance + previousPeriods.slice(0,3).foldLeft(0L)(_+_.unusedAllowance)
 
-  def aaCCF(summary: SummaryResult)(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = if (amountsCalculator.definedBenefit >= amountsCalculator.annualAllowance) {
-          (amountsCalculator.annualAllowance + previous3YearsUnusedAllowance() - amountsCalculator.definedBenefit).max(0)
-        } else {
-          (unusedAllowance(summary) + previous3YearsUnusedAllowance()).max(0)
-        }
+  def aaCCF(summary: SummaryResult)(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = {
+    val definedBenefit = amountsCalculator.definedBenefit
+    val annualAllowance = amountsCalculator.annualAllowance
+    val previous3YearsUnusedAllowance = me.previous3YearsUnusedAllowance()
+    if (definedBenefit >= annualAllowance) {
+      (annualAllowance + previous3YearsUnusedAllowance - definedBenefit).max(0)
+    } else {
+      (unusedAllowance(summary) + previous3YearsUnusedAllowance).max(0)
+    }
+  }
 }
 
 object Year2015Period1Calculator extends BasicCalculator {
   protected def getAnnualAllowanceInPounds: Long =
     PaacConfiguration.config.flatMap[Long](_.getLong("annualallowances.Year2015Period1Calculator")).getOrElse(80000L)
-  protected val group1Calculator = Group1P1Calculator(BasicAmountsCalculator(getAnnualAllowanceInPounds))
+  protected val amountsCalculator: BasicAmountsCalculator = BasicAmountsCalculator(getAnnualAllowanceInPounds)
+  protected val group1Calculator = Group1P1Calculator(amountsCalculator)
 
   def isSupported(contribution:Contribution):Boolean = {
     contribution.isPeriod1()
