@@ -8,4 +8,8 @@ jdk:
 cache:
   directories:
     - '$HOME/.ivy2/cache'
-    
+script: "sbt clean coverage test"
+after_success: "sbt coveralls"
+notifications:
+  email:
+    - leanne.northrop@gmail.com    
