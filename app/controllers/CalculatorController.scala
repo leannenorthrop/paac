@@ -29,6 +29,8 @@ import play.api.libs.json._
 import play.api.mvc.Action
 import scala.concurrent.Future
 
+import play.api.libs.concurrent.Execution.Implicits._
+
 trait CalculatorController {
   this: Controller with PensionAllowanceCalculator =>
 

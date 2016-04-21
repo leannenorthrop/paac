@@ -46,6 +46,11 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
       val contribution5 = Contribution(2013, 1000000)
     }
 
+  "BasicAmountsCalculator" should {
+    val calculator = BasicAmountsCalculator(100)
+    calculator.definedBenefit(Seq[SummaryResult](), Contribution(TaxPeriod(2014,3,5), TaxPeriod(2015,3,6), None)) shouldBe 0
+  }
+
   "Pre2014Calculator" should {
     trait ZeroContributionFixture {
       val contribution = Contribution(2009, 0)

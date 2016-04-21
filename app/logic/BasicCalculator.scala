@@ -22,13 +22,12 @@ case class BasicAmountsCalculator(annualAllowanceInPounds: Long) {
   calc => BasicAmountsCalculator
 
   def definedBenefit(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = {
-    val amounts = contribution.amounts.get
-    var definedBenefit = if (amounts.definedBenefit.isDefined) amounts.definedBenefit.get else 0L
-    val definedContribution = if (amounts.moneyPurchase.isDefined) amounts.moneyPurchase.get else 0L
-    
+    val amounts = contribution.amounts.getOrElse(InputAmounts())
     if (contribution.taxPeriodStart.year < 2015)
-      definedBenefit += definedContribution
-    definedBenefit
+      amounts.definedBenefit.getOrElse(0L) + amounts.moneyPurchase.getOrElse(0L)
+    else {
+      amounts.definedBenefit.getOrElse(0L)
+    }
   }
 
   def annualAllowance(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = annualAllowanceInPounds*100L // convert allowance from pounds to pence
@@ -54,19 +53,19 @@ case class BasicAmountsCalculator(annualAllowanceInPounds: Long) {
 
 trait BasicCalculator extends Calculator {
   protected def getAnnualAllowanceInPounds: Long
-  protected object AmountsCalculator extends BasicAmountsCalculator(getAnnualAllowanceInPounds)
+  protected val amountsCalculator: BasicAmountsCalculator
 
   def summary(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Option[SummaryResult] = {
     if (contribution.amounts.isDefined && !contribution.isEmpty) {
-      var definedBenefit = AmountsCalculator.definedBenefit
+      var definedBenefit = amountsCalculator.definedBenefit
 
       if (isSupported(contribution) && definedBenefit >= 0) {
-        Some(SummaryResult(AmountsCalculator.chargableAmount, 
-                           AmountsCalculator.exceedingAllowance, 
-                           AmountsCalculator.annualAllowance, 
-                           AmountsCalculator.unusedAllowance, 
-                           AmountsCalculator.annualAllowanceCF, 
-                           AmountsCalculator.annualAllowanceCCF, 0L))
+        Some(SummaryResult(amountsCalculator.chargableAmount, 
+                           amountsCalculator.exceedingAllowance, 
+                           amountsCalculator.annualAllowance, 
+                           amountsCalculator.unusedAllowance, 
+                           amountsCalculator.annualAllowanceCF, 
+                           amountsCalculator.annualAllowanceCCF, 0L))
       } else None
     } else None
   }
