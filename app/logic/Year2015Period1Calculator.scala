@@ -21,22 +21,30 @@ import models._
 
 case class Group1P1Calculator(amountsCalculator: BasicAmountsCalculator) {
   me => Group1P2Calculator
-  
-  def unusedAllowance(summary: SummaryResult)(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = summary.unusedAllowance.min(4000000L)
 
   def previous3YearsUnusedAllowance()(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = previousPeriods.slice(0,3).foldLeft(0L)(_+_.unusedAllowance)
 
-  def aaCF()(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = amountsCalculator.annualAllowance + previousPeriods.slice(0,3).foldLeft(0L)(_+_.unusedAllowance)
+  def aaCF(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = amountsCalculator.annualAllowance + previousPeriods.slice(0,3).foldLeft(0L)(_+_.unusedAllowance)
 
-  def aaCCF(summary: SummaryResult)(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = {
+  def aaCCF(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = {
     val definedBenefit = amountsCalculator.definedBenefit
     val annualAllowance = amountsCalculator.annualAllowance
     val previous3YearsUnusedAllowance = me.previous3YearsUnusedAllowance()
     if (definedBenefit >= annualAllowance) {
       (annualAllowance + previous3YearsUnusedAllowance - definedBenefit).max(0)
     } else {
-      (unusedAllowance(summary) + previous3YearsUnusedAllowance).max(0)
+      (amountsCalculator.unusedAllowance.min(4000000L) + previous3YearsUnusedAllowance).max(0)
     }
+  }
+
+  def summary(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Option[SummaryResult] = {
+    Some(SummaryResult(amountsCalculator.chargableAmount, 
+                       amountsCalculator.exceedingAllowance, 
+                       amountsCalculator.annualAllowance, 
+                       amountsCalculator.unusedAllowance.min(4000000L), 
+                       me.aaCF, 
+                       me.aaCCF, 
+                       0L))
   }
 }
 
@@ -45,6 +53,7 @@ object Year2015Period1Calculator extends BasicCalculator {
     PaacConfiguration.config.flatMap[Long](_.getLong("annualallowances.Year2015Period1Calculator")).getOrElse(80000L)
   protected val amountsCalculator: BasicAmountsCalculator = BasicAmountsCalculator(getAnnualAllowanceInPounds)
   protected val group1Calculator = Group1P1Calculator(amountsCalculator)
+  //protected val group2Calculator = Group2P1Calculator(amountsCalculator)
 
   def isSupported(contribution:Contribution):Boolean = {
     contribution.isPeriod1()
@@ -54,15 +63,9 @@ object Year2015Period1Calculator extends BasicCalculator {
     if (isSupported(contribution)) {
       if (contribution.isGroup1()) {
         // Period 1 only allows maximum carry forward of 40k (here in pence values)
-        super.summary(previousPeriods, contribution).map((r)=>r.copy(unusedAllowance=group1Calculator.unusedAllowance(r),
-                                                                    availableAAWithCCF=group1Calculator.aaCCF(r),
-                                                                    availableAAWithCF=group1Calculator.aaCF))
+        group1Calculator.summary
       } else if (contribution.isGroup2) {
-        if (contribution.amounts.get.moneyPurchase == None) {
-          super.summary(previousPeriods, contribution).map((r)=>r.copy(unusedAllowance=group1Calculator.unusedAllowance(r),
-                                                            availableAAWithCCF=group1Calculator.aaCCF(r),
-                                                            availableAAWithCF=group1Calculator.aaCF))
-        } else None
+        None
       } else None
     } else None
   }
