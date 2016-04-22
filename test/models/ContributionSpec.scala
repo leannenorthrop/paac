@@ -287,7 +287,7 @@ class ContributionSpec extends ModelSpec {
         val label = c.taxYearLabel
 
         // check
-        label shouldBe "2015 P1"
+        label shouldBe "2015/16 P1"
       }
 
       "have a 2015 Period 2 tax year label" in {
@@ -298,7 +298,7 @@ class ContributionSpec extends ModelSpec {
         val label = c.taxYearLabel
 
         // check
-        label shouldBe "2015 P2"
+        label shouldBe "2015/16 P2"
       }
     }
 

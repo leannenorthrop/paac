@@ -79,7 +79,7 @@ class PensionAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
 
         // check
         results.size shouldBe 9
-        results.find(_.taxYearLabel == "2015 P1").get shouldBe Contribution(TaxPeriod(2015,3,6),TaxPeriod(2015,6,8),Some(InputAmounts(Some(0L),Some(0L))))
+        results.find(_.taxYearLabel == "2015/16 P1").get shouldBe Contribution(TaxPeriod(2015,3,6),TaxPeriod(2015,6,8),Some(InputAmounts(Some(0L),Some(0L))))
       }
 
       "return contributions in year order if given values out of order" in {

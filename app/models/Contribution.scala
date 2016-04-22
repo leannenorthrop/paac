@@ -41,9 +41,9 @@ case class TaxPeriod(year: Int, month: Int, day: Int) {
 case class Contribution(taxPeriodStart: TaxPeriod, taxPeriodEnd: TaxPeriod, amounts: Option[InputAmounts]) extends CalculationParam {
   def taxYearLabel() : String = {
     if (taxPeriodStart.year == 2015 && taxPeriodStart.month == 6) {
-      s"2015 P2"  
+      s"2015/16 P2"  
     } else if (taxPeriodStart.year == 2015 && taxPeriodStart.month == 3) {
-      s"2015 P1"  
+      s"2015/16 P1"  
     } else {
       s"${taxPeriodStart.year}/${taxPeriodEnd.year.toString().drop(2)}"
     }

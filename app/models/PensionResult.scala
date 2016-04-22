@@ -31,7 +31,13 @@ case class SummaryResult(chargableAmount: Long = 0,
                          unusedAllowance: Long = 0,
                          availableAAWithCF: Long = 0,    // total available allowance for current year should be renamed to totalAA
                          availableAAWithCCF: Long = 0,   // available allowance carried forward to following year
-                         unusedAllowanceCF: Long = 0) extends PensionCalculationResult
+                         unusedAllowanceCF: Long = 0,
+                         moneyPurchaseAA: Long = 0,
+                         alternativeAA: Long = 0,
+                         dbist: Long = 0,
+                         mpist: Long = 0,
+                         alternativeChargableAmount: Long = 0,
+                         defaultChargableAmount: Long = 0) extends PensionCalculationResult
 
 object SummaryResult {
   implicit val summaryResultWrites: Writes[SummaryResult] = (
@@ -41,7 +47,13 @@ object SummaryResult {
     (JsPath \ "unusedAllowance").write[Long] and 
     (JsPath \ "availableAAWithCF").write[Long] and
     (JsPath \ "availableAAWithCCF").write[Long] and
-    (JsPath \ "unusedAllowanceCF").write[Long]
+    (JsPath \ "unusedAllowanceCF").write[Long] and
+    (JsPath \ "moneyPurchaseAA").write[Long] and
+    (JsPath \ "alternativeAA").write[Long] and
+    (JsPath \ "dbist").write[Long] and
+    (JsPath \ "mpist").write[Long] and
+    (JsPath \ "alternativeChargableAmount").write[Long] and
+    (JsPath \ "defaultChargableAmount").write[Long]
   )(unlift(SummaryResult.unapply))
 
   implicit val summaryResultReads: Reads[SummaryResult] = (
@@ -51,7 +63,13 @@ object SummaryResult {
     (JsPath \ "unusedAllowance").read[Long] and
     (JsPath \ "availableAAWithCF").read[Long] and
     (JsPath \ "availableAAWithCCF").read[Long] and
-    (JsPath \ "unusedAllowanceCF").read[Long]
+    (JsPath \ "unusedAllowanceCF").read[Long] and 
+    (JsPath \ "moneyPurchaseAA").read[Long] and
+    (JsPath \ "alternativeAA").read[Long] and
+    (JsPath \ "dbist").read[Long] and
+    (JsPath \ "mpist").read[Long] and
+    (JsPath \ "alternativeChargableAmount").read[Long] and
+    (JsPath \ "defaultChargableAmount").read[Long]  
   )(SummaryResult.apply _)
 }
 

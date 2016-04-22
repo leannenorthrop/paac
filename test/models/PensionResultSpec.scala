@@ -128,7 +128,9 @@ class PensionResultSpec extends ModelSpec {
 
     "unmarshall from JSON" in {
       // setup
-      val json = Json.parse("""{"chargableAmount": 12345, "exceedingAAAmount": 67890, "availableAllowance":0, "unusedAllowance": 0, "availableAAWithCF": 0, "availableAAWithCCF":0, "unusedAllowanceCF":0}""")
+      val json = Json.parse("""{"chargableAmount": 12345, "exceedingAAAmount": 67890, "availableAllowance":0, "unusedAllowance": 0, "availableAAWithCF": 0, "availableAAWithCCF":0, "unusedAllowanceCF":0, "moneyPurchaseAA":0,
+        "alternativeAA": 0, "dbist": 0, "mpist": 0, 
+        "alternativeChargableAmount": 0, "defaultChargableAmount": 0}""")
 
       // do it
       val summaryResultOption : Option[SummaryResult] = json.validate[SummaryResult].fold(invalid = { _ => None }, valid = { obj => Some(obj)})
@@ -189,13 +191,27 @@ class PensionResultSpec extends ModelSpec {
 
     "unmarshall from JSON" in {
       // setup
-      val json = Json.parse("""{"input": {"taxPeriodStart": {"year":2008, "month" : 2, "day" : 11}, "taxPeriodEnd": {"year":2008, "month" : 8, "day" : 12}, "amounts": {"definedBenefit": 12345, "moneyPurchase": 67890}}, "summaryResult":{"chargableAmount": 12345, "exceedingAAAmount": 67890, "availableAllowance":0, "unusedAllowance": 0, "availableAAWithCF": 0, "availableAAWithCCF":0, "unusedAllowanceCF":0}}""")
+      val json = Json.parse("""{"input": {"taxPeriodStart": {"year":2008, "month" : 2, "day" : 11}, "taxPeriodEnd": {"year":2008, "month" : 8, "day" : 12}, "amounts": {"definedBenefit": 12345, "moneyPurchase": 67890}}, "summaryResult":{"chargableAmount": 12345, "exceedingAAAmount": 67890, "availableAllowance":1, "unusedAllowance": 2, "availableAAWithCF": 3, "availableAAWithCCF":4, "unusedAllowanceCF":5, "moneyPurchaseAA":6,
+        "alternativeAA": 7, "dbist": 8, "mpist": 9, 
+        "alternativeChargableAmount": 10, "defaultChargableAmount": 11}}""")
 
       // do it
       val taxYearResultsOption : Option[TaxYearResults] = json.validate[TaxYearResults].fold(invalid = { _ => None }, valid = { obj => Some(obj)})
 
       taxYearResultsOption.get.input.taxPeriodStart.year shouldBe 2008
       taxYearResultsOption.get.summaryResult.chargableAmount shouldBe 12345
+      taxYearResultsOption.get.summaryResult.exceedingAAAmount shouldBe 67890
+      taxYearResultsOption.get.summaryResult.availableAllowance shouldBe 1
+      taxYearResultsOption.get.summaryResult.unusedAllowance shouldBe 2
+      taxYearResultsOption.get.summaryResult.availableAAWithCF shouldBe 3
+      taxYearResultsOption.get.summaryResult.availableAAWithCCF shouldBe 4
+      taxYearResultsOption.get.summaryResult.unusedAllowanceCF shouldBe 5
+      taxYearResultsOption.get.summaryResult.moneyPurchaseAA shouldBe 6
+      taxYearResultsOption.get.summaryResult.alternativeAA shouldBe 7
+      taxYearResultsOption.get.summaryResult.dbist shouldBe 8
+      taxYearResultsOption.get.summaryResult.mpist shouldBe 9
+      taxYearResultsOption.get.summaryResult.alternativeChargableAmount shouldBe 10
+      taxYearResultsOption.get.summaryResult.defaultChargableAmount shouldBe 11
     }
   }  
 }
