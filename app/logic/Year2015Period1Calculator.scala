@@ -48,12 +48,15 @@ case class Group1P1Calculator(amountsCalculator: BasicAmountsCalculator) {
   }
 }
 
+case class Group2P1Calculator(amountsCalculator: BasicAmountsCalculator) {
+  def summary(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Option[SummaryResult] = {
+    None
+  }
+}
+
 object Year2015Period1Calculator extends BasicCalculator {
   protected def getAnnualAllowanceInPounds: Long =
     PaacConfiguration.config.flatMap[Long](_.getLong("annualallowances.Year2015Period1Calculator")).getOrElse(80000L)
-  protected val amountsCalculator: BasicAmountsCalculator = BasicAmountsCalculator(getAnnualAllowanceInPounds)
-  protected val group1Calculator = Group1P1Calculator(amountsCalculator)
-  //protected val group2Calculator = Group2P1Calculator(amountsCalculator)
 
   def isSupported(contribution:Contribution):Boolean = {
     contribution.isPeriod1()
@@ -61,11 +64,12 @@ object Year2015Period1Calculator extends BasicCalculator {
 
   override def summary(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Option[SummaryResult] = {
     if (isSupported(contribution)) {
+      val amountsCalculator: BasicAmountsCalculator = BasicAmountsCalculator(getAnnualAllowanceInPounds)
       if (contribution.isGroup1()) {
         // Period 1 only allows maximum carry forward of 40k (here in pence values)
-        group1Calculator.summary
+        Group1P1Calculator(amountsCalculator).summary
       } else if (contribution.isGroup2) {
-        None
+        Group2P1Calculator(amountsCalculator).summary
       } else None
     } else None
   }

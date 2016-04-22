@@ -49,23 +49,26 @@ case class BasicAmountsCalculator(annualAllowanceInPounds: Long) {
       }
 
   def chargableAmount(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = if (contribution.taxPeriodStart.year < 2011) -1 else (calc.definedBenefit - calc.annualAllowanceCF).max(0)
+
+  def summary(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Option[SummaryResult] = {
+    Some(SummaryResult(calc.chargableAmount, 
+                       calc.exceedingAllowance, 
+                       calc.annualAllowance, 
+                       calc.unusedAllowance, 
+                       calc.annualAllowanceCF, 
+                       calc.annualAllowanceCCF, 0L))
+  }
 }
 
 trait BasicCalculator extends Calculator {
   protected def getAnnualAllowanceInPounds: Long
-  protected val amountsCalculator: BasicAmountsCalculator
 
   def summary(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Option[SummaryResult] = {
     if (contribution.amounts.isDefined && !contribution.isEmpty) {
+      val amountsCalculator = BasicAmountsCalculator(getAnnualAllowanceInPounds)
       var definedBenefit = amountsCalculator.definedBenefit
-
       if (isSupported(contribution) && definedBenefit >= 0) {
-        Some(SummaryResult(amountsCalculator.chargableAmount, 
-                           amountsCalculator.exceedingAllowance, 
-                           amountsCalculator.annualAllowance, 
-                           amountsCalculator.unusedAllowance, 
-                           amountsCalculator.annualAllowanceCF, 
-                           amountsCalculator.annualAllowanceCCF, 0L))
+        amountsCalculator.summary
       } else None
     } else None
   }

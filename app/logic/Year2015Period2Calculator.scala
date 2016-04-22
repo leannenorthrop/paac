@@ -54,27 +54,27 @@ case class Group1P2Calculator(amountsCalculator: BasicAmountsCalculator) {
     val cf = previousPeriods.headOption.map(_.availableAAWithCCF).getOrElse(0L)
     if (definedBenefit > cf) definedBenefit - cf else 0L
   }
+
+  def summary(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Option[SummaryResult] = {
+    amountsCalculator.summary(previousPeriods, contribution).map((results)=>results.copy(availableAAWithCF = me.annualAllowanceCF,    // total available allowance for current year
+                                                            availableAAWithCCF = me.annualAllowanceCCF,  // available allowance carried forward to following year
+                                                            unusedAllowance = me.unusedAllowance,
+                                                            chargableAmount = me.chargableAmount,
+                                                            exceedingAAAmount = me.exceedingAllowance))
+  }
 }
 
 object Year2015Period2Calculator extends BasicCalculator {
   protected def getAnnualAllowanceInPounds: Long =
     PaacConfiguration.config.flatMap[Long](_.getLong("annualallowances.Year2015Period2Calculator")).getOrElse(0L)
-  protected val amountsCalculator: BasicAmountsCalculator = BasicAmountsCalculator(getAnnualAllowanceInPounds)
-  protected val group1Calculator = Group1P2Calculator(amountsCalculator)
 
   def isSupported(contribution:Contribution):Boolean = {
-    contribution.isPeriod2()
+    contribution.isPeriod2() && !contribution.isEmpty
   }
 
-  override def summary(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Option[SummaryResult] = if (isSupported(contribution) && contribution.isGroup1()) {
-      // Period 1 only allows maximum carry forward of 40k (here in pence values)
-      super.summary(previousPeriods, contribution).map {
-        (results) =>
-        results.copy(availableAAWithCF = group1Calculator.annualAllowanceCF,    // total available allowance for current year
-                     availableAAWithCCF = group1Calculator.annualAllowanceCCF,  // available allowance carried forward to following year
-                     unusedAllowance = group1Calculator.unusedAllowance,
-                     chargableAmount = group1Calculator.chargableAmount,
-                     exceedingAAAmount = group1Calculator.exceedingAllowance)
-      }
+  override def summary(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Option[SummaryResult] = if (isSupported(contribution)) {
+      if (contribution.isGroup1()) 
+        Group1P2Calculator(BasicAmountsCalculator(getAnnualAllowanceInPounds)).summary
+      else None
     } else None
 }

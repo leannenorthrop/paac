@@ -218,7 +218,7 @@ class Year2015Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropert
         // do it
         val results = Year2015Period2Calculator.summary(Seq[SummaryResult](), Contribution(TaxPeriod.PERIOD_2_2015_START, 
                                                                                            TaxPeriod.PERIOD_2_2015_END,
-                                                                                           Some(InputAmounts(None, None))))
+                                                                                           Some(InputAmounts(None, None, None))))
         // check it
         results shouldBe None
       }
