@@ -25,9 +25,9 @@ import java.util.GregorianCalendar
 sealed trait CalculationParam
 sealed trait PensionCalculatorValue
 
-case class InputAmounts(definedBenefit: Option[Long] = None, moneyPurchase: Option[Long] = None) extends PensionCalculatorValue {
+case class InputAmounts(definedBenefit: Option[Long] = None, moneyPurchase: Option[Long] = None, income: Option[Long] = None) extends PensionCalculatorValue {
   def isEmpty() : Boolean = {
-    definedBenefit == None && moneyPurchase == None
+    definedBenefit == None && moneyPurchase == None && income == None
   }
 }
 
@@ -120,20 +120,26 @@ object TaxPeriod {
 object InputAmounts {
   implicit val inputAmountsWrites: Writes[InputAmounts] = (
     (JsPath \ "definedBenefit").write[Option[Long]] and
-    (JsPath \ "moneyPurchase").write[Option[Long]]
+    (JsPath \ "moneyPurchase").write[Option[Long]] and
+    (JsPath \ "income").write[Option[Long]]
   )(unlift(InputAmounts.unapply))
 
   implicit val inputAmountsReads: Reads[InputAmounts] = (
     (JsPath \ "definedBenefit").readNullable[Long](min(0L)) and
-    (JsPath \ "moneyPurchase").readNullable[Long](min(0L))
-  )(InputAmounts.apply(_: Option[Long], _: Option[Long]))
+    (JsPath \ "moneyPurchase").readNullable[Long](min(0L)) and
+    (JsPath \ "income").readNullable[Long](min(0L))
+  )(InputAmounts.apply(_: Option[Long], _: Option[Long], _: Option[Long]))
+
+  def apply(definedBenefit: Long, moneyPurchase: Long, income: Long) : InputAmounts = {
+    InputAmounts(Some(definedBenefit), Some(moneyPurchase), Some(income))
+  }
 
   def apply(definedBenefit: Long, moneyPurchase: Long) : InputAmounts = {
-    InputAmounts(Some(definedBenefit), Some(moneyPurchase))
+    InputAmounts(Some(definedBenefit), Some(moneyPurchase), None)
   }
 
   def apply(definedBenefit: Long) : InputAmounts = {
-    InputAmounts(Some(definedBenefit), None)
+    InputAmounts(Some(definedBenefit), None, None)
   }
 }
 
@@ -152,6 +158,6 @@ object Contribution {
 
   def apply(year: Int, definedBenefit: Long) : Contribution = {
     // month is 0 based
-    Contribution(TaxPeriod(year, 3, 6), TaxPeriod(year+1, 3, 5), Some(InputAmounts(definedBenefit=Some(definedBenefit))))
+    Contribution(TaxPeriod(year, 3, 6), TaxPeriod(year+1, 3, 5), Some(InputAmounts(definedBenefit)))
   }
 }
