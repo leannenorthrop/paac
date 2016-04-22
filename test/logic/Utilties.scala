@@ -19,7 +19,7 @@ package logic
 import models._
 import org.scalatest.Assertions._
 
-object Utilties {
+object Utilities {
   def generateContributions(map:Map[String,Long]): List[Contribution] = {
     map.keys.toList.map {
       (key)=>
@@ -31,18 +31,40 @@ object Utilties {
     }
   }
 
+  def generateMPContributions(map:Map[String,Long]): List[Contribution] = {
+    map.keys.toList.map {
+      (key)=>
+      key match {
+        case "2015P1" => Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(None, Some(map(key)*100L), None)))
+        case "2015P2" => Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(None, Some(map(key)*100L), None)))
+        case _ => Contribution(key.toInt, Some(InputAmounts(None, Some(map(key)*100L), None)))
+      }
+    }
+  }
+
+  def generateDBandMPContributions(map:Map[String,(Long,Long)]): List[Contribution] = {
+    map.keys.toList.map {
+      (key)=>
+      key match {
+        case "2015P1" => Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(map(key)._1*100L), Some(map(key)._2*100L), None)))
+        case "2015P2" => Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(map(key)._1*100L), Some(map(key)._2*100L), None)))
+        case _ => Contribution(key.toInt, Some(InputAmounts(Some(map(key)._1*100L), Some(map(key)._2*100L), None)))
+      }
+    }
+  }
+
   def toString(results: Seq[TaxYearResults]): String = {
-    var message: String = f"\nYear       Defined Benefit  Chargable  Exceeding AA  Available Allowance   Unused Allowance       AACF             CCF         MPAA          AAA        DBIST        MPIST          ACA          DCA\n"
+    var message: String = f"\nYear       Defined Benefit  Money Purchase  Chargable  Exceeding AA  Available Allowance   Unused Allowance       AACF             CCF         MPAA          AAA        DBIST        MPIST          ACA          DCA\n"
     results.foreach {
       (result)=>
-      message += f"${result.input.taxYearLabel}%-10s ${result.input.amounts.get.definedBenefit.get/100.00}%15.2f ${result.summaryResult.chargableAmount/100.00}%10.2f ${result.summaryResult.exceedingAAAmount/100.00}%13.2f ${result.summaryResult.availableAllowance/100.00}%20.2f ${result.summaryResult.unusedAllowance/100.00}%18.2f ${result.summaryResult.availableAAWithCF/100.00}%10.2f ${result.summaryResult.availableAAWithCCF/100.00}%15.2f ${result.summaryResult.moneyPurchaseAA/100.00}%12.2f ${result.summaryResult.alternativeAA/100.00}%12.2f ${result.summaryResult.dbist/100.00}%12.2f ${result.summaryResult.mpist/100.00}%12.2f ${result.summaryResult.alternativeChargableAmount/100.00}%12.2f ${result.summaryResult.defaultChargableAmount/100.00}%12.2f\n"
+      message += f"${result.input.taxYearLabel}%-10s ${result.input.amounts.get.definedBenefit.get/100.00}%15.2f ${result.input.amounts.get.moneyPurchase.get/100.00}%15.2f ${result.summaryResult.chargableAmount/100.00}%10.2f ${result.summaryResult.exceedingAAAmount/100.00}%13.2f ${result.summaryResult.availableAllowance/100.00}%20.2f ${result.summaryResult.unusedAllowance/100.00}%18.2f ${result.summaryResult.availableAAWithCF/100.00}%10.2f ${result.summaryResult.availableAAWithCCF/100.00}%15.2f ${result.summaryResult.moneyPurchaseAA/100.00}%12.2f ${result.summaryResult.alternativeAA/100.00}%12.2f ${result.summaryResult.dbist/100.00}%12.2f ${result.summaryResult.mpist/100.00}%12.2f ${result.summaryResult.alternativeChargableAmount/100.00}%12.2f ${result.summaryResult.defaultChargableAmount/100.00}%12.2f\n"
     }
     message += "\n\n"
     message
   }
 
   def assertResults(table:String, results:Seq[TaxYearResults], print:Boolean = false):Unit = {
-    if (print) println(Utilties.toString(results))
+    if (print) println(Utilities.toString(results))
 
     val valueFor = Map("Amount Exceeding AA"-> { (r:TaxYearResults) => r.summaryResult.exceedingAAAmount },
                        "Liable to Charge"-> { (r:TaxYearResults) => r.summaryResult.chargableAmount },
@@ -63,7 +85,7 @@ object Utilties {
       }
       row.foreach {
         case (k:String,v:Array[Int])=>
-        if (k != "year" && k != "Defined Benefit" && k != "Defined Contribution")
+        if (k != "year" && k != "Defined Benefit" && k != "Defined Contribution" && k != "Money Purchase")
           assertResult(if (v(0) != (-1)) v(0)*100 else v(0),s"${result.input.taxYearLabel} ${k} (converted to pence)")(valueFor(k).apply(result))
       }
     }

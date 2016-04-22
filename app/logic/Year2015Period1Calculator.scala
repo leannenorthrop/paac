@@ -49,8 +49,35 @@ case class Group1P1Calculator(amountsCalculator: BasicAmountsCalculator) {
 }
 
 case class Group2P1Calculator(amountsCalculator: BasicAmountsCalculator) {
+  me => Group2P1Calculator
+  
+  def previous3YearsUnusedAllowance()(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = previousPeriods.slice(0,3).foldLeft(0L)(_+_.unusedAllowance)
+
+  def aaCF(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = amountsCalculator.annualAllowance + previousPeriods.slice(0,3).foldLeft(0L)(_+_.unusedAllowance)
+
+  def aaCCF(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = {
+    val definedBenefit = amountsCalculator.definedBenefit
+    val annualAllowance = amountsCalculator.annualAllowance
+    val previous3YearsUnusedAllowance = me.previous3YearsUnusedAllowance()
+    if (definedBenefit >= annualAllowance) {
+      (annualAllowance + previous3YearsUnusedAllowance - definedBenefit).max(0)
+    } else {
+      (amountsCalculator.unusedAllowance.min(4000000L) + previous3YearsUnusedAllowance).max(0)
+    }
+  }
+
   def summary(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Option[SummaryResult] = {
-    None
+    val definedBenefit = amountsCalculator.definedBenefit
+    val moneyPurchase = amountsCalculator.definedContribution
+    val mpaa = ((20000L * 100) - moneyPurchase).max(0)
+
+    Some(SummaryResult(amountsCalculator.chargableAmount, 
+                       amountsCalculator.exceedingAllowance, 
+                       amountsCalculator.annualAllowance, 
+                       amountsCalculator.unusedAllowance.min(4000000L), 
+                       me.aaCF, 
+                       me.aaCCF, 
+                       0L))
   }
 }
 

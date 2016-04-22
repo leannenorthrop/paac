@@ -38,19 +38,29 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
   }
 
   def doTest(inputs: Map[String,Long], expectedValuesTable: String): Unit = {
-    val results = PensionAllowanceCalculator.calculateAllowances(Utilties.generateContributions(inputs))
-    Utilties.assertResults(expectedValuesTable, results)
+    val results = PensionAllowanceCalculator.calculateAllowances(Utilities.generateContributions(inputs))
+    Utilities.assertResults(expectedValuesTable, results)
   }
 
-  def doTest(table: String, print: Boolean = false): Unit = {
+  def doGroup1Test(table: String, print: Boolean = false): Unit = {
     val years = table.split('\n').drop(1).toList.map(_.split('|').toList(0).trim)
     val definedBenefit = table.split('\n').drop(1).toList.map(_.split('|').toList(1).trim.toLong)
     val inputs = Map(years.zip(definedBenefit): _*)
-    val results = PensionAllowanceCalculator.calculateAllowances(Utilties.generateContributions(inputs))
-    Utilties.assertResults(table, results, false)
-    if (print) info(Utilties.toString(results))
+    val results = PensionAllowanceCalculator.calculateAllowances(Utilities.generateContributions(inputs))
+    Utilities.assertResults(table, results, false)
+    if (print) info(Utilities.toString(results))
   }
   
+  def doGroup2Test(table: String, print: Boolean = false): Unit = {
+    val years = table.split('\n').drop(1).toList.map(_.split('|').toList(0).trim)
+    val definedBenefit = table.split('\n').drop(1).toList.map(_.split('|').toList(1).trim.toLong)
+    val moneyPurchase = table.split('\n').drop(1).toList.map(_.split('|').toList(2).trim.toLong)
+    val inputs = Map(years.zip(definedBenefit.zip(moneyPurchase)): _*)
+    val results = PensionAllowanceCalculator.calculateAllowances(Utilities.generateDBandMPContributions(inputs))
+    Utilities.assertResults(table, results, false)
+    if (print) info(Utilities.toString(results))
+  }
+
   "Group 1" should {
     "pre-2014" should {
       "return correct calculations when pension contributions are 0" in {
@@ -62,7 +72,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2012   | 0               | 0                   | 0                | 200000                     | 50000        | 150000
                        :2013   | 0               | 0                   | 0                | 200000                     | 50000        | 150000
                        :""".stripMargin(':')
-        doTest(table)
+        doGroup1Test(table)
       } 
 
       "return correct calculations when pension contributions are 50000" in {
@@ -74,7 +84,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2012   | 50000           | 0                   | 0                | 50000                      | 0            | 0 
                        :2013   | 50000           | 0                   | 0                | 50000                      | 0            | 0 
                        :""".stripMargin(':')
-        doTest(table)
+        doGroup1Test(table)
       } 
       "return correct calculations when pension contributions are 40000" in {
         val table = """:year   | Defined Benefit | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
@@ -85,7 +95,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2012   | 40000           | 0                   | 0                | 80000                      | 10000        | 30000 
                        :2013   | 40000           | 0                   | 0                | 80000                      | 10000        | 30000 
                        :""".stripMargin(':')
-        doTest(table)
+        doGroup1Test(table)
       }
 
 
@@ -98,7 +108,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2012   | 60000           | 10000               | 10000            | 50000                      | 0            | 0
                        :2013   | 60000           | 10000               | 10000            | 50000                      | 0            | 0
                        :""".stripMargin(':')
-        doTest(table)
+        doGroup1Test(table)
       }
 
       "return correct calculations when pension contributions are variable amounts above and below allowance" in {
@@ -110,7 +120,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2012   | 40000           | 0                   | 0                | 50000                      | 10000        | 10000
                        :2013   | 50000           | 0                   | 0                | 60000                      | 0            | 10000
                        :""".stripMargin(':')
-        doTest(table)
+        doGroup1Test(table)
       } 
 
       "return correct allowances and carry forward values" in {
@@ -122,7 +132,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2012   | 9000            | 0                   | 0                | 179000                     | 41000        | 126000
                        :2013   | 10000           | 0                   | 0                | 176000                     | 40000        | 123000
                        :""".stripMargin(':')
-        doTest(table)
+        doGroup1Test(table)
       }   
     }
 
@@ -137,7 +147,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2013   | 10000           | 0                   | 0                | 176000                     | 40000        | 123000
                        :2014   | 11000           | 0                   | 0                | 163000                     | 29000        | 110000
                        :""".stripMargin(':')
-        doTest(table)
+        doGroup1Test(table)
       }
     }
 
@@ -153,7 +163,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2014   | 11000           | 0                   | 0                | 163000                     | 29000        | 110000
                        :2015P1 | 12000           | 0                   | 0                | 190000                     | 40000        | 150000
                        :""".stripMargin(':')
-        doTest(table)
+        doGroup1Test(table)
       }
     }
 
@@ -170,7 +180,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2015P1 | 0               | 0                   | 0                | 220000                     | 40000        | 180000
                        :2015P2 | 0               | 0                   | 0                | 180000                     | 40000        | 130000
                        :""".stripMargin(':')
-        doTest(table)
+        doGroup1Test(table)
       }
 
       "when defined benefit is non-0 carry forwards and chargable amounts should be correct" in {
@@ -185,7 +195,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2015P1 | 12000           | 0                   | 0                | 190000                     | 40000        | 150000
                        :2015P2 | 13000           | 0                   | 0                | 150000                     | 27000        | 96000
                        :""".stripMargin(':')
-        doTest(table)
+        doGroup1Test(table)
       }
 
       "when defined benefit is equal to allowances carry forwards and chargable amounts should be correct" in {
@@ -200,7 +210,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2015P1 | 80000           | 0                   | 0                | 80000                      | 0            | 0
                        :2015P2 | 0               | 0                   | 0                | 0                          | 0            | 0
                        :""".stripMargin(':')
-        doTest(table)
+        doGroup1Test(table)
       }
 
       "when defined benefit is equal to allowances to 2015 carry forwards and chargable amounts should be correct" in {
@@ -215,7 +225,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2015P1 | 40000           | 0                   | 0                | 80000                      | 40000        | 40000
                        :2015P2 | 40000           | 0                   | 0                | 40000                      | 0            | 0
                        :""".stripMargin(':')
-        doTest(table)
+        doGroup1Test(table)
       }
 
       "when defined benefit is above annual allowances carry forwards and chargable amounts should be correct" in {
@@ -230,7 +240,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2015P1 | 81000           | 1000                | 1000             | 80000                      | 0            | 0
                        :2015P2 | 41000           | 41000               | 41000            | 0                          | 0            | 0
                        :""".stripMargin(':')
-        doTest(table)
+        doGroup1Test(table)
       }
 
       "when defined benefit is either below, same or above annual allowances carry forwards and chargable amounts should be correct" in {
@@ -245,7 +255,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2015P1 | 65000           | 0                   | 0                | 123000                     | 15000        | 58000
                        :2015P2 | 20100           | 5100                | 0                | 58000                      | 0            | 37900
                        :""".stripMargin(':')
-        doTest(table)
+        doGroup1Test(table)
       }
 
       "when all previous allowances used and input is 7000000 for period 2 2015 should calculate correct amounts" in {
@@ -255,7 +265,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2015P1 | 80000           | 0                   | 0                | 130000                     | 0            | 50000
                        :2015P2 | 70000           | 70000               | 20000            | 50000                      | 0            | 0
                        :""".stripMargin(':')
-        doTest(table)
+        doGroup1Test(table)
       }
 
       "when input is 40000 for period 2 2015 should calculate correct amounts" in {
@@ -264,7 +274,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2015P1 | 80000           | 0                   | 0                | 195000                     | 0            | 115000
                        :2015P2 | 40000           | 40000               | 0                | 115000                     | 0            | 65000
                        :""".stripMargin(':')
-        doTest(table)
+        doGroup1Test(table)
       }
     }
 
@@ -276,7 +286,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2014   | 30000           | 0                   | 0                | 95000                      | 10000        | 15000
                        :2015P1 | 0               | 0                   | 0                | 95000                      | 40000        | 55000
                        :""".stripMargin(':')
-        doTest(table)
+        doGroup1Test(table)
       }
 
       "when defined benefit Period 1 is 0 and Period 2 is 75000 return expected results" in {
@@ -287,7 +297,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2015P1 | 0               | 0                   | 0                | 95000                      | 40000        | 55000
                        :2015P2 | 75000           | 35000               | 20000            | 55000                      | 0            | 0
                        :""".stripMargin(':')
-        doTest(table)
+        doGroup1Test(table)
       }
     }
 
@@ -299,7 +309,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2014   | 25000           | 0                   | 0                | 105000                     | 15000        | 30000
                        :2015P1 | 35000           | 0                   | 0                | 110000                     | 40000        | 70000
                        :""".stripMargin(':')
-        doTest(table)
+        doGroup1Test(table)
       }
 
       "when defined benefit Period 1 is 35k and Period 2 is 0 return expected results" in {
@@ -310,7 +320,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2015P1 | 35000           | 0                   | 0                | 110000                     | 40000        | 70000
                        :2015P2 | 0               | 0                   | 0                | 70000                      | 40000        | 65000
                        :""".stripMargin(':')
-        doTest(table)
+        doGroup1Test(table)
       }
     }
 
@@ -322,7 +332,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2014   | 40000           | 0                   | 0                | 90000                      | 0            | 0
                        :2015P1 | 45000           | 0                   | 0                | 80000                      | 35000        | 35000
                        :""".stripMargin(':')
-        doTest(table)
+        doGroup1Test(table)
       }
 
       "when defined benefit Period 1 is 45k and Period 2 is 20k return expected result" in {
@@ -344,7 +354,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2014   | 40000           | 0                   | 0                | 90000                      | 0            | 0
                        :2015P1 | 90000           | 10000               | 10000            | 80000                      | 0            | 0
                        :""".stripMargin(':')
-        doTest(table)
+        doGroup1Test(table)
       }
 
       "when defined benefit Period 1 is 90k and Period 2 is 0k return expected result" in {
@@ -366,7 +376,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2014   | 40000           | 0                   | 0                | 90000                      | 0            | 0
                        :2015P1 | 90000           | 10000               | 10000            | 80000                      | 0            | 0
                        :""".stripMargin(':')
-        doTest(table)
+        doGroup1Test(table)
       }
 
       "when defined benefit Period 1 is 90k and Period 2 is 0k return expected result" in {
@@ -388,7 +398,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2014   | 35000           | 0                   | 0                | 120000                     | 5000         | 35000
                        :2015P1 | 90000           | 10000               | 0                | 115000                     | 0            | 25000
                        :""".stripMargin(':')
-        doTest(table)
+        doGroup1Test(table)
       }
 
       "when defined benefit Period 1 is 90k and Period 2 is 0k return expected result" in {
@@ -399,7 +409,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2015P1 | 90000           | 10000               | 0                | 115000                     | 0            | 25000
                        :2015P2 | 75000           | 75000               | 50000            | 25000                      | 0            | 0
                        :""".stripMargin(':')
-        doTest(table)
+        doGroup1Test(table)
       }
     }
 
@@ -411,7 +421,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                       :2014   | 40000           | 0                   | 0                | 90000                      | 0            | 0
                       :2015P1 | 65000           | 0                   | 0                | 80000                      | 15000        | 15000
                       :""".stripMargin(':')
-        doTest(table)
+        doGroup1Test(table)
       }
 
       "when defined benefit Period 1 is 65k and Period 2 is 20k return expected results" in {
@@ -422,7 +432,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        2015P1 | 65000           | 0                   | 0                | 80000                      | 15000        | 15000
                       :2015P2 | 20000           | 5000                | 5000             | 15000                      | 0            | 0
                       :""".stripMargin(':')
-        doTest(table)
+        doGroup1Test(table)
       }
     }
 
@@ -434,7 +444,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                       :2014   | 40000           | 0                   | 0                | 90000                      | 0            | 0
                       :2015P1 | 20000           | 0                   | 0                | 80000                      | 40000        | 40000
                       :""".stripMargin(':')
-        doTest(table)
+        doGroup1Test(table)
       }
 
       "when defined benefit Period 1 is 20k and Period 2 is 10k return expected results" in {
@@ -445,7 +455,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        2015P1 | 20000           | 0                   | 0                | 80000                      | 40000        | 40000
                       :2015P2 | 10000           | 0                   | 0                | 40000                      | 30000        | 30000
                       :""".stripMargin(':')
-        doTest(table)
+        doGroup1Test(table)
       }
     }
 
@@ -457,7 +467,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                       :2014   | 40000           | 0                   | 0                | 90000                      | 0            | 0
                       :2015P1 | 20000           | 0                   | 0                | 80000                      | 40000        | 40000
                       :""".stripMargin(':')
-        doTest(table)
+        doGroup1Test(table)
       }
 
       "when defined benefit Period 1 is 20k and Period 2 is 45k return expected results" in {
@@ -468,7 +478,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        2015P1 | 20000           | 0                   | 0                | 80000                      | 40000        | 40000
                       :2015P2 | 45000           | 5000                | 5000             | 40000                      | 0            | 0
                       :""".stripMargin(':')
-        doTest(table)
+        doGroup1Test(table)
       }
     }
 
@@ -480,7 +490,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2014   | 30000           | 0                   | 0                | 90000                      | 10000        | 10000
                        :2015P1 | 20000           | 0                   | 0                | 90000                      | 40000        | 50000
                        :""".stripMargin(':')
-        doTest(table)
+        doGroup1Test(table)
       }
 
       "when defined benefit Period 1 is 90k and Period 2 is 0k return expected result" in {
@@ -491,7 +501,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2015P1 | 20000           | 0                   | 0                | 90000                      | 40000        | 50000
                        :2015P2 | 75000           | 35000               | 25000            | 50000                      | 0            | 0
                        :""".stripMargin(':')
-        doTest(table)
+        doGroup1Test(table)
       }
     }
     
@@ -504,7 +514,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2015P1 | 0               | 0                   | 0                | 220000                     | 40000        | 180000
                        :2015P2 | 90000           | 50000               | 0                | 180000                     | 0            | 90000
                        :""".stripMargin(':')
-        doTest(table)
+        doGroup1Test(table)
       }
     }
 
@@ -517,7 +527,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2015P1 | 0               | 0                   | 0                | 160000                     | 40000        | 120000
                        :2015P2 | 90000           | 50000               | 0                | 120000                     | 0            | 30000
                        :""".stripMargin(':')
-        doTest(table)
+        doGroup1Test(table)
       }
     }
 
@@ -529,7 +539,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                       :2014   | 30000           | 0                   | 0                | 110000                     | 10000        | 30000
                       :2015P1 | 0               | 0                   | 0                | 110000                     | 40000        | 70000
                       :""".stripMargin(':')
-        doTest(table)
+        doGroup1Test(table)
       }
 
       "when customer is not a scheme member during Period 1 and Period 2 is 20k return expected results" in {
@@ -540,7 +550,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                       :2015P1 | 0               | 0                   | 0                | 110000                     | 40000        | 70000
                       :2015P2 | 20000           | 0                   | 0                | 70000                      | 20000        | 50000
                       :""".stripMargin(':')
-        doTest(table)
+        doGroup1Test(table)
       }
     }
 
@@ -552,7 +562,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                       :2014   | 35000           | 0                   | 0                | 100000                     | 5000         | 15000
                       :2015P1 | 100000          | 20000               | 5000             | 95000                      | 0            | 0
                       :""".stripMargin(':')
-        doTest(table)
+        doGroup1Test(table)
       }
 
       "when defined benefit Period 1 is 100k and Period 2 is 20k return expected results" in {
@@ -563,7 +573,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                       :2015P1 | 100000          | 20000               | 5000             | 95000                      | 0            | 0
                       :2015P2 | 20000           | 20000               | 20000            | 0                          | 0            | 0
                       :""".stripMargin(':')
-        doTest(table)
+        doGroup1Test(table)
       }
     }
 
@@ -575,7 +585,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                      :2014   | 30000           | 0                   | 0                | 135000                     | 10000        | 55000
                      :2015P1 | 100000          | 20000               | 0                | 135000                     | 0            | 35000
                      :""".stripMargin(':')
-       doTest(table)
+       doGroup1Test(table)
      }
 
      "when defined benefit Period 1 is 100k and Period 2 is 45k return expected results" in {
@@ -586,7 +596,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                      :2015P1 | 100000          | 20000               | 0                | 135000                     | 0            | 35000
                      :2015P2 | 45000           | 45000               | 10000            | 35000                      | 0            | 0
                      :""".stripMargin(':')
-        doTest(table)
+        doGroup1Test(table)
       }
     }
 
@@ -598,7 +608,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                       :2014   | 30000           | 0                   | 0                | 145000                     | 10000        | 65000
                       :2015P1 | 95000           | 15000               | 0                | 145000                     | 0            | 50000
                       :""".stripMargin(':')
-        doTest(table)
+        doGroup1Test(table)
       }
 
       "when defined benefit Period 1 is 95k and Period 2 is 30k return expected results" in {
@@ -609,7 +619,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                       :2015P1 | 95000           | 15000               | 0                | 145000                     | 0            | 50000
                       :2015P2 | 30000           | 30000               | 0                | 50000                      | 0            | 20000
                       :""".stripMargin(':')
-        doTest(table)
+        doGroup1Test(table)
       }
     }
 
@@ -626,7 +636,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2015P1 | 51000           | 0                   | 0                | 180000                     | 29000        | 129000
                        :2015P2 | 52000           | 23000               | 0                | 129000                     | 0            | 50000
                        :""".stripMargin(':')
-        doTest(table)
+        doGroup1Test(table)
       }
 
       "when p2 unused annual allowances carry forwards and chargable amounts should be correct" in {
@@ -641,7 +651,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2015P1 | 2000            | 0                   | 0                | 219000                     | 40000        | 179000
                        :2015P2 | 3000            | 0                   | 0                | 179000                     | 37000        | 126000
                        :""".stripMargin(':')
-        doTest(table)
+        doGroup1Test(table)
       }
 
       "when p2 unused annual allowances and previous year inputs carry forwards and chargable amounts should be correct" in {
@@ -656,7 +666,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2015P1 | 2000            | 0                   | 0                | 210000                     | 40000        | 170000
                        :2015P2 | 3000            | 0                   | 0                | 170000                     | 37000        | 117000
                        :""".stripMargin(':')
-        doTest(table)
+        doGroup1Test(table)
       }
 
       "when p2 unused annual allowances (b) and previous year inputs carry forwards and chargable amounts should be correct" in {
@@ -671,7 +681,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2015P1 | 2000            | 0                   | 0                | 169000                     | 40000        | 129000
                        :2015P2 | 3000            | 0                   | 0                | 129000                     | 37000        | 76000
                        :""".stripMargin(':')
-        doTest(table)
+        doGroup1Test(table)
       }
 
       "when p2 unused annual allowances (c) and previous year inputs carry forwards and chargable amounts should be correct" in {
@@ -686,8 +696,23 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2015P1 | 2000            | 0                   | 0                | 130000                     | 40000        | 90000
                        :2015P2 | 3000            | 0                   | 0                | 90000                      | 37000        | 37000
                        :""".stripMargin(':')
-        doTest(table)
+        doGroup1Test(table)
       }
+    }
+  }
+
+  "Group 2" should {
+    "Trigger in Period 1" should {
+      "Scenario 13" in {
+        val table = """:year   | Defined Benefit | Money Purchase  | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
+                       :2012   | 50000           | 0               | 0                   | 0                | 200000                     | 0            | 100000
+                       :2013   | 50000           | 0               | 0                   | 0                | 150000                     | 0            | 50000
+                       :2014   | 40000           | 0               | 0                   | 0                | 90000                      | 0            | 0
+                       :2015P1 | 15000           | 0               | 0                   | 0                | 80000                      | 40000        | 40000
+                       :2015P2 | 0               | 18000           | 0                   | 0                | 0                          | 0            | 0
+                       :""".stripMargin(':')
+        doGroup2Test(table)
+      } 
     }
   }
 }

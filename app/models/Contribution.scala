@@ -23,7 +23,12 @@ import play.api.libs.json._
 import java.util.GregorianCalendar
 
 sealed trait CalculationParam
-sealed trait PensionCalculatorValue
+sealed trait PensionCalculatorValue {
+  def isEmpty(): Boolean
+  def definedBenefit():  Option[Long]
+  def moneyPurchase():  Option[Long]
+  def income(): Option[Long]
+}
 
 case class InputAmounts(definedBenefit: Option[Long] = None, moneyPurchase: Option[Long] = None, income: Option[Long] = None) extends PensionCalculatorValue {
   def isEmpty() : Boolean = {
@@ -164,5 +169,10 @@ object Contribution {
   def apply(year: Int, definedBenefit: Long) : Contribution = {
     // month is 0 based
     Contribution(TaxPeriod(year, 3, 6), TaxPeriod(year+1, 3, 5), Some(InputAmounts(definedBenefit)))
+  }
+
+  def apply(year: Int, amounts: Option[InputAmounts]) : Contribution = {
+    // month is 0 based
+    Contribution(TaxPeriod(year, 3, 6), TaxPeriod(year+1, 3, 5), amounts)
   }
 }
