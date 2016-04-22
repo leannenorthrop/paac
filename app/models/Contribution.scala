@@ -84,7 +84,12 @@ case class Contribution(taxPeriodStart: TaxPeriod, taxPeriodEnd: TaxPeriod, amou
   }
 
   def isGroup1(): Boolean = {
-    amounts.isDefined && (amounts.get.definedBenefit != None || (taxPeriodStart.year < 2015 && amounts.get.moneyPurchase != None))
+    amounts.isDefined && (taxPeriodStart.year < 2015 && !amounts.isEmpty ||
+                          ((isPeriod1() || isPeriod2()) && amounts.get.moneyPurchase == None))
+  }
+
+  def isGroup2(): Boolean = {
+    amounts.isDefined && ((isPeriod1() || isPeriod2()) && amounts.get.moneyPurchase != None)
   }
 }
 

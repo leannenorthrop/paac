@@ -163,7 +163,7 @@ class Year2015Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropert
 
         forAll(validContributions) { (contribution: Contribution) =>
           whenever (contribution.amounts.get.definedBenefit.get < 4000000) { 
-            val resultsP1 = Year2015Period1Calculator.summary(Seq[SummaryResult](), Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END,Some(InputAmounts(0L,0L)))).get
+            val resultsP1 = Year2015Period1Calculator.summary(Seq[SummaryResult](), Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END,Some(InputAmounts(0L)))).get
             val results = Year2015Period2Calculator.summary(Seq(resultsP1), contribution)
             results.get.chargableAmount shouldBe 0 
           }
@@ -171,7 +171,7 @@ class Year2015Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropert
       }
 
       "return correct amount of 0 chargable amount for value of 4000000" in {
-        val resultsP1 = Year2015Period1Calculator.summary(Seq[SummaryResult](), Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END,Some(InputAmounts(0L,0L)))).get
+        val resultsP1 = Year2015Period1Calculator.summary(Seq[SummaryResult](), Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END,Some(InputAmounts(0L)))).get
         val results = Year2015Period2Calculator.summary(Seq(resultsP1), Contribution(TaxPeriod.PERIOD_2_2015_START, 
                                                                                      TaxPeriod.PERIOD_2_2015_END,
                                                                                      Some(InputAmounts(4000000L))))
@@ -185,7 +185,7 @@ class Year2015Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropert
 
         forAll(validContributions) { (contribution: Contribution) =>
           whenever (contribution.amounts.get.definedBenefit.get > 4000000) { 
-            val resultsP1 = Year2015Period1Calculator.summary(Seq[SummaryResult](), Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END,Some(InputAmounts(4000000L,0L)))).get
+            val resultsP1 = Year2015Period1Calculator.summary(Seq[SummaryResult](), Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END,Some(InputAmounts(4000000L)))).get
             val results = Year2015Period2Calculator.summary(Seq(resultsP1), contribution)
             results.get.chargableAmount should not be 0 
             val db = contribution.amounts.get.definedBenefit.get

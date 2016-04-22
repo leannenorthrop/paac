@@ -47,7 +47,8 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
     val definedBenefit = table.split('\n').drop(1).toList.map(_.split('|').toList(1).trim.toLong)
     val inputs = Map(years.zip(definedBenefit): _*)
     val results = PensionAllowanceCalculator.calculateAllowances(Utilties.generateContributions(inputs))
-    Utilties.assertResults(table, results, print)
+    Utilties.assertResults(table, results, false)
+    if (print) info(Utilties.toString(results))
   }
   
   "Group 1" should {

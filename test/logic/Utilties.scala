@@ -24,23 +24,25 @@ object Utilties {
     map.keys.toList.map {
       (key)=>
       key match {
-        case "2015P1" => Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(map(key)*100L,0L))) 
-        case "2015P2" => Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(map(key)*100L,0L))) 
+        case "2015P1" => Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(map(key)*100L))) 
+        case "2015P2" => Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(map(key)*100L))) 
         case _ => Contribution(key.toInt, map(key)*100L)
       }
     }
   }
 
-  def print(results: Seq[TaxYearResults]): Unit = {
-    println(f"Year            Defined Benefit            Chargable         Exceeding AA  Available Allowance     Unused Allowance                 AACF       Cummulative CF")
+  def toString(results: Seq[TaxYearResults]): String = {
+    var message: String = f"\nYear       Defined Benefit  Chargable  Exceeding AA  Available Allowance   Unused Allowance       AACF             CCF         MPAA          AAA        DBIST        MPIST          ACA          DCA\n"
     results.foreach {
       (result)=>
-      println(f"${result.input.taxYearLabel}    ${result.input.amounts.get.definedBenefit.get/100.00}%20.2f ${result.summaryResult.chargableAmount/100.00}%20.2f ${result.summaryResult.exceedingAAAmount/100.00}%20.2f ${result.summaryResult.availableAllowance/100.00}%20.2f ${result.summaryResult.unusedAllowance/100.00}%20.2f ${result.summaryResult.availableAAWithCF/100.00}%20.2f ${result.summaryResult.availableAAWithCCF/100.00}%20.2f")
+      message += f"${result.input.taxYearLabel}%-10s ${result.input.amounts.get.definedBenefit.get/100.00}%15.2f ${result.summaryResult.chargableAmount/100.00}%10.2f ${result.summaryResult.exceedingAAAmount/100.00}%13.2f ${result.summaryResult.availableAllowance/100.00}%20.2f ${result.summaryResult.unusedAllowance/100.00}%18.2f ${result.summaryResult.availableAAWithCF/100.00}%10.2f ${result.summaryResult.availableAAWithCCF/100.00}%15.2f ${result.summaryResult.moneyPurchaseAA/100.00}%12.2f ${result.summaryResult.alternativeAA/100.00}%12.2f ${result.summaryResult.dbist/100.00}%12.2f ${result.summaryResult.mpist/100.00}%12.2f ${result.summaryResult.alternativeChargableAmount/100.00}%12.2f ${result.summaryResult.defaultChargableAmount/100.00}%12.2f\n"
     }
+    message += "\n\n"
+    message
   }
 
   def assertResults(table:String, results:Seq[TaxYearResults], print:Boolean = false):Unit = {
-    if (print) Utilties.print(results)
+    if (print) println(Utilties.toString(results))
 
     val valueFor = Map("Amount Exceeding AA"-> { (r:TaxYearResults) => r.summaryResult.exceedingAAAmount },
                        "Liable to Charge"-> { (r:TaxYearResults) => r.summaryResult.chargableAmount },

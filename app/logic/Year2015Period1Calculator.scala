@@ -51,11 +51,19 @@ object Year2015Period1Calculator extends BasicCalculator {
   }
 
   override def summary(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Option[SummaryResult] = {
-    if (isSupported(contribution) && contribution.isGroup1()) {
-      // Period 1 only allows maximum carry forward of 40k (here in pence values)
-      super.summary(previousPeriods, contribution).map((r)=>r.copy(unusedAllowance=group1Calculator.unusedAllowance(r),
-                                                                  availableAAWithCCF=group1Calculator.aaCCF(r),
-                                                                  availableAAWithCF=group1Calculator.aaCF))
+    if (isSupported(contribution)) {
+      if (contribution.isGroup1()) {
+        // Period 1 only allows maximum carry forward of 40k (here in pence values)
+        super.summary(previousPeriods, contribution).map((r)=>r.copy(unusedAllowance=group1Calculator.unusedAllowance(r),
+                                                                    availableAAWithCCF=group1Calculator.aaCCF(r),
+                                                                    availableAAWithCF=group1Calculator.aaCF))
+      } else if (contribution.isGroup2) {
+        if (contribution.amounts.get.moneyPurchase == None) {
+          super.summary(previousPeriods, contribution).map((r)=>r.copy(unusedAllowance=group1Calculator.unusedAllowance(r),
+                                                            availableAAWithCCF=group1Calculator.aaCCF(r),
+                                                            availableAAWithCF=group1Calculator.aaCF))
+        } else None
+      } else None
     } else None
   }
 }

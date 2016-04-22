@@ -389,7 +389,24 @@ class ContributionSpec extends ModelSpec {
         Contribution(2012, 50000L).isGroup1 shouldBe true
       }
       "return false if defined contribution is defined after 2010" in {
-        Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(None,Some(474789L)))).isGroup1 shouldBe false
+        Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(None,Some(474789L),None))).isGroup1 shouldBe false
+      }
+    }
+
+    "isGroup2" can {
+      "return true if defined contribution is not None and is period 1 or 2" in {
+        Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(None,Some(474789L),None))).isGroup2 shouldBe true
+        Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(None,Some(474789L),None))).isGroup2 shouldBe true
+        Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(12,474789))).isGroup2 shouldBe true
+        Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(339,474789))).isGroup2 shouldBe true
+      }
+      "return false if only defined benefit" in {
+        Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(12))).isGroup2 shouldBe false
+        Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(339))).isGroup2 shouldBe false
+      }
+      "return false if not period 1 or 2" in {
+        Contribution(2014, 324L).isGroup2 shouldBe false
+        Contribution(2016, 429L).isGroup2 shouldBe false
       }
     }
 
