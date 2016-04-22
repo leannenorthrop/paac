@@ -239,13 +239,14 @@ class ContributionSpec extends ModelSpec {
     }
 
     "isEmpty" can {
-      "return true if both definedBenefit and money purchase are none" in new InputAmountsFixture {
+      "return true if definedBenefit, money purchase and income are none" in new InputAmountsFixture {
         amounts.isEmpty shouldBe true
       }
 
       "return false if either definedBenefit or money purchase are some value" in new InputAmountsFixture {
         InputAmounts(898989).isEmpty shouldBe false
         InputAmounts(898989, 8098080).isEmpty shouldBe false
+        InputAmounts(898989, 8098080, 37372).isEmpty shouldBe false
       }
     }
   }
@@ -257,11 +258,12 @@ class ContributionSpec extends ModelSpec {
     val taxPeriodEnd = new TaxPeriod(taxYearEnd, 2, 31) // 31st of March
     val definedBenefit = 2000
     val moneyPurchase = 0
-    val contribution = Contribution(taxPeriodStart, taxPeriodEnd, Some(InputAmounts(definedBenefit, moneyPurchase)))
+    val income = 123
+    val contribution = Contribution(taxPeriodStart, taxPeriodEnd, Some(InputAmounts(definedBenefit, moneyPurchase, income)))
   }
 
   def getExpectedContributionJson():String = {
-    """{"taxPeriodStart":{"year":2014,"month":3,"day":1},"taxPeriodEnd":{"year":2015,"month":2,"day":31},"amounts":{"definedBenefit":2000,"moneyPurchase":0}}"""
+    """{"taxPeriodStart":{"year":2014,"month":3,"day":1},"taxPeriodEnd":{"year":2015,"month":2,"day":31},"amounts":{"definedBenefit":2000,"moneyPurchase":0,"income":123}}"""
   }
 
   "A Contribution" can {
@@ -424,10 +426,12 @@ class ContributionSpec extends ModelSpec {
         // check
         val jsonTaxYear = json \ "taxPeriodStart" \ "year"
         jsonTaxYear.as[Int] shouldBe taxYear
-        val jsonDefinedBenfitInPounds = json \ "amounts" \ "definedBenefit"
-        jsonDefinedBenfitInPounds.as[Long] shouldBe definedBenefit
-        val jsonMoneyPurchaseInPounds = json \ "amounts" \ "moneyPurchase"
-        jsonMoneyPurchaseInPounds.as[Long] shouldBe moneyPurchase
+        val jsonDefinedBenfit = json \ "amounts" \ "definedBenefit"
+        jsonDefinedBenfit.as[Long] shouldBe definedBenefit
+        val jsonMoneyPurchase = json \ "amounts" \ "moneyPurchase"
+        jsonMoneyPurchase.as[Long] shouldBe moneyPurchase
+        val jsonIncome = json \ "amounts" \ "income"
+        jsonIncome.as[Long] shouldBe income
       }
 
       "marshall None amounts to JSON" in {
@@ -463,7 +467,7 @@ class ContributionSpec extends ModelSpec {
 
       "unmashall from JSON ensuring tax year must not be less than 2006" in {
         // setup
-        val json = Json.parse("""{"taxPeriodStart": {"year":1918, "month" : 2, "day" : 12}, "taxPeriodEnd": {"year":1918, "month" : 8, "day" : 11}, "amounts": {"definedBenefit": 12345, "moneyPurchase": 67890}}""")
+        val json = Json.parse("""{"taxPeriodStart": {"year":1918, "month" : 2, "day" : 12}, "taxPeriodEnd": {"year":1918, "month" : 8, "day" : 11}, "amounts": {"definedBenefit": 12345, "moneyPurchase": 67890, "income": 372892}}""")
 
         // do it
         val option : Option[Seq[(play.api.libs.json.JsPath, Seq[play.api.data.validation.ValidationError])]] = json.validate[Contribution].fold(invalid = { errors => Some(errors) }, valid = { _ => None })
@@ -506,6 +510,16 @@ class ContributionSpec extends ModelSpec {
         val contributionOption : Option[Contribution] = json.validate[Contribution].fold(invalid = { _ => None }, valid = { contribution => Some(contribution)})
 
         contributionOption shouldBe Some(Contribution(TaxPeriod(2008, 2, 11), TaxPeriod(2008, 8, 12), Some(InputAmounts(Some(9898080L),None))))
+      }
+
+      "unmarshall from JSON allows null income" in {
+        // setup
+        val json = Json.parse("""{"taxPeriodStart": {"year":2008, "month" : 2, "day" : 11}, "taxPeriodEnd": {"year":2008, "month" : 8, "day" : 12}, "amounts": {"definedBenefit": 9898080, "income": null}}""")
+
+        // do it
+        val contributionOption : Option[Contribution] = json.validate[Contribution].fold(invalid = { _ => None }, valid = { contribution => Some(contribution)})
+
+        contributionOption shouldBe Some(Contribution(TaxPeriod(2008, 2, 11), TaxPeriod(2008, 8, 12), Some(InputAmounts(Some(9898080L),None, None))))
       }
 
       "be added to another contribution" in {
