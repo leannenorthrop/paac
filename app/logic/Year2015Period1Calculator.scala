@@ -50,7 +50,11 @@ case class Group1P1Calculator(amountsCalculator: BasicAmountsCalculator) {
 
 case class Group2P1Calculator(amountsCalculator: BasicAmountsCalculator) {
   me => Group2P1Calculator
-  
+  val MPA = 20000*100L
+  val AAA = 60000 * 100L
+  val AA = 80000*100L
+  val MAX_CF = 4000000L
+
   def previous3YearsUnusedAllowance(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = previousPeriods.filterNot(_.dbist > 0).slice(0,3).foldLeft(0L)(_+_.unusedAllowance)
 
   def preFlexiSavings(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = {
@@ -72,76 +76,85 @@ case class Group2P1Calculator(amountsCalculator: BasicAmountsCalculator) {
 
   def dbist(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = {
     val isTriggered = contribution.amounts.get.triggered.getOrElse(false)
-    val amounts = contribution.amounts.getOrElse(InputAmounts())
     if (!isTriggered)
-      amounts.definedBenefit.getOrElse(0L) + amounts.moneyPurchase.getOrElse(0L)
+      me.definedBenefit + me.definedContribution
     else {
-      amounts.definedBenefit.getOrElse(0L)
+      val preFlexiSavings = me.preFlexiSavings
+      val aa = AAA + me.previous3YearsUnusedAllowance
+      (aa - preFlexiSavings)
     }
   }
 
   def mpist(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = {
     val amounts = contribution.amounts.getOrElse(InputAmounts())
-    amounts.moneyPurchase.getOrElse(0L)
+    (amounts.moneyPurchase.getOrElse(0L)-MPA).max(0)
   }
 
   def moneyPurchaseAA(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = {
-    val mpaa = ((20000L * 100) - me.definedContribution).max(0)
+    val mpaa = (MPA - me.definedContribution).max(0)
     mpaa
   }
 
   def alternativeAA(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = {
-    0L
+    AAA.min(30000*100L)
   }
 
   def alternativeChargableAmount(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = {
-    if ((20000L * 100) > me.definedContribution) {
+    if (MPA > me.definedContribution) {
       -1L // N/A because less than MPAA
     } else {
-      0L
+      if (AAA > (me.definedBenefit+me.preFlexiSavings)) {
+        -1L
+      } else {
+        me.mpist + me.dbist.abs
+      }
     }
   }
 
   def defaultChargableAmount(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = {
-    if ((20000L * 100) > me.definedContribution) {
-      val aa = (80000L * 100L) + me.previous3YearsUnusedAllowance
-      val preFlexiSavings = me.preFlexiSavings
-      val postFlexiSavings = me.definedContribution
-      val savings = preFlexiSavings + postFlexiSavings
-      val unusedAllowance = (80000L * 100L) - savings
+    val aa = AA + me.previous3YearsUnusedAllowance
+    val preFlexiSavings = me.preFlexiSavings
+    val postFlexiSavings = me.definedContribution
+    val savings = preFlexiSavings + postFlexiSavings
+    if (MPA > me.definedContribution) {
       0L
     } else {
-      0L
+      savings - AA
     }
   }
 
   def exceedingAllowance(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = {
-    0L
+    (me.definedBenefit - me.annualAllowance).max(0)
   }
 
   def annualAllowance(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = {
-    80000L * 100L
+    AA
   }
 
   def unusedAllowance(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = {
-    if ((20000L * 100) > me.definedContribution) {
-      val aa = (80000L * 100L) + me.previous3YearsUnusedAllowance
+    if (MPA > me.definedContribution) {
+      val aa = AA + me.previous3YearsUnusedAllowance
       val preFlexiSavings = me.preFlexiSavings
       val postFlexiSavings = me.definedContribution
       val savings = preFlexiSavings + postFlexiSavings
-      val unusedAllowance = (80000L * 100L) - savings
-      unusedAllowance.min(40000*100L)
+      val unusedAllowance = (AA - savings).max(0)
+      unusedAllowance.min(MAX_CF)
     } else {
       0L
     }
   }
 
   def chargableAmount(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = {
-    me.alternativeChargableAmount.max(me.defaultChargableAmount)
+    val charge = me.alternativeChargableAmount.max(me.defaultChargableAmount)
+    if (charge <= 0) {
+      (me.definedBenefit - me.annualAllowance).max(0)
+    }
+    else
+      charge
   }
 
   def aaCF(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = {
-    val aa = (80000L * 100L) + me.previous3YearsUnusedAllowance
+    val aa = AA + me.previous3YearsUnusedAllowance
     aa
   }
 
@@ -152,7 +165,7 @@ case class Group2P1Calculator(amountsCalculator: BasicAmountsCalculator) {
     if (definedBenefit >= annualAllowance) {
       (annualAllowance + previous3YearsUnusedAllowance - definedBenefit).max(0)
     } else {
-      (me.unusedAllowance.min(4000000L) + previous3YearsUnusedAllowance).max(0)
+      (me.unusedAllowance.min(MAX_CF) + previous3YearsUnusedAllowance).max(0)
     }
   }
 
@@ -161,7 +174,6 @@ case class Group2P1Calculator(amountsCalculator: BasicAmountsCalculator) {
     if (!isTriggered) {
       Some(SummaryResult(dbist=me.dbist))
     } else {
-      println(me.annualAllowance)
       Some(SummaryResult(me.chargableAmount, 
                          me.exceedingAllowance, 
                          me.annualAllowance, 
