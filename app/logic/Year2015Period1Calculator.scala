@@ -87,7 +87,7 @@ case class Group2P1Calculator(amountsCalculator: BasicAmountsCalculator) {
 
   def mpist(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = {
     val amounts = contribution.amounts.getOrElse(InputAmounts())
-    (amounts.moneyPurchase.getOrElse(0L)-MPA).max(0)
+    (amounts.moneyPurchase.getOrElse(0L)-MPA)
   }
 
   def moneyPurchaseAA(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = {
