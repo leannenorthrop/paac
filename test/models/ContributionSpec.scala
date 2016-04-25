@@ -263,7 +263,7 @@ class ContributionSpec extends ModelSpec {
   }
 
   def getExpectedContributionJson():String = {
-    """{"taxPeriodStart":{"year":2014,"month":3,"day":1},"taxPeriodEnd":{"year":2015,"month":2,"day":31},"amounts":{"definedBenefit":2000,"moneyPurchase":0,"income":123}}"""
+    """{"taxPeriodStart":{"year":2014,"month":3,"day":1},"taxPeriodEnd":{"year":2015,"month":2,"day":31},"amounts":{"definedBenefit":2000,"moneyPurchase":0,"income":123,"triggered":null}}"""
   }
 
   "A Contribution" can {

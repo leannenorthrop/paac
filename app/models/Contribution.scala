@@ -30,7 +30,10 @@ sealed trait PensionCalculatorValue {
   def income(): Option[Long]
 }
 
-case class InputAmounts(definedBenefit: Option[Long] = None, moneyPurchase: Option[Long] = None, income: Option[Long] = None) extends PensionCalculatorValue {
+case class InputAmounts(definedBenefit: Option[Long] = None, 
+                        moneyPurchase: Option[Long] = None, 
+                        income: Option[Long] = None,
+                        triggered: Option[Boolean] = None) extends PensionCalculatorValue {
   def isEmpty() : Boolean = {
     definedBenefit == None && moneyPurchase == None && income == None
   }
@@ -131,25 +134,27 @@ object InputAmounts {
   implicit val inputAmountsWrites: Writes[InputAmounts] = (
     (JsPath \ "definedBenefit").write[Option[Long]] and
     (JsPath \ "moneyPurchase").write[Option[Long]] and
-    (JsPath \ "income").write[Option[Long]]
+    (JsPath \ "income").write[Option[Long]] and
+    (JsPath \ "triggered").write[Option[Boolean]]
   )(unlift(InputAmounts.unapply))
 
   implicit val inputAmountsReads: Reads[InputAmounts] = (
     (JsPath \ "definedBenefit").readNullable[Long](min(0L)) and
     (JsPath \ "moneyPurchase").readNullable[Long](min(0L)) and
-    (JsPath \ "income").readNullable[Long](min(0L))
-  )(InputAmounts.apply(_: Option[Long], _: Option[Long], _: Option[Long]))
+    (JsPath \ "income").readNullable[Long](min(0L)) and
+    (JsPath \ "triggered").readNullable[Boolean]
+  )(InputAmounts.apply(_: Option[Long], _: Option[Long], _: Option[Long], _: Option[Boolean]))
 
   def apply(definedBenefit: Long, moneyPurchase: Long, income: Long) : InputAmounts = {
-    InputAmounts(Some(definedBenefit), Some(moneyPurchase), Some(income))
+    InputAmounts(Some(definedBenefit), Some(moneyPurchase), Some(income), None)
   }
 
   def apply(definedBenefit: Long, moneyPurchase: Long) : InputAmounts = {
-    InputAmounts(Some(definedBenefit), Some(moneyPurchase), None)
+    InputAmounts(Some(definedBenefit), Some(moneyPurchase), None, None)
   }
 
   def apply(definedBenefit: Long) : InputAmounts = {
-    InputAmounts(Some(definedBenefit), None, None)
+    InputAmounts(Some(definedBenefit), None, None, None)
   }
 }
 
