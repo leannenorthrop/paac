@@ -55,10 +55,11 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
     val years = table.split('\n').drop(1).toList.map(_.split('|').toList(0).trim)
     val definedBenefit = table.split('\n').drop(1).toList.map(_.split('|').toList(1).trim.toLong)
     val moneyPurchase = table.split('\n').drop(1).toList.map(_.split('|').toList(2).trim.toLong)
-    val inputs = Map(years.zip(definedBenefit.zip(moneyPurchase)): _*)
+    val isTriggered = table.split('\n').drop(1).toList.map(_.split('|').toList(3).trim.toBoolean)
+    val inputs = Map(years.zip((definedBenefit,moneyPurchase,isTriggered).zipped.toList): _*)
     val results = PensionAllowanceCalculator.calculateAllowances(Utilities.generateDBandMPContributions(inputs))
-    Utilities.assertResults(table, results, false)
     if (print) info(Utilities.toString(results))
+    Utilities.assertResults(table, results, false)
   }
 
   "Group 1" should {
@@ -323,7 +324,6 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
         doGroup1Test(table)
       }
     }
-
     "Scenario 16: Period 1 is 45k and Period 2 is 20k" should {
       "when defined benefit Period 1 is 45k return expected result" in {
         val table = """:year   | Defined Benefit | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
@@ -704,12 +704,12 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
   "Group 2" should {
     "Trigger in Period 1" should {
       "Scenario 13" in {
-        val table = """:year   | Defined Benefit | Money Purchase  | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
-                       :2012   | 50000           | 0               | 0                   | 0                | 200000                     | 0            | 100000
-                       :2013   | 50000           | 0               | 0                   | 0                | 150000                     | 0            | 50000
-                       :2014   | 40000           | 0               | 0                   | 0                | 90000                      | 0            | 0
-                       :2015P1 | 15000           | 0               | 0                   | 0                | 80000                      | 40000        | 40000
-                       :2015P2 | 0               | 18000           | 0                   | 0                | 0                          | 0            | 0
+        val table = """:year    | Defined Benefit | Money Purchase  | Is Triggered | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward | MPAA 
+                       :2012    | 50000           | 0               | false        | 0                   | 0                | 200000                     | 0            | 100000                   | 0
+                       :2013    | 50000           | 0               | false        | 0                   | 0                | 150000                     | 0            | 50000                    | 0
+                       :2014    | 40000           | 0               | false        | 0                   | 0                | 90000                      | 0            | 0                        | 0
+                       :2015P1B | 15000           | 0               | false        | 0                   | 0                | 0                          | 0            | 0                        | 0
+                       :2015P1A | 0               | 18000           | true         | 0                   | 0                | 80000                      | 40000        | 40000                    | 2000
                        :""".stripMargin(':')
         doGroup2Test(table)
       } 

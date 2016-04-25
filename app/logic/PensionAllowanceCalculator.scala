@@ -24,7 +24,9 @@ trait PensionAllowanceCalculator {
     def sortByYearAndPeriod(left: Contribution, right: Contribution): Boolean = {
       if (left.taxPeriodStart.year == right.taxPeriodStart.year &&
           left.taxPeriodStart.year == 2015) {
-        left.isPeriod1 && right.isPeriod2
+        left.isPeriod1 && right.isPeriod2 || 
+        (left.isPeriod1 && right.isPeriod1 && !left.amounts.get.triggered.get) ||
+        (left.isPeriod2 && right.isPeriod2 && !left.amounts.get.triggered.get)
       } else {  
         left.taxPeriodStart.year < right.taxPeriodStart.year
       }
@@ -52,7 +54,6 @@ trait PensionAllowanceCalculator {
           (if (contribution.isEmpty) contribution.copy(amounts=Some(InputAmounts(0,0))) else contribution) :: lst
         } else { generatePeriod1And2Contributions(inputsByTaxYear, lst) }
     }
-
     allContributions.sortWith(sortByYearAndPeriod _)
   }
 
