@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package logic
+package calculators
 
 import models._
 import org.scalatest.Assertions._
@@ -40,8 +40,8 @@ object Utilities {
     map.keys.toList.map {
       (key)=>
       key match {
-        case "2015P1" => Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(map(key)._1*100L), Some(map(key)._2*100L), None, Some(map(key)._3))))
-        case "2015P2" => Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(map(key)._1*100L), Some(map(key)._2*100L), None, Some(map(key)._3))))
+        case "2015P1" => Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(map(key)._1*100L), Some(map(key)._2*100L), None, None)))
+        case "2015P2" => Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(map(key)._1*100L), Some(map(key)._2*100L), None, None)))
         case "2015P1B" => Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(map(key)._1*100L), Some(map(key)._2*100L), None, Some(false))))
         case "2015P1A" => Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(map(key)._1*100L), Some(map(key)._2*100L), None, Some(true))))
         case "2015P2B" => Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(map(key)._1*100L), Some(map(key)._2*100L), None, Some(false))))
@@ -52,10 +52,20 @@ object Utilities {
   }
 
   def toString(results: Seq[TaxYearResults]): String = {
-    var message: String = f"\nYear               DB         MP  Chargable  Exceeding AA  Available Allowance   Unused Allowance       AACF             CCF         MPAA          AAA        DBIST        MPIST          ACA          DCA\n"
+    val headings = List("Year","DB","MP","Chargable","Exceeding AA", "Available Allowance", "Unused Allowance", "AACF", "CCF").map((h)=>f"${h}%-10s").mkString("")
+    var message: String = f"\n${headings}\n"
     results.foreach {
       (result)=>
-      message += f"${result.input.label}%-10s ${result.input.amounts.get.definedBenefit.get/100.00}%10.2f ${result.input.amounts.get.moneyPurchase.get/100.00}%10.2f ${result.summaryResult.chargableAmount/100.00}%10.2f ${result.summaryResult.exceedingAAAmount/100.00}%13.2f ${result.summaryResult.availableAllowance/100.00}%20.2f ${result.summaryResult.unusedAllowance/100.00}%18.2f ${result.summaryResult.availableAAWithCF/100.00}%10.2f ${result.summaryResult.availableAAWithCCF/100.00}%15.2f ${result.summaryResult.moneyPurchaseAA/100.00}%12.2f ${result.summaryResult.alternativeAA/100.00}%12.2f ${result.summaryResult.dbist/100.00}%12.2f ${result.summaryResult.mpist/100.00}%12.2f ${result.summaryResult.alternativeChargableAmount/100.00}%12.2f ${result.summaryResult.defaultChargableAmount/100.00}%12.2f\n"
+      val values = List(result.input.amounts.get.definedBenefit.get,
+                        result.input.amounts.get.moneyPurchase.get,
+                        result.summaryResult.chargableAmount,
+                        result.summaryResult.exceedingAAAmount,
+                        result.summaryResult.availableAllowance,
+                        result.summaryResult.unusedAllowance,
+                        result.summaryResult.availableAAWithCF,
+                        result.summaryResult.availableAAWithCCF
+                        ).map(_ / 100.00).map((v)=>f"${v}%10.2f").mkString(" ")
+      message += f"${result.input.label}%-10s ${values}\n"
     }
     message += "\n\n"
     message
@@ -93,8 +103,7 @@ object Utilities {
                        "Available Annual Allowance"-> { (r:TaxYearResults) => r.summaryResult.availableAAWithCF },
                        "Unused AA CF"-> { (r:TaxYearResults) => r.summaryResult.unusedAllowance },
                        "Cumulative Carry Forward"-> { (r:TaxYearResults) => r.summaryResult.availableAAWithCCF },
-                       "Available Allowance"-> { (r:TaxYearResults) => r.summaryResult.availableAllowance },
-                       "MPAA"-> { (r:TaxYearResults) => r.summaryResult.moneyPurchaseAA }
+                       "Available Allowance"-> { (r:TaxYearResults) => r.summaryResult.availableAllowance }
                        )
     val headings = table.split("\n")(0).split('|').map(_.trim)
     val expectedResults = getInts

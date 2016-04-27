@@ -17,7 +17,7 @@
 package controllers
 
 import models._
-import logic._
+import calculators.results._
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import play.api.mvc._

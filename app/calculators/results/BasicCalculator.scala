@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package logic
+package calculators.results
 
 import models._
 
-case class BasicAmountsCalculator(annualAllowanceInPounds: Long) {
-  calc => BasicAmountsCalculator
+case class BasicCalculator(annualAllowanceInPounds: Long) extends calculators.Calculator {
+  calc => BasicCalculator
 
   def definedBenefit(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = {
     val amounts = contribution.amounts.getOrElse(InputAmounts())
@@ -42,13 +42,16 @@ case class BasicAmountsCalculator(annualAllowanceInPounds: Long) {
   def annualAllowanceCF(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = previousPeriods.slice(0,3).foldLeft(0L)(_+_.unusedAllowance) + calc.annualAllowance
 
   // cumulative carry forwards is 2 previous years plus current year's annual allowance - used allowance
-  def annualAllowanceCCF(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = if (contribution.taxPeriodStart.year < 2011 && calc.definedBenefit >= calc.annualAllowance) {
-        (calc.annualAllowance + previousPeriods.slice(0,2).foldLeft(0L)(_+_.unusedAllowance) - calc.definedBenefit.min(calc.annualAllowance)).max(0)
-      } else if (calc.exceedingAllowance > 0) {
-        previousPeriods.slice(0,2).foldLeft(0L)(_+_.unusedAllowance)
-      } else {
-        (calc.annualAllowance + previousPeriods.slice(0,2).foldLeft(0L)(_+_.unusedAllowance) - calc.definedBenefit).max(0)
-      }
+  def annualAllowanceCCF(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = {
+    val unusedAllowances = previousPeriods.slice(0,2).foldLeft(0L)(_+_.unusedAllowance)
+    if (contribution.taxPeriodStart.year < 2011 && calc.definedBenefit >= calc.annualAllowance) {
+      (calc.annualAllowance + unusedAllowances - calc.definedBenefit.min(calc.annualAllowance)).max(0)
+    } else if (calc.exceedingAllowance > 0) {
+      unusedAllowances
+    } else {
+      (calc.annualAllowance + unusedAllowances - calc.definedBenefit).max(0)
+    }
+  }
 
   def chargableAmount(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = if (contribution.taxPeriodStart.year < 2011) -1 else (calc.definedBenefit - calc.annualAllowanceCF).max(0)
 
@@ -58,20 +61,6 @@ case class BasicAmountsCalculator(annualAllowanceInPounds: Long) {
                        calc.annualAllowance, 
                        calc.unusedAllowance, 
                        calc.annualAllowanceCF, 
-                       calc.annualAllowanceCCF, 0L))
-  }
-}
-
-trait BasicCalculator extends Calculator {
-  protected def getAnnualAllowanceInPounds: Long
-
-  def summary(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Option[SummaryResult] = {
-    if (contribution.amounts.isDefined && !contribution.isEmpty) {
-      val amountsCalculator = BasicAmountsCalculator(getAnnualAllowanceInPounds)
-      var definedBenefit = amountsCalculator.definedBenefit
-      if (isSupported(contribution) && definedBenefit >= 0) {
-        amountsCalculator.summary
-      } else None
-    } else None
+                       calc.annualAllowanceCCF))
   }
 }

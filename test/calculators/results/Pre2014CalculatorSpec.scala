@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package logic
+package calculators.results
 
 import play.api.Play
 import play.api.test.FakeApplication
@@ -46,8 +46,8 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
       val contribution5 = Contribution(2013, 1000000)
     }
 
-  "BasicAmountsCalculator" should {
-    val calculator = BasicAmountsCalculator(100)
+  "BasicCalculator" should {
+    val calculator = calculators.results.BasicCalculator(100)
     calculator.definedBenefit(Seq[SummaryResult](), Contribution(TaxPeriod(2014,3,5), TaxPeriod(2015,3,6), None)) shouldBe 0
   }
 

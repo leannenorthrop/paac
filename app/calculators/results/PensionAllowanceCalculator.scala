@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package logic
+package calculators.results
 
 import models._
 
@@ -63,8 +63,8 @@ trait PensionAllowanceCalculator {
     val results = provideMissingYearContributions(contributions).foldLeft(List[TaxYearResults]()) {
       (lst, contribution) =>
 
-      val calculator = CalculatorFactory.get(contribution)
-      val maybeSummary = calculator.map(_.summary(lst.map(_.summaryResult), contribution).getOrElse(SummaryResult()))
+      val maybeCalculator = calculators.CalculatorFactory.get(contribution)
+      val maybeSummary = maybeCalculator.map(_.summary(lst.map(_.summaryResult), contribution)).getOrElse(None)
       val summary: SummaryResult = maybeSummary.getOrElse(SummaryResult())
       
       TaxYearResults(contribution, summary) :: lst

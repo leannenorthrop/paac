@@ -14,20 +14,24 @@
  * limitations under the License.
  */
 
-package logic
+package calculators
 
 import models._
+import calculators.results._
 
 trait Calculator {
   def summary(implicit previousPeriods:Seq[SummaryResult], contribution:Contribution) : Option[SummaryResult]
+}
+
+trait AllowanceCalculator extends Calculator {
   def isSupported(contribution:Contribution):Boolean
 }
 
 trait CalculatorFactory {
-  val calculators : List[Calculator]
-  def get(contribution:Contribution) : Option[Calculator] = calculators.find(_.isSupported(contribution))
+  protected val calculators : List[AllowanceCalculator]
+  def get(contribution:Contribution) : Option[AllowanceCalculator] = calculators.find(_.isSupported(contribution))
 }
 
 object CalculatorFactory extends CalculatorFactory {
-  override val calculators : List[Calculator] = List(Pre2014Calculator, Year2014Calculator, Year2015Period1Calculator, Year2015Period2Calculator)
+  protected override val calculators : List[AllowanceCalculator] = List(Pre2014Calculator, Year2014Calculator, Year2015Period1Calculator, Year2015Period2Calculator)
 }
