@@ -65,7 +65,7 @@ trait PensionAllowanceCalculator {
 
       val maybeCalculator = calculators.CalculatorFactory.get(contribution)
       val maybeSummary = maybeCalculator.map(_.summary(lst.map(_.summaryResult), contribution)).getOrElse(None)
-      val summary: SummaryResult = maybeSummary.getOrElse(SummaryResult())
+      val summary: Summary = maybeSummary.getOrElse(SummaryResult())
       
       TaxYearResults(contribution, summary) :: lst
     }.dropWhile(_.input.taxYearLabel > inputsByTaxYear.keys.max).toList.reverse

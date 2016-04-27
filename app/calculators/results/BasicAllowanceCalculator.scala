@@ -21,7 +21,7 @@ import models._
 trait BasicAllowanceCalculator extends calculators.AllowanceCalculator {
   protected def getAnnualAllowanceInPounds: Long
 
-  def summary(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Option[SummaryResult] = {
+  def summary(implicit previousPeriods:Seq[Summary], contribution: Contribution): Option[Summary] = {
     if (contribution.amounts.isDefined && !contribution.isEmpty) {
       val amountsCalculator = BasicCalculator(getAnnualAllowanceInPounds)
       var definedBenefit = amountsCalculator.definedBenefit

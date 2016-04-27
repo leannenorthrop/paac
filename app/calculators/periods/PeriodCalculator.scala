@@ -19,7 +19,7 @@ package calculators.periods
 import models._
 
 trait PeriodCalculator extends calculators.Calculator {
-  def previous3YearsUnusedAllowance()(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = previousPeriods.slice(0,3).foldLeft(0L)(_+_.unusedAllowance)
+  def previous3YearsUnusedAllowance()(implicit previousPeriods:Seq[Summary], contribution: Contribution): Long = previousPeriods.slice(0,3).foldLeft(0L)(_+_.unusedAllowance)
 }
 
 case class CalculatorFields(moneyPurchaseAA: Long = 0,

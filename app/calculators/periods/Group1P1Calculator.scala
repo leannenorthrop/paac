@@ -22,9 +22,9 @@ import calculators.results.BasicCalculator
 case class Group1P1Calculator(amountsCalculator: BasicCalculator) extends PeriodCalculator {
   me => Group1P1Calculator
 
-  def aaCF(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = amountsCalculator.annualAllowance + me.previous3YearsUnusedAllowance()
+  def aaCF(implicit previousPeriods:Seq[Summary], contribution: Contribution): Long = amountsCalculator.annualAllowance + me.previous3YearsUnusedAllowance()
 
-  def aaCCF(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = {
+  def aaCCF(implicit previousPeriods:Seq[Summary], contribution: Contribution): Long = {
     val definedBenefit = amountsCalculator.definedBenefit
     val annualAllowance = amountsCalculator.annualAllowance
     val previous3YearsUnusedAllowance = me.previous3YearsUnusedAllowance()
@@ -36,7 +36,7 @@ case class Group1P1Calculator(amountsCalculator: BasicCalculator) extends Period
     }
   }
 
-  def summary(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Option[SummaryResult] = {
+  def summary(implicit previousPeriods:Seq[Summary], contribution: Contribution): Option[Summary] = {
     Some(SummaryResult(amountsCalculator.chargableAmount, 
                        amountsCalculator.exceedingAllowance, 
                        amountsCalculator.annualAllowance, 

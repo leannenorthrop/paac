@@ -26,7 +26,7 @@ object Year2015Period1Calculator extends calculators.AllowanceCalculator {
 
   def isSupported(contribution:Contribution): Boolean = contribution.isPeriod1()
 
-  def summary(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Option[SummaryResult] = {
+  def summary(implicit previousPeriods:Seq[Summary], contribution: Contribution): Option[Summary] = {
     if (isSupported(contribution)) {
       val amountsCalculator = BasicCalculator(getAnnualAllowanceInPounds)
       if (contribution.isGroup1()) {

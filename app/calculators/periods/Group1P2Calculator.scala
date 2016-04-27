@@ -22,13 +22,13 @@ import calculators.results.BasicCalculator
 case class Group1P2Calculator(amountsCalculator: BasicCalculator) extends PeriodCalculator {
   me => Group1P2Calculator
 
-  def period1UnusedAllowance(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = previousPeriods.headOption.map(_.unusedAllowance).getOrElse(0L)
-  def previous2YearsUnusedAllowances(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = previousPeriods.drop(1).slice(0,2).foldLeft(0L)(_+_.unusedAllowance) 
-  def unusedAllowance(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = (me.period1UnusedAllowance - amountsCalculator.definedBenefit).max(0)
-  def exceedingAllowance(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = (amountsCalculator.definedBenefit - me.period1UnusedAllowance).max(0)
-  def annualAllowanceCF(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = if (previousPeriods.headOption.isDefined) previousPeriods.head.availableAAWithCCF else 0L
+  def period1UnusedAllowance(implicit previousPeriods:Seq[Summary], contribution: Contribution): Long = previousPeriods.headOption.map(_.unusedAllowance).getOrElse(0L)
+  def previous2YearsUnusedAllowances(implicit previousPeriods:Seq[Summary], contribution: Contribution): Long = previousPeriods.drop(1).slice(0,2).foldLeft(0L)(_+_.unusedAllowance) 
+  def unusedAllowance(implicit previousPeriods:Seq[Summary], contribution: Contribution): Long = (me.period1UnusedAllowance - amountsCalculator.definedBenefit).max(0)
+  def exceedingAllowance(implicit previousPeriods:Seq[Summary], contribution: Contribution): Long = (amountsCalculator.definedBenefit - me.period1UnusedAllowance).max(0)
+  def annualAllowanceCF(implicit previousPeriods:Seq[Summary], contribution: Contribution): Long = if (previousPeriods.headOption.isDefined) previousPeriods.head.availableAAWithCCF else 0L
 
-  def annualAllowanceCCF(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = {
+  def annualAllowanceCCF(implicit previousPeriods:Seq[Summary], contribution: Contribution): Long = {
     val definedBenefit = amountsCalculator.definedBenefit
     val previous2YearsUnusedAllowances = me.previous2YearsUnusedAllowances
     val period1UnusedAllowance = me.period1UnusedAllowance
@@ -46,20 +46,22 @@ case class Group1P2Calculator(amountsCalculator: BasicCalculator) extends Period
     }
   }
 
-  def chargableAmount(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = {
+  def chargableAmount(implicit previousPeriods:Seq[Summary], contribution: Contribution): Long = {
     val definedBenefit = amountsCalculator.definedBenefit
     val cf = previousPeriods.headOption.map(_.availableAAWithCCF).getOrElse(0L)
     if (definedBenefit > cf) definedBenefit - cf else 0L
   }
 
-  def summary(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Option[SummaryResult] = {
+  def summary(implicit previousPeriods:Seq[Summary], contribution: Contribution): Option[Summary] = {
     amountsCalculator.summary(previousPeriods, contribution).map{
       (results)=>
-      results.copy(availableAAWithCF = me.annualAllowanceCF,    // total available allowance for current year
-      availableAAWithCCF = me.annualAllowanceCCF,  // available allowance carried forward to following year
-      unusedAllowance = me.unusedAllowance,
-      chargableAmount = me.chargableAmount,
-      exceedingAAAmount = me.exceedingAllowance)
+      SummaryResult(me.chargableAmount,
+                    me.exceedingAllowance,
+                    results.availableAllowance,
+                    me.unusedAllowance,
+                    me.annualAllowanceCF,    // total available allowance for current year should be renamed to totalAA
+                    me.annualAllowanceCCF,   // available allowance carried forward to following year
+                    0L)
     }
   }
 }
