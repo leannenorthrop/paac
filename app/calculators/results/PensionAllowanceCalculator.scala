@@ -64,7 +64,7 @@ trait PensionAllowanceCalculator {
       (lst, contribution) =>
 
       val maybeCalculator = calculators.CalculatorFactory.get(contribution)
-      val maybeSummary = maybeCalculator.map(_.summary(lst.map(_.summaryResult), contribution)).getOrElse(None)
+      val maybeSummary = maybeCalculator.map(_.summary(lst, contribution)).getOrElse(None)
       val summary: Summary = maybeSummary.getOrElse(SummaryResult())
       
       TaxYearResults(contribution, summary) :: lst

@@ -20,7 +20,7 @@ import models._
 import calculators.results._
 
 trait Calculator {
-  def summary(implicit previousPeriods:Seq[Summary], contribution:Contribution) : Option[Summary]
+  def summary(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution) : Option[Summary]
 }
 
 trait AllowanceCalculator extends Calculator {

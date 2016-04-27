@@ -20,8 +20,8 @@ import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json._
 
-case class TaxYearResults(input: Contribution,
-                          summaryResult: Summary)
+case class TaxYearResults(input: Contribution = Contribution(2008,0L),
+                          summaryResult: Summary = SummaryResult())
 
 trait Summary {
   def chargableAmount: Long

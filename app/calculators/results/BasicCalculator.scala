@@ -21,7 +21,7 @@ import models._
 case class BasicCalculator(annualAllowanceInPounds: Long) extends calculators.Calculator {
   calc => BasicCalculator
 
-  def definedBenefit(implicit previousPeriods:Seq[Summary], contribution: Contribution): Long = {
+  def definedBenefit(implicit contribution: Contribution): Long = {
     val amounts = contribution.amounts.getOrElse(InputAmounts())
     if (contribution.taxPeriodStart.year < 2015)
       amounts.definedBenefit.getOrElse(0L) + amounts.moneyPurchase.getOrElse(0L)
@@ -30,20 +30,20 @@ case class BasicCalculator(annualAllowanceInPounds: Long) extends calculators.Ca
     }
   }
 
-  def definedContribution(implicit previousPeriods:Seq[Summary], contribution: Contribution): Long = contribution.amounts.getOrElse(InputAmounts()).moneyPurchase.getOrElse(0L)
+  def definedContribution(implicit contribution: Contribution): Long = contribution.amounts.getOrElse(InputAmounts()).moneyPurchase.getOrElse(0L)
 
-  def annualAllowance(implicit previousPeriods:Seq[Summary], contribution: Contribution): Long = annualAllowanceInPounds*100L // convert allowance from pounds to pence
+  def annualAllowance(): Long = annualAllowanceInPounds*100L // convert allowance from pounds to pence
 
-  def exceedingAllowance(implicit previousPeriods:Seq[Summary], contribution: Contribution): Long = (calc.definedBenefit - calc.annualAllowance).max(0)
+  def exceedingAllowance(implicit contribution: Contribution): Long = (calc.definedBenefit - calc.annualAllowance).max(0)
 
-  def unusedAllowance(implicit previousPeriods:Seq[Summary], contribution: Contribution): Long = (calc.annualAllowance - calc.definedBenefit).max(0)
+  def unusedAllowance(implicit contribution: Contribution): Long = (calc.annualAllowance - calc.definedBenefit).max(0)
 
   // total annual allowance possible
-  def annualAllowanceCF(implicit previousPeriods:Seq[Summary], contribution: Contribution): Long = previousPeriods.slice(0,3).foldLeft(0L)(_+_.unusedAllowance) + calc.annualAllowance
+  def annualAllowanceCF(implicit previousPeriods:Seq[TaxYearResults]): Long = previousPeriods.map(_.summaryResult).slice(0,3).foldLeft(0L)(_+_.unusedAllowance) + calc.annualAllowance
 
   // cumulative carry forwards is 2 previous years plus current year's annual allowance - used allowance
-  def annualAllowanceCCF(implicit previousPeriods:Seq[Summary], contribution: Contribution): Long = {
-    val unusedAllowances = previousPeriods.slice(0,2).foldLeft(0L)(_+_.unusedAllowance)
+  def annualAllowanceCCF(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Long = {
+    val unusedAllowances = previousPeriods.map(_.summaryResult).slice(0,2).foldLeft(0L)(_+_.unusedAllowance)
     if (contribution.taxPeriodStart.year < 2011 && calc.definedBenefit >= calc.annualAllowance) {
       (calc.annualAllowance + unusedAllowances - calc.definedBenefit.min(calc.annualAllowance)).max(0)
     } else if (calc.exceedingAllowance > 0) {
@@ -53,14 +53,17 @@ case class BasicCalculator(annualAllowanceInPounds: Long) extends calculators.Ca
     }
   }
 
-  def chargableAmount(implicit previousPeriods:Seq[Summary], contribution: Contribution): Long = if (contribution.taxPeriodStart.year < 2011) -1 else (calc.definedBenefit - calc.annualAllowanceCF).max(0)
+  def chargableAmount(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Long = if (contribution.taxPeriodStart.year < 2011) -1 else (calc.definedBenefit - calc.annualAllowanceCF).max(0)
 
-  def summary(implicit previousPeriods:Seq[Summary], contribution: Contribution): Option[Summary] = {
-    Some(SummaryResult(calc.chargableAmount, 
-                       calc.exceedingAllowance, 
-                       calc.annualAllowance, 
-                       calc.unusedAllowance, 
-                       calc.annualAllowanceCF, 
-                       calc.annualAllowanceCCF))
+  def summary(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Option[Summary] = {
+    contribution.amounts.map {
+      _ =>
+      SummaryResult(calc.chargableAmount, 
+                    calc.exceedingAllowance, 
+                    calc.annualAllowance, 
+                    calc.unusedAllowance, 
+                    calc.annualAllowanceCF, 
+                    calc.annualAllowanceCCF)
+    }
   }
 }
