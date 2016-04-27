@@ -18,39 +18,29 @@ package calculators.periods
 
 import models._
 import calculators.results.BasicCalculator
-/*
-class G2P1Helper(previousPeriods:Seq[TaxYearResults], 
-                 contribution: Contribution, 
-                 amountsCalculator: BasicCalculator, 
-                 additionalFields: Option[AdditionalFields] = None) {
-  me => G2P1Helper
+
+case class Group2P1Calculator(amountsCalculator: BasicCalculator) extends PeriodCalculator {
+  me: Group2P1Calculator => 
+
   val MPA = 20000*100L
   val AAA = 60000 * 100L
   val AA = 80000*100L
   val MAX_CF = 4000000L
 
-  def previous3YearsUnusedAllowance(): Long = previousPeriods.filterNot(_.additionalFields == None).slice(0,3).foldLeft(0L)(_+_.summaryResult.unusedAllowance)
-
-  def preFlexiSavings(): Long = {
-    previousPeriods.filterNot(_.additionalFields == None).foldLeft(0L)(_+_.additionalFields.get.dbist)
+  def definedBenefit(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution): Long = {
+    contribution.amounts.map {
+      (amounts) =>
+      if (!contribution.isTriggered)
+        amounts.definedBenefit.getOrElse(0L) + amounts.moneyPurchase.getOrElse(0L)
+      else {
+        val dbist = previousPeriods.headOption.map(_.summaryResult.asInstanceOf[Group2Fields].dbist).getOrElse(0L)
+        amounts.definedBenefit.getOrElse(0L) + dbist
+      }
+    }.getOrElse(0L)
   }
 
-  def definedBenefit(): Long = {
-    val isTriggered = contribution.amounts.get.triggered.getOrElse(false)
-    val amounts = contribution.amounts.getOrElse(InputAmounts())
-    if (!isTriggered)
-      amounts.definedBenefit.getOrElse(0L) + amounts.moneyPurchase.getOrElse(0L)
-    else {
-      val dbist = previousPeriods.headOption.map(_.additionalFields.map(_.dbist).getOrElse(0L)).getOrElse(0L)
-      amounts.definedBenefit.getOrElse(0L) + dbist
-    }
-  }
-
-  def definedContribution(): Long = contribution.amounts.getOrElse(InputAmounts()).moneyPurchase.getOrElse(0L)
-
-  def dbist(): Long = {
-    val isTriggered = contribution.amounts.get.triggered.getOrElse(false)
-    if (!isTriggered)
+  def dbist(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution): Long = {
+    if (!contribution.isTriggered)
       me.definedBenefit + me.definedContribution
     else {
       val preFlexiSavings = me.preFlexiSavings
@@ -59,21 +49,19 @@ class G2P1Helper(previousPeriods:Seq[TaxYearResults],
     }
   }
 
-  def mpist(): Long = {
-    val amounts = contribution.amounts.getOrElse(InputAmounts())
-    (amounts.moneyPurchase.getOrElse(0L)-MPA)
+  def mpist(implicit contribution:Contribution): Long = {
+    me.definedContribution-MPA
   }
 
-  def moneyPurchaseAA(): Long = {
-    val mpaa = (MPA - me.definedContribution).max(0)
-    mpaa
+  def moneyPurchaseAA(implicit contribution:Contribution): Long = {
+    (MPA - me.definedContribution).max(0)
   }
 
   def alternativeAA(): Long = {
     AAA.min(30000*100L)
   }
 
-  def alternativeChargableAmount(): Long = {
+  def alternativeChargableAmount(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution): Long = {
     if (MPA > me.definedContribution) {
       0L
     } else {
@@ -89,7 +77,7 @@ class G2P1Helper(previousPeriods:Seq[TaxYearResults],
     }
   }
 
-  def defaultChargableAmount(): Long = {
+  def defaultChargableAmount(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution): Long = {
     val aa = AA + me.previous3YearsUnusedAllowance
     val preFlexiSavings = me.preFlexiSavings
     val postFlexiSavings = me.definedContribution
@@ -100,29 +88,18 @@ class G2P1Helper(previousPeriods:Seq[TaxYearResults],
       savings - AA
     }
   }
-}
 
-case class Group2P1Calculator(amountsCalculator: BasicCalculator) extends PeriodCalculator {
-  me => Group2P1Calculator
-
-  val MPA = 20000*100L
-  val AAA = 60000 * 100L
-  val AA = 80000*100L
-  val MAX_CF = 4000000L
-
-  def exceedingAllowance()(implicit previousPeriods:Seq[SummaryResult], contribution:Contribution): Long = {
+  def exceedingAllowance(implicit contribution:Contribution): Long = {
     (amountsCalculator.definedBenefit - me.annualAllowance).max(0)
   }
 
-  def annualAllowance()(implicit previousPeriods:Seq[SummaryResult], contribution:Contribution): Long = {
-    AA
-  }
+  def annualAllowance(): Long = AA
 
-  def unusedAllowance(additionalFields: AdditionalFields)(implicit previousPeriods:Seq[SummaryResult], contribution:Contribution): Long = {
-    if (MPA > amountsCalculator.definedContribution) {
+  def unusedAllowance(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution): Long = {
+    if (MPA > me.definedContribution) {
       val aa = AA + me.previous3YearsUnusedAllowance
-      val preFlexiSavings = additionalFields.preFlexiSavings
-      val postFlexiSavings = additionalFields.postFlexiSavings
+      val preFlexiSavings = me.preFlexiSavings
+      val postFlexiSavings = me.definedContribution
       val savings = preFlexiSavings + postFlexiSavings
       val unusedAllowance = (AA - savings).max(0)
       unusedAllowance.min(MAX_CF)
@@ -131,8 +108,8 @@ case class Group2P1Calculator(amountsCalculator: BasicCalculator) extends Period
     }
   }
 
-  def chargableAmount(additionalFields: AdditionalFields)(implicit previousPeriods:Seq[SummaryResult], contribution:Contribution): Long = {
-    val charge = additionalFields.alternativeChargableAmount.max(additionalFields.defaultChargableAmount)
+  def chargableAmount(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution): Long = {
+    val charge = me.alternativeChargableAmount.max(me.defaultChargableAmount)
     if (charge <= 0) {
       (amountsCalculator.definedBenefit - me.annualAllowance).max(0)
     }
@@ -140,58 +117,55 @@ case class Group2P1Calculator(amountsCalculator: BasicCalculator) extends Period
       charge
   }
 
-  def aaCF(additionalFields: AdditionalFields)(implicit previousPeriods:Seq[SummaryResult], contribution:Contribution): Long = {
+  def aaCF(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution): Long = {
     AA + me.previous3YearsUnusedAllowance
   }
 
-  def aaCCF(additionalFields: AdditionalFields)(implicit previousPeriods:Seq[SummaryResult], contribution:Contribution): Long = {
+  def aaCCF(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution): Long = {
     val definedBenefit = amountsCalculator.definedBenefit
     val annualAllowance = amountsCalculator.annualAllowance
     val previous3YearsUnusedAllowance = me.previous3YearsUnusedAllowance
     if (definedBenefit >= annualAllowance) {
       (annualAllowance + previous3YearsUnusedAllowance - definedBenefit).max(0)
     } else {
-      (me.unusedAllowance(additionalFields).min(MAX_CF) + previous3YearsUnusedAllowance).max(0)
+      (me.unusedAllowance.min(MAX_CF) + previous3YearsUnusedAllowance).max(0)
     }
   }
 
-  def additional(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution) : Option[AdditionalFields] = {
-    val isTriggered = contribution.amounts.get.triggered.getOrElse(false)
-    val helper = new G2P1Helper(previousPeriods, contribution, amountsCalculator)
-    if (!isTriggered) {
-      Some(AdditionalFields(dbist=helper.dbist))
-    } else {
-      Some(AdditionalFields(helper.moneyPurchaseAA,
-                            helper.alternativeAA,
-                            helper.dbist,
-                            helper.mpist,
-                            helper.alternativeChargableAmount,
-                            helper.defaultChargableAmount,
-                            cumulativeMP = 0,
-                            cumulativeDB = 0,
-                            exceedingMPAA = 0,
-                            exceedingAAA = 0,
-                            unusedAA = 0,
-                            unusedMPAA = 0,
-                            preFlexiSavings = helper.preFlexiSavings,
-                            postFlexiSavings = amountsCalculator.definedContribution(previousPeriods.map(_.summaryResult),contribution)))
-    }
-  }
-
-  def summary(additionalFields: Option[AdditionalFields] = None)(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Option[SummaryResult] = {
-    val isTriggered = contribution.amounts.get.triggered.getOrElse(false)
-    if (!isTriggered) {
-      Group1P1Calculator(amountsCalculator).summary(additionalFields)
-    } else {
-      additionalFields.map {
-        (fields) =>
-        SummaryResult(me.chargableAmount(fields), 
-                      me.exceedingAllowance(), 
-                      me.annualAllowance(), 
-                      me.unusedAllowance(fields), 
-                      me.aaCF(fields), 
-                      me.aaCCF(fields))
+  def summary(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Option[Summary] = {
+    if (!contribution.isTriggered) {
+      Group1P1Calculator(amountsCalculator).summary.map {
+        (s)=>
+        Group2Fields(chargableAmount=s.chargableAmount,
+                     exceedingAAAmount=s.exceedingAAAmount,
+                     availableAllowance=s.availableAllowance,
+                     unusedAllowance=s.unusedAllowance,
+                     availableAAWithCF=s.availableAAWithCF,
+                     availableAAWithCCF=s.availableAAWithCCF,
+                     dbist = me.dbist)
       }
+    } else {
+      Some(Group2Fields(me.chargableAmount,
+                        me.exceedingAllowance,
+                        me.annualAllowance,
+                        me.unusedAllowance,
+                        me.aaCF,
+                        me.aaCCF,
+                        0L,
+                        me.moneyPurchaseAA,
+                        me.alternativeAA,
+                        me.dbist,
+                        me.mpist,
+                        me.alternativeChargableAmount,
+                        me.defaultChargableAmount,
+                        cumulativeMP = 0,
+                        cumulativeDB = 0,
+                        exceedingMPAA = 0,
+                        exceedingAAA = 0,
+                        unusedAA = 0,
+                        unusedMPAA = 0,
+                        preFlexiSavings = me.preFlexiSavings,
+                        postFlexiSavings = amountsCalculator.definedContribution))
     }
   }
-}*/
+}

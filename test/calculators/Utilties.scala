@@ -19,6 +19,7 @@ package calculators
 import models._
 import org.scalatest.Assertions._
 import scala.util._
+import calculators.periods._
 
 object Utilities {
   def generateContributions(map:Map[String,Long]): List[Contribution] = {
@@ -52,20 +53,37 @@ object Utilities {
   }
 
   def toString(results: Seq[TaxYearResults]): String = {
-    val headings = List("Year","DB","MP","Chargable","Exceeding AA", "Available Allowance", "Unused Allowance", "AACF", "CCF").map((h)=>f"${h}%-10s").mkString("")
+    val headings = List("Year","DB","MP","Chargable","Exceeding AA", "AA", "Unused Allow", "AACF", "CCF","ACA","DCA").map((h)=>f"${h}%12s").mkString(" ")
     var message: String = f"\n${headings}\n"
     results.foreach {
       (result)=>
-      val values = List(result.input.amounts.get.definedBenefit.get,
-                        result.input.amounts.get.moneyPurchase.get,
-                        result.summaryResult.chargableAmount,
-                        result.summaryResult.exceedingAAAmount,
-                        result.summaryResult.availableAllowance,
-                        result.summaryResult.unusedAllowance,
-                        result.summaryResult.availableAAWithCF,
-                        result.summaryResult.availableAAWithCCF
-                        ).map(_ / 100.00).map((v)=>f"${v}%10.2f").mkString(" ")
-      message += f"${result.input.label}%-10s ${values}\n"
+      val values = if (!result.summaryResult.isInstanceOf[Group2Fields]) {
+        List(result.input.amounts.get.definedBenefit.get,
+            result.input.amounts.get.moneyPurchase.get,
+            result.summaryResult.chargableAmount,
+            result.summaryResult.exceedingAAAmount,
+            result.summaryResult.availableAllowance,
+            result.summaryResult.unusedAllowance,
+            result.summaryResult.availableAAWithCF,
+            result.summaryResult.availableAAWithCCF,
+            0L,
+            0L
+            ).map(_ / 100.00).map((v)=>f"${v}%12.2f").mkString(" ")
+      } else {
+        val v = result.summaryResult.asInstanceOf[Group2Fields]
+        List(result.input.amounts.get.definedBenefit.get,
+            result.input.amounts.get.moneyPurchase.get,
+            v.chargableAmount,
+            v.exceedingAAAmount,
+            v.availableAllowance,
+            v.unusedAllowance,
+            v.availableAAWithCF,
+            v.availableAAWithCCF,
+            v.alternativeChargableAmount,
+            v.defaultChargableAmount
+            ).map(_ / 100.00).map((v)=>f"${v}%12.2f").mkString(" ")
+      }
+      message += f"${result.input.label}%-12s ${values}\n"
     }
     message += "\n\n"
     message
@@ -103,7 +121,14 @@ object Utilities {
                        "Available Annual Allowance"-> { (r:TaxYearResults) => r.summaryResult.availableAAWithCF },
                        "Unused AA CF"-> { (r:TaxYearResults) => r.summaryResult.unusedAllowance },
                        "Cumulative Carry Forward"-> { (r:TaxYearResults) => r.summaryResult.availableAAWithCCF },
-                       "Available Allowance"-> { (r:TaxYearResults) => r.summaryResult.availableAllowance }
+                       "Available Allowance"-> { (r:TaxYearResults) => r.summaryResult.availableAllowance },
+                       "MPAA"-> { 
+                        (r:TaxYearResults) => 
+                        if (r.summaryResult.isInstanceOf[Group2Fields])
+                          r.summaryResult.asInstanceOf[Group2Fields].moneyPurchaseAA
+                        else 
+                          0L
+                       }
                        )
     val headings = table.split("\n")(0).split('|').map(_.trim)
     val expectedResults = getInts

@@ -39,6 +39,7 @@ case class BasicCalculator(annualAllowanceInPounds: Long) extends calculators.Ca
   def unusedAllowance(implicit contribution: Contribution): Long = (calc.annualAllowance - calc.definedBenefit).max(0)
 
   // total annual allowance possible
+  // LN TODO Update to consider 2015 2 periods if this is reused for 2016
   def annualAllowanceCF(implicit previousPeriods:Seq[TaxYearResults]): Long = previousPeriods.map(_.summaryResult).slice(0,3).foldLeft(0L)(_+_.unusedAllowance) + calc.annualAllowance
 
   // cumulative carry forwards is 2 previous years plus current year's annual allowance - used allowance
