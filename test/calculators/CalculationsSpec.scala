@@ -827,7 +827,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :""".stripMargin(':')
         doGroup2Test(table)
       }
-/*
+
       "do Scenario 24" in {
         val table = """:year    | Defined Benefit | Money Purchase  | Is Triggered | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward | MPAA 
                        :2012    | 49000           | 0               | false        | 0                   | 0                | 200000                     | 1000         | 101000                   | 0
@@ -835,6 +835,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2014    | 35000           | 0               | false        | 0                   | 0                | 93000                      | 5000         | 8000                     | 0
                        :2015P1B | 10000           | 0               | false        | 0                   | 0                | 88000                      | 40000        | 48000                    | 0
                        :2015P1A | 0               | 0               | true         | 0                   | 0                | 88000                      | 40000        | 48000                    | 10000
+                       :2015P2A | 0               | 25000           | true         | 0                   | 15000            | 48000                      | 40000        | 47000                    | 0
                        :""".stripMargin(':')
         doGroup2Test(table)
       }
@@ -846,10 +847,10 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2014    | 35000           | 0               | false        | 0                   | 0                | 93000                      | 5000         | 8000                     | 0
                        :2015P1B | 85000           | 0               | false        | 5000                | 0                | 88000                      | 0            | 3000                     | 0
                        :2015P1A | 0               | 0               | true         | 5000                | 0                | 88000                      | 0            | 3000                     | 10000
+                       :2015P2A | 0               | 100000          | true         | 0                   | 97000            | 3000                       | 0            | 0                        | 0
                        :""".stripMargin(':')
         doGroup2Test(table)
       }
-      */
     }
 /*
     "in Period 1" can {
