@@ -120,10 +120,10 @@ case class Group2P1Calculator(amountsCalculator: BasicCalculator) extends Period
     if (me.isMPAAApplicable(contribution)) {
       0L
     } else {
-      if (me.definedBenefit > AA) {
+      if (me.definedBenefit + me.definedContribution > AA) {
         0L
       } else {
-        (AA - me.definedBenefit).min(MAX_CF)
+        (AA - (me.definedBenefit + me.definedContribution)).min(MAX_CF)
       }
     }
   }

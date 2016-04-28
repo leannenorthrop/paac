@@ -131,7 +131,7 @@ object Utilities {
                        "MPAA"-> { 
                         (r:TaxYearResults) => 
                         if (r.summaryResult.isInstanceOf[Group2Fields])
-                          r.summaryResult.asInstanceOf[Group2Fields].moneyPurchaseAA
+                          r.summaryResult.asInstanceOf[Group2Fields].unusedMPAA
                         else 
                           0L
                        }
