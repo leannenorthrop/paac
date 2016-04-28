@@ -81,9 +81,13 @@ case class Group2P1Calculator(amountsCalculator: BasicCalculator) extends Period
   }
 
   def alternativeChargableAmount(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution): Long = {
-    val mpist = me.mpist
-    val dbist = me.dbist
-    mpist + dbist
+    if (me.isMPAAApplicable(contribution)) {
+      val mpist = me.mpist
+      val dbist = me.dbist
+      mpist + dbist
+    } else {
+      0L
+    }
   }
 
   def defaultChargableAmount(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution): Long = {
@@ -99,12 +103,12 @@ case class Group2P1Calculator(amountsCalculator: BasicCalculator) extends Period
   def exceedingAllowance(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution): Long = {
     if (me.isMPAAApplicable(contribution)) {
       if (me.definedBenefit + me.definedContribution > AA) {
-        0L
+        (me.definedBenefit + me.definedContribution) - AA
       } else {
         (AA - (me.definedBenefit + me.definedContribution)).min(MAX_CF)
       }
     } else {
-      amountsCalculator.exceedingAllowance
+      ((me.definedBenefit + me.definedContribution) - AA).max(0)
     }
   }
 
@@ -129,12 +133,12 @@ case class Group2P1Calculator(amountsCalculator: BasicCalculator) extends Period
   }
 
   def chargableAmount(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution): Long = {
+    val dca = me.defaultChargableAmount
     if (me.isMPAAApplicable(contribution)) {
       val aca = me.alternativeChargableAmount
-      val dca = me.defaultChargableAmount
       aca.max(dca) // if aca == dca then choose dca
     } else {
-      amountsCalculator.chargableAmount
+      dca
     }
   }
 
