@@ -60,12 +60,12 @@ case class Group2P1Calculator(amountsCalculator: BasicCalculator) extends Period
   }
 
   def moneyPurchaseAA(implicit contribution:Contribution): Long = {
-    if (me.definedContribution < MPA) {
+    if (me.definedContribution < MPA && me.isMPAAApplicable(contribution)) {
       val v = MPA - me.definedContribution
       if (v > 1000000L) {
         1000000L
       } else {
-        0L // TODO
+        v
       }
     } else {
       0L
