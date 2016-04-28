@@ -65,13 +65,13 @@ case class Group2P2Calculator(amountsCalculator: BasicCalculator) extends Period
       if (period1AAA > savings) {
         0L
       } else {
-        savings - period1AAA
+        (savings - (period1AAA + period1.availableAAWithCCF)).max(0)
       }
     } else {
       if (period1AA > savings) {
         0L
       } else {
-        savings - period1AA
+        (savings - (period1AA + period1.availableAAWithCCF)).max(0)
       }
     }
   }
@@ -110,11 +110,17 @@ case class Group2P2Calculator(amountsCalculator: BasicCalculator) extends Period
   }
 
   def aaCF(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution): Long = {
-    me.annualAllowance
+    val period1 = previousPeriods.headOption.map(_.summaryResult.asInstanceOf[Group2Fields]).getOrElse(Group2Fields())
+    period1.availableAAWithCCF
   }
 
   def aaCCF(implicit previousPeriods: Seq[TaxYearResults], contribution:Contribution): Long = {
-    me.unusedAllowance + me.previous3YearsUnusedAllowance
+    val unused = me.unusedAllowance
+    if (unused > 0) {
+      (me.unusedAllowance + me.previous3YearsUnusedAllowance)
+    } else {
+      (me.previous3YearsUnusedAllowance - me.definedContribution).max(0)
+    }
   }
 
   def cumulativeMP(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Long = {
