@@ -92,7 +92,7 @@ case class Group2P2Calculator(amountsCalculator: BasicCalculator) extends Period
       0L
     } else {
       if (period1DC < 2000000L && period2DC < MPA){
-        me.annualAllowance - me.definedContribution
+        (me.annualAllowance - me.definedContribution).max(0)
       } else {
         me.annualAllowance
       }

@@ -207,6 +207,7 @@ case class Group2P1Calculator(amountsCalculator: BasicCalculator) extends Period
         v
       }
     } else {
+      println("******")
       0L
     }
   }
