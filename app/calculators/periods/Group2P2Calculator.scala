@@ -17,136 +17,232 @@
 package calculators.periods
 
 import models._
+import calculators.results.BasicCalculator
 
-/*case class Group2P2Calculator(amountsCalculator: BasicAmountsCalculator) extends calculators.Calculator {
-  me => Group2P2Calculator
-  val MPA = 10000*100L
-  val AAA = 30000*100L
-  val AA = 0L
+case class Group2P2Calculator(amountsCalculator: BasicCalculator) extends PeriodCalculator {
+  me: Group2P2Calculator => 
 
-  def period1UnusedAllowance(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = previousPeriods.filter(_.dbist > 0).headOption.map(_.unusedAllowance).getOrElse(0L)
-  def previous2YearsUnusedAllowance(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = previousPeriods.filterNot(_.dbist > 0).slice(0,2).foldLeft(0L)(_+_.unusedAllowance)
-  def previous3YearsUnusedAllowance(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = previousPeriods.filterNot(_.dbist > 0).slice(0,3).foldLeft(0L)(_+_.unusedAllowance)
-  def isMPAAApplicable(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Boolean = (isPeriod1Triggered || isPeriod2Triggered) && (previousPeriods.filter(_.dbist > 0).headOption.map(_.mpist > 0).getOrElse(false) && me.mpist > 0)
-  def isPeriod1Triggered(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Boolean = previousPeriods.headOption.map(_.triggered).getOrElse(false)
-  def isPeriod2Triggered(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Boolean = contribution.amounts.get.triggered.getOrElse(false)
-  def preFlexiSavings(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = previousPeriods.filter(_.dbist > 0).foldLeft(0L)(_+_.dbist)
-  def definedBenefit(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = contribution.amounts.getOrElse(InputAmounts()).definedBenefit.getOrElse(0L)
-  def definedContribution(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = contribution.amounts.getOrElse(InputAmounts()).moneyPurchase.getOrElse(0L)
-  def moneyPurchaseAA(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = 0L
-  def alternativeAA(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = AAA.min(30000*100L)
-  def exceedingAllowance(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = (me.definedBenefit - me.annualAllowance).max(0)
-  def annualAllowance(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = AA
+  val MPA = 20000*100L
+  val AAA = 60000 * 100L
+  val AA = 80000*100L
+  val MAX_CF = 4000000L
 
-  def dbist(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = {
-    val isTriggered = contribution.amounts.get.triggered.getOrElse(false)
-    if (!isTriggered)
-      me.definedBenefit + me.definedContribution
-    else {
-      val preFlexiSavings = me.preFlexiSavings
-      val aa = AAA + me.previous3YearsUnusedAllowance
-      (aa - preFlexiSavings)
-    }
+  def isMPAAApplicable(implicit contribution: Contribution): Boolean = {
+    me.definedContribution > MPA
   }
 
-  def mpist(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = {
-    val amounts = contribution.amounts.getOrElse(InputAmounts())
-    (amounts.moneyPurchase.getOrElse(0L)-MPA) // negative if MP is less than MPA
+  def definedBenefit(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution): Long = {
+    contribution.amounts.map {
+      (amounts) =>
+      if (!contribution.isTriggered)
+        amounts.definedBenefit.getOrElse(0L) + amounts.moneyPurchase.getOrElse(0L)
+      else {
+        val db = previousPeriods.headOption.map(_.input.amounts.get.definedBenefit.getOrElse(0L)).getOrElse(0L)
+        amounts.definedBenefit.getOrElse(0L) + db
+      }
+    }.getOrElse(0L)
   }
 
-  def alternativeChargableAmount(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = {
-    val mpaa = previousPeriods.headOption.map(_.moneyPurchaseAA).getOrElse(0L)
-    val p1aca = previousPeriods.headOption.map(_.alternativeChargableAmount).getOrElse(0L)
-    val p1dca = previousPeriods.headOption.map(_.defaultChargableAmount).getOrElse(0L)
-    if ((p1aca > 0 || p1dca > 0) && (AAA <= me.definedContribution)) {
-      me.definedContribution
-    } else if (me.definedContribution >= MPA) {
-      me.definedContribution - MPA
-    } else if (me.definedContribution >= mpaa) {
-      me.definedContribution - mpaa
+  def dbist(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution): Long = {
+    if (me.definedBenefit > AAA) {
+      me.definedBenefit - AAA
     } else {
       0L
     }
   }
 
-  def defaultChargableAmount(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = {
-    if (me.isPeriod2Triggered) {
-      val mp = previousPeriods.filter(_.mpist != 0).map(_.unusedAllowance).getOrElse(0L)
+  def mpist(implicit contribution:Contribution): Long = {
+    if (me.definedContribution > MPA){
+      me.definedContribution - MPA
     } else {
-      val aa = 4000000L + previousPeriods.headOption.map(_.availableAAWithCCF).getOrElse(0L)
-      val p1aca = previousPeriods.headOption.map(_.alternativeChargableAmount).getOrElse(0L)
-      val p1dca = previousPeriods.headOption.map(_.defaultChargableAmount).getOrElse(0L)
-      if ((p1aca > 0 || p1dca > 0) && (AAA <= me.definedContribution)) {
-        me.definedContribution - AAA
-      } else if (aa > me.definedContribution) {
+      0L
+    }
+  }
+
+  def moneyPurchaseAA(implicit contribution:Contribution): Long = {
+    if (me.definedContribution < MPA && me.isMPAAApplicable(contribution)) {
+      val v = MPA - me.definedContribution
+      if (v > 1000000L) {
+        1000000L
+      } else {
+        v
+      }
+    } else {
+      0L
+    }
+  }
+
+  def alternativeAA(implicit contribution:Contribution): Long = {
+    if (me.isMPAAApplicable(contribution)) {
+      AAA
+    } else {
+      0L
+    }
+  }
+
+  def alternativeChargableAmount(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution): Long = {
+    if (me.isMPAAApplicable(contribution)) {
+      val mpist = me.mpist
+      val dbist = me.dbist
+      mpist + dbist
+    } else {
+      0L
+    }
+  }
+
+  def defaultChargableAmount(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution): Long = {
+    val savings = me.definedBenefit + me.definedContribution
+    val aa = AA + previous3YearsUnusedAllowance
+    if (savings > aa) {
+      savings - aa
+    } else {
+      0L
+    }
+  }
+
+  def exceedingAllowance(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution): Long = {
+    if (me.isMPAAApplicable(contribution)) {
+      if (me.definedBenefit + me.definedContribution > AA) {
+        (me.definedBenefit + me.definedContribution) - AA
+      } else {
+        (AA - (me.definedBenefit + me.definedContribution)).min(MAX_CF)
+      }
+    } else {
+      ((me.definedBenefit + me.definedContribution) - AA).max(0)
+    }
+  }
+
+  def annualAllowance(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution): Long = {
+    if (me.defaultChargableAmount >= me.alternativeChargableAmount) {
+      AA
+    } else {
+      AAA
+    }
+  }
+
+  def unusedAllowance(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution): Long = {
+    if (me.isMPAAApplicable(contribution)) {
+      0L
+    } else {
+      if (me.definedBenefit + me.definedContribution > AA) {
         0L
       } else {
-        val unusedAAA = previousPeriods.headOption.map(_.moneyPurchaseAA).getOrElse(0L)
-        me.definedContribution - (unusedAAA + MPA)
+        (AA - (me.definedBenefit + me.definedContribution)).min(MAX_CF)
       }
     }
   }
 
-  def unusedAllowance(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = {
-    if (!me.isPeriod1Triggered) {
-      (4000000L - me.definedBenefit).max(0)
+  def chargableAmount(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution): Long = {
+    val dca = me.defaultChargableAmount
+    if (me.isMPAAApplicable(contribution)) {
+      val aca = me.alternativeChargableAmount
+      aca.max(dca) // if aca == dca then choose dca
     } else {
-      (previousPeriods.headOption.map(_.unusedAllowance).getOrElse(0L) - (me.definedBenefit+me.definedContribution)).max(0)
+      dca
     }
   }
 
-  def chargableAmount(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = {
-    val charge = me.alternativeChargableAmount.max(me.defaultChargableAmount)
-    if (charge <= 0) {
-      (me.definedBenefit - me.annualAllowance).max(0)
-    }
-    else
-      charge
+  def aaCF(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution): Long = {
+    AA + me.previous3YearsUnusedAllowance
   }
 
-  def aaCF(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = {
-    if (me.period1UnusedAllowance <= 0 && me.definedContribution > AAA) {
+  def aaCCF(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution): Long = {
+    val definedBenefit = me.definedBenefit
+    val annualAllowance = AA
+    val previous3YearsUnusedAllowance = me.previous3YearsUnusedAllowance
+    if (definedBenefit >= annualAllowance) {
+      (annualAllowance + previous3YearsUnusedAllowance - definedBenefit).max(0)
+    } else {
+      (me.unusedAllowance.min(MAX_CF) + previous3YearsUnusedAllowance).max(0)
+    }
+  }
+
+  def cumulativeMP(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Long = {
+    me.definedContribution
+  }
+
+  def cumulativeDB(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Long = {
+    me.definedBenefit
+  }
+
+  def exceedingMPAA(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Long = {
+    if (me.isMPAAApplicable(contribution)) {
+      me.definedContribution - MPA
+    } else {
       0L
-    } else {
-      me.period1UnusedAllowance
     }
   }
 
-  def aaCCF(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Long = {
-    val definedContribution = amountsCalculator.definedContribution
-    val period1UnusedAllowance = me.period1UnusedAllowance
-    if (MPA > me.definedContribution) {
-      val period1MPAA = previousPeriods.filter(_.dbist != 0).headOption.map(_.moneyPurchaseAA).getOrElse(0L)
-      if (period1MPAA > 0 ) {
-        period1UnusedAllowance - (period1MPAA - definedContribution)
-      } else {
-        period1UnusedAllowance - (MPA - definedContribution)
-      }
+  def exceedingAAA(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Long = {
+    if (me.isMPAAApplicable(contribution)) {
+      (me.definedBenefit - AAA).max(0)
     } else {
-      if (me.definedContribution >= AAA) {
-        0
-      } else {
-        period1UnusedAllowance
-      }
+      0L
     }
   }
 
-  def summary(implicit previousPeriods:Seq[SummaryResult], contribution: Contribution): Option[SummaryResult] = {
-    Some(SummaryResult(me.chargableAmount, 
-                       me.exceedingAllowance, 
-                       me.annualAllowance, 
-                       me.unusedAllowance, 
-                       me.aaCF, 
-                       me.aaCCF, 
-                       0L,
-                       Some(AdditionalFields(
-                       me.moneyPurchaseAA,
-                       me.alternativeAA,
-                       me.dbist,
-                       me.mpist,
-                       me.alternativeChargableAmount,
-                       me.defaultChargableAmount,
-                       contribution.amounts.get.triggered.getOrElse(false)))))
+  def unusedAAA(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Long = {
+    if (me.alternativeChargableAmount > me.defaultChargableAmount) {
+      if (me.definedBenefit > AAA) {
+        0L
+      } else {
+        val v = AAA - me.definedBenefit
+        if (v > 3000000L) {
+          3000000L
+        } else {
+          AAA - me.definedBenefit
+        }
+      }
+    } else {
+      0L
+    }
+  }
+
+  def unusedMPAA(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Long = {
+    if (me.definedContribution < MPA) {
+      val v = MPA - me.definedContribution
+      if (v > 1000000L) {
+        1000000L
+      } else {
+        v
+      }
+    } else {
+      0L
+    }
+  }
+
+  def summary(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Option[Summary] = {
+    if (!contribution.isTriggered) {
+      Group1P2Calculator(amountsCalculator).summary.map {
+        (s)=>
+        Group2Fields(chargableAmount=s.chargableAmount,
+                     exceedingAAAmount=s.exceedingAAAmount,
+                     availableAllowance=s.availableAllowance,
+                     unusedAllowance=s.unusedAllowance,
+                     availableAAWithCF=s.availableAAWithCF,
+                     availableAAWithCCF=s.availableAAWithCCF,
+                     dbist = me.dbist)
+      }
+    } else {
+      Some(Group2Fields(me.chargableAmount,
+                        me.exceedingAllowance,
+                        me.annualAllowance,
+                        me.unusedAllowance,
+                        me.aaCF,
+                        me.aaCCF,
+                        0L,
+                        me.moneyPurchaseAA,
+                        me.alternativeAA,
+                        me.dbist,
+                        me.mpist,
+                        me.alternativeChargableAmount,
+                        me.defaultChargableAmount,
+                        me.cumulativeMP,
+                        me.cumulativeDB,
+                        me.exceedingMPAA,
+                        me.exceedingAAA,
+                        me.unusedAAA,
+                        me.unusedMPAA))
+    }
   }
 }
-*/

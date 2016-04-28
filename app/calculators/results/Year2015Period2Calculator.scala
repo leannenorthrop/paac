@@ -32,7 +32,7 @@ object Year2015Period2Calculator extends calculators.AllowanceCalculator {
       if (contribution.isGroup1()) {
         Group1P2Calculator(amountsCalculator).summary
       } else if (contribution.isGroup2) {
-        None //Group2P2Calculator(amountsCalculator).summary
+        Group2P2Calculator(amountsCalculator).summary
       } else None
     } else None
   }
