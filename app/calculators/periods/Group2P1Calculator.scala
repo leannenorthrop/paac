@@ -147,8 +147,8 @@ case class Group2P1Calculator(amountsCalculator: BasicCalculator) extends Period
   }
 
   def aaCCF(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution): Long = {
-    val definedBenefit = amountsCalculator.definedBenefit
-    val annualAllowance = amountsCalculator.annualAllowance
+    val definedBenefit = me.definedBenefit
+    val annualAllowance = AA
     val previous3YearsUnusedAllowance = me.previous3YearsUnusedAllowance
     if (definedBenefit >= annualAllowance) {
       (annualAllowance + previous3YearsUnusedAllowance - definedBenefit).max(0)
