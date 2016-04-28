@@ -37,7 +37,7 @@ case class Group2P1Calculator(amountsCalculator: BasicCalculator) extends Period
       if (!contribution.isTriggered)
         amounts.definedBenefit.getOrElse(0L) + amounts.moneyPurchase.getOrElse(0L)
       else {
-        val db = previousPeriods.headOption.map(_.input.amounts.get.moneyPurchase.getOrElse(0L)).getOrElse(0L)
+        val db = previousPeriods.headOption.map(_.input.amounts.get.definedBenefit.getOrElse(0L)).getOrElse(0L)
         amounts.definedBenefit.getOrElse(0L) + db
       }
     }.getOrElse(0L)
@@ -98,20 +98,10 @@ case class Group2P1Calculator(amountsCalculator: BasicCalculator) extends Period
 
   def exceedingAllowance(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution): Long = {
     if (me.isMPAAApplicable(contribution)) {
-      if (me.alternativeChargableAmount > me.defaultChargableAmount) {
-        if (me.definedBenefit > AAA) {
-          0L
-        } else {
-          val aaa = AAA - me.definedBenefit
-          if (aaa > 3000000L) {
-            3000000L
-          } else {
-            0L
-          }
-        }
+      if (me.definedBenefit + me.definedContribution > AA) {
+        0L
       } else {
-        // TODO AAA
-        -1L
+        (AA - (me.definedBenefit + me.definedContribution)).min(MAX_CF)
       }
     } else {
       amountsCalculator.exceedingAllowance
@@ -127,10 +117,14 @@ case class Group2P1Calculator(amountsCalculator: BasicCalculator) extends Period
   }
 
   def unusedAllowance(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution): Long = {
-    if (me.definedBenefit > AA) {
+    if (me.isMPAAApplicable(contribution)) {
       0L
     } else {
-      (AA - me.definedBenefit).min(MAX_CF)
+      if (me.definedBenefit > AA) {
+        0L
+      } else {
+        (AA - me.definedBenefit).min(MAX_CF)
+      }
     }
   }
 
@@ -142,7 +136,6 @@ case class Group2P1Calculator(amountsCalculator: BasicCalculator) extends Period
     } else {
       amountsCalculator.chargableAmount
     }
-    0L
   }
 
   def aaCF(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution): Long = {
@@ -178,7 +171,7 @@ case class Group2P1Calculator(amountsCalculator: BasicCalculator) extends Period
 
   def exceedingAAA(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Long = {
     if (me.isMPAAApplicable(contribution)) {
-      me.definedBenefit - AAA
+      (me.definedBenefit - AAA).max(0)
     } else {
       0L
     }
