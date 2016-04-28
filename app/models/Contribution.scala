@@ -108,7 +108,7 @@ case class Contribution(taxPeriodStart: TaxPeriod, taxPeriodEnd: TaxPeriod, amou
   }
 
   def isGroup2(): Boolean = {
-    amounts.isDefined && ((isPeriod1() || isPeriod2()) && (amounts.get.triggered.getOrElse(false) || amounts.get.moneyPurchase != None))
+    amounts.isDefined && (isPeriod1() && amounts.get.triggered.getOrElse(false) || amounts.get.moneyPurchase != None)
   }
 
   def isTriggered(): Boolean = {
