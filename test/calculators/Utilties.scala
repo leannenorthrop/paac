@@ -53,7 +53,7 @@ object Utilities {
   }
 
   def toString(results: Seq[TaxYearResults]): String = {
-    val headings = List("Year","DB","MP","Chargable","Exceeding AA", "AA", "Unused Allow", "AACF", "CCF","ACA","DCA").map((h)=>f"${h}%12s").mkString(" ")
+    val headings = List("Year","DB","MP","Chargable",">AA", "AA", "Unused AA", "AACF", "CCF","DBIST","MPIST","ACA","DCA",">MPAA",">AAA","Unused AAA", "Unused MPAA").map((h)=>f"${h}%10s").mkString(" ")
     var message: String = f"\n${headings}\n"
     results.foreach {
       (result)=>
@@ -68,7 +68,7 @@ object Utilities {
             result.summaryResult.availableAAWithCCF,
             0L,
             0L
-            ).map(_ / 100.00).map((v)=>f"${v}%12.2f").mkString(" ")
+            ).map(_ / 100.00).map((v)=>f"${v}%10.2f").mkString(" ")
       } else {
         val v = result.summaryResult.asInstanceOf[Group2Fields]
         List(result.input.amounts.get.definedBenefit.get,
@@ -79,11 +79,17 @@ object Utilities {
             v.unusedAllowance,
             v.availableAAWithCF,
             v.availableAAWithCCF,
+            v.dbist,
+            v.mpist,
             v.alternativeChargableAmount,
-            v.defaultChargableAmount
-            ).map(_ / 100.00).map((v)=>f"${v}%12.2f").mkString(" ")
+            v.defaultChargableAmount,
+            v.exceedingMPAA,
+            v.exceedingAAA,
+            v.unusedAAA,
+            v.unusedMPAA
+            ).map(_ / 100.00).map((v)=>f"${v}%10.2f").mkString(" ")
       }
-      message += f"${result.input.label}%-12s ${values}\n"
+      message += f"${result.input.label}%-10s ${values}\n"
     }
     message += "\n\n"
     message
