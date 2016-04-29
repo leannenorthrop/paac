@@ -23,9 +23,17 @@ import play.api.libs.json._
 import java.util.GregorianCalendar
 
 sealed trait CalculationParam
-sealed trait PensionCalculatorValue
+sealed trait PensionCalculatorValue {
+  def isEmpty(): Boolean
+  def definedBenefit():  Option[Long]
+  def moneyPurchase():  Option[Long]
+  def income(): Option[Long]
+}
 
-case class InputAmounts(definedBenefit: Option[Long] = None, moneyPurchase: Option[Long] = None, income: Option[Long] = None) extends PensionCalculatorValue {
+case class InputAmounts(definedBenefit: Option[Long] = None, 
+                        moneyPurchase: Option[Long] = None, 
+                        income: Option[Long] = None,
+                        triggered: Option[Boolean] = None) extends PensionCalculatorValue {
   def isEmpty() : Boolean = {
     definedBenefit == None && moneyPurchase == None && income == None
   }
@@ -46,6 +54,17 @@ case class Contribution(taxPeriodStart: TaxPeriod, taxPeriodEnd: TaxPeriod, amou
       s"2015/16 P1"  
     } else {
       s"${taxPeriodStart.year}/${taxPeriodEnd.year.toString().drop(2)}"
+    }
+  }
+
+  def label() : String = {
+    val beforeAfter = if (amounts.getOrElse(InputAmounts()).triggered.getOrElse(false)) "A" else "B"
+    if (taxPeriodStart.year == 2015 && taxPeriodStart.month == 6) {
+      s"15/16 P2 $beforeAfter"  
+    } else if (taxPeriodStart.year == 2015 && taxPeriodStart.month == 3) {
+      s"15/16 P1 $beforeAfter"  
+    } else {
+      s"${taxPeriodStart.year.toString().drop(2)}/${taxPeriodEnd.year.toString().drop(2)}   "
     }
   }
   
@@ -84,7 +103,16 @@ case class Contribution(taxPeriodStart: TaxPeriod, taxPeriodEnd: TaxPeriod, amou
   }
 
   def isGroup1(): Boolean = {
-    amounts.isDefined && (amounts.get.definedBenefit != None || (taxPeriodStart.year < 2015 && amounts.get.moneyPurchase != None))
+    amounts.isDefined && (taxPeriodStart.year < 2015 && !amounts.isEmpty ||
+                          ((isPeriod1() || isPeriod2()) && amounts.get.moneyPurchase == None))
+  }
+
+  def isGroup2(): Boolean = {
+    amounts.isDefined && (isPeriod1() && amounts.get.triggered.getOrElse(false) || amounts.get.moneyPurchase != None)
+  }
+
+  def isTriggered(): Boolean = {
+    amounts.map(_.triggered.getOrElse(false)).getOrElse(false)
   }
 }
 
@@ -121,25 +149,27 @@ object InputAmounts {
   implicit val inputAmountsWrites: Writes[InputAmounts] = (
     (JsPath \ "definedBenefit").write[Option[Long]] and
     (JsPath \ "moneyPurchase").write[Option[Long]] and
-    (JsPath \ "income").write[Option[Long]]
+    (JsPath \ "income").write[Option[Long]] and
+    (JsPath \ "triggered").write[Option[Boolean]]
   )(unlift(InputAmounts.unapply))
 
   implicit val inputAmountsReads: Reads[InputAmounts] = (
     (JsPath \ "definedBenefit").readNullable[Long](min(0L)) and
     (JsPath \ "moneyPurchase").readNullable[Long](min(0L)) and
-    (JsPath \ "income").readNullable[Long](min(0L))
-  )(InputAmounts.apply(_: Option[Long], _: Option[Long], _: Option[Long]))
+    (JsPath \ "income").readNullable[Long](min(0L)) and
+    (JsPath \ "triggered").readNullable[Boolean]
+  )(InputAmounts.apply(_: Option[Long], _: Option[Long], _: Option[Long], _: Option[Boolean]))
 
   def apply(definedBenefit: Long, moneyPurchase: Long, income: Long) : InputAmounts = {
-    InputAmounts(Some(definedBenefit), Some(moneyPurchase), Some(income))
+    InputAmounts(Some(definedBenefit), Some(moneyPurchase), Some(income), None)
   }
 
   def apply(definedBenefit: Long, moneyPurchase: Long) : InputAmounts = {
-    InputAmounts(Some(definedBenefit), Some(moneyPurchase), None)
+    InputAmounts(Some(definedBenefit), Some(moneyPurchase), None, None)
   }
 
   def apply(definedBenefit: Long) : InputAmounts = {
-    InputAmounts(Some(definedBenefit), None, None)
+    InputAmounts(Some(definedBenefit), None, None, None)
   }
 }
 
@@ -159,5 +189,10 @@ object Contribution {
   def apply(year: Int, definedBenefit: Long) : Contribution = {
     // month is 0 based
     Contribution(TaxPeriod(year, 3, 6), TaxPeriod(year+1, 3, 5), Some(InputAmounts(definedBenefit)))
+  }
+
+  def apply(year: Int, amounts: Option[InputAmounts]) : Contribution = {
+    // month is 0 based
+    Contribution(TaxPeriod(year, 3, 6), TaxPeriod(year+1, 3, 5), amounts)
   }
 }

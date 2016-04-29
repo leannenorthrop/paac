@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package logic
+package calculators.results
 
 import play.api.Play
 import play.api.test.FakeApplication
@@ -46,9 +46,9 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
       val contribution5 = Contribution(2013, 1000000)
     }
 
-  "BasicAmountsCalculator" should {
-    val calculator = BasicAmountsCalculator(100)
-    calculator.definedBenefit(Seq[SummaryResult](), Contribution(TaxPeriod(2014,3,5), TaxPeriod(2015,3,6), None)) shouldBe 0
+  "BasicCalculator" should {
+    val calculator = calculators.results.BasicCalculator(100)
+    calculator.summary(Seq[TaxYearResults](), Contribution(TaxPeriod(2014,3,5), TaxPeriod(2015,3,6), None)) shouldBe None
   }
 
   "Pre2014Calculator" should {
@@ -131,7 +131,7 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
 
       forAll(invalidContributions) { (contribution: Contribution) =>
         whenever (contribution.taxPeriodStart.year < 2006) {
-          val results = Pre2014Calculator.summary(Seq[SummaryResult](), contribution)
+          val results = Pre2014Calculator.summary(Seq[TaxYearResults](), contribution)
           results shouldBe None
         }
       }
@@ -144,7 +144,7 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
 
       forAll(validContributions) { (contribution: Contribution) =>
         whenever (contribution.taxPeriodStart.year < 2015 && contribution.taxPeriodStart.year > 2005) {
-          val results = Pre2014Calculator.summary(Seq[SummaryResult](), contribution)
+          val results = Pre2014Calculator.summary(Seq[TaxYearResults](), contribution)
           results should not be None
         }
       }
@@ -155,7 +155,7 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
       val contribution = Contribution(TaxPeriod(2010,3,5),TaxPeriod(2011,3,6), None)
 
       // test
-      val results = Pre2014Calculator.summary(Seq[SummaryResult](), contribution)
+      val results = Pre2014Calculator.summary(Seq[TaxYearResults](), contribution)
 
       // check it
       results shouldBe None
@@ -166,7 +166,7 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
       val contribution = Contribution(TaxPeriod(2010,3,5),TaxPeriod(2011,3,6), Some(InputAmounts(None,None)))
 
       // test
-      val results = Pre2014Calculator.summary(Seq[SummaryResult](), contribution)
+      val results = Pre2014Calculator.summary(Seq[TaxYearResults](), contribution)
 
       // check it
       results shouldBe None
@@ -174,7 +174,7 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
 
     "return some results for contributions" in new ZeroContributionFixture {
       // do it
-      val results = Pre2014Calculator.summary(Seq[SummaryResult](), contribution)
+      val results = Pre2014Calculator.summary(Seq[TaxYearResults](), contribution)
 
       // check it
       results shouldBe Some(SummaryResult(-1,0,5000000,5000000,5000000,5000000,0))
@@ -182,7 +182,7 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
 
     "return amount exceeding Annual Allowance of 0 for values under 5000000" in new ContributionPre2014Fixture {
       // do it
-      val result = Pre2014Calculator.summary(Seq[SummaryResult](), contribution1).get
+      val result = Pre2014Calculator.summary(Seq[TaxYearResults](), contribution1).get
 
       // check it
       result.exceedingAAAmount shouldBe 0
@@ -190,7 +190,7 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
 
     "return amount chargable amount of -1 for values under 5000000" in new ContributionPre2014Fixture {
       // do it
-      val result = Pre2014Calculator.summary(Seq[SummaryResult](), contribution1).get
+      val result = Pre2014Calculator.summary(Seq[TaxYearResults](), contribution1).get
 
       // check it
       result.chargableAmount shouldBe -1
@@ -198,7 +198,7 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
 
     "return amount chargable amount of 0 for values under 5000000" in new ContributionPre2014Fixture {
       // do it
-      val result = Pre2014Calculator.summary(Seq[SummaryResult](), Contribution(2013, 500000)).get
+      val result = Pre2014Calculator.summary(Seq[TaxYearResults](), Contribution(2013, 500000)).get
 
       // check it
       result.chargableAmount shouldBe 0
@@ -206,7 +206,7 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
 
     "return amount chargable amount of non-0 for values over 5000000" in new ContributionPre2014Fixture {
       // do it
-      val result = Pre2014Calculator.summary(Seq[SummaryResult](SummaryResult(),SummaryResult(),SummaryResult()), Contribution(2011, 5500000)).get
+      val result = Pre2014Calculator.summary(Seq[TaxYearResults](TaxYearResults(),TaxYearResults(),TaxYearResults()), Contribution(2011, 5500000)).get
 
       // check it
       result.chargableAmount shouldBe 500000
@@ -214,7 +214,7 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
 
     "return amount exceeding Annual Allowance of non-0 for values over 5000000" in new ContributionPre2014Fixture {
       // do it
-      val result = Pre2014Calculator.summary(Seq[SummaryResult](SummaryResult(),SummaryResult(),SummaryResult()), Contribution(2011, 5500000)).get
+      val result = Pre2014Calculator.summary(Seq[TaxYearResults](TaxYearResults(),TaxYearResults(),TaxYearResults()), Contribution(2011, 5500000)).get
 
       // check it
       result.exceedingAAAmount shouldBe 500000
@@ -222,7 +222,7 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
 
     "return available allowance of 5000000" in new ContributionPre2014Fixture {
       // do it
-      val result = Pre2014Calculator.summary(Seq[SummaryResult](), contribution1).get
+      val result = Pre2014Calculator.summary(Seq[TaxYearResults](), contribution1).get
 
       // check it
       result.availableAllowance shouldBe 5000000
@@ -230,7 +230,7 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
 
     "return unused allowance of 4400000" in new ContributionPre2014Fixture {
       // do it
-      val result = Pre2014Calculator.summary(Seq[SummaryResult](), contribution1).get
+      val result = Pre2014Calculator.summary(Seq[TaxYearResults](), contribution1).get
 
       // check it
       result.unusedAllowance shouldBe 4400000
@@ -245,7 +245,7 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
         whenever (contribution.taxPeriodStart.year < 2014 && contribution.taxPeriodStart.year > 2005) {
           // set up
           val ty = contribution.taxPeriodStart.year
-          val previous = List.tabulate(ty-2008)(n => SummaryResult(availableAllowance=5000000,unusedAllowance=5000000))
+          val previous = List.tabulate(ty-2008)(n => TaxYearResults(contribution, SummaryResult(availableAllowance=5000000,unusedAllowance=5000000)))
 
           // do test
           val results = Pre2014Calculator.summary(previous, contribution)
@@ -273,7 +273,7 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
                                    unusedAllowance = 4500000,
                                    availableAAWithCF = 5000000,
                                    availableAAWithCCF = 4500000)
-      val result = Pre2014Calculator.summary(Seq[SummaryResult](starting), contribution1).get
+      val result = Pre2014Calculator.summary(Seq[TaxYearResults](TaxYearResults(Contribution(2008,0),starting)), contribution1).get
 
       // check it
       result.chargableAmount shouldBe -1
@@ -289,7 +289,7 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
 
       forAll(invalidContributions) { (contribution: Contribution) =>
         whenever (contribution.amounts.get.definedBenefit.get < 0) {
-          Pre2014Calculator.summary(Seq[SummaryResult](), contribution) shouldBe None
+          Pre2014Calculator.summary(Seq[TaxYearResults](), contribution) shouldBe None
         }
       }
     }
@@ -299,7 +299,7 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
       val contribution = Contribution(TaxPeriod(2010,3,5),TaxPeriod(2011,3,6), Some(InputAmounts(None,Some(123L))))
 
       // test
-      val results = Pre2014Calculator.summary(Seq[SummaryResult](), contribution)
+      val results = Pre2014Calculator.summary(Seq[TaxYearResults](), contribution)
 
       // check it
       results shouldBe Some(SummaryResult(-1,0,5000000,4999877,5000000,4999877,0))

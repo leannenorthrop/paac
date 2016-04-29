@@ -20,67 +20,77 @@ import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json._
 
-sealed trait PensionResult
-sealed trait PensionCalculationResult extends PensionResult
+case class TaxYearResults(input: Contribution = Contribution(2008,0L),
+                          summaryResult: Summary = SummaryResult())
 
-case class TaxYearResults(input: Contribution,
-                          summaryResult: SummaryResult) extends PensionCalculationResult
+trait Summary {
+  def chargableAmount: Long
+  def exceedingAAAmount: Long
+  def availableAllowance: Long
+  def unusedAllowance: Long
+  def availableAAWithCF: Long    // total available allowance for current year should be renamed to totalAA
+  def availableAAWithCCF: Long   // available allowance carried forward to following year
+  def unusedAllowanceCF: Long
+}
+
 case class SummaryResult(chargableAmount: Long = 0,
                          exceedingAAAmount: Long = 0,
                          availableAllowance: Long = 0,
                          unusedAllowance: Long = 0,
                          availableAAWithCF: Long = 0,    // total available allowance for current year should be renamed to totalAA
                          availableAAWithCCF: Long = 0,   // available allowance carried forward to following year
-                         unusedAllowanceCF: Long = 0,
-                         moneyPurchaseAA: Long = 0,
-                         alternativeAA: Long = 0,
-                         dbist: Long = 0,
-                         mpist: Long = 0,
-                         alternativeChargableAmount: Long = 0,
-                         defaultChargableAmount: Long = 0) extends PensionCalculationResult
+                         unusedAllowanceCF: Long = 0) extends Summary
 
-object SummaryResult {
-  implicit val summaryResultWrites: Writes[SummaryResult] = (
+object Summary {
+  implicit val summaryResultWrites: Writes[Summary] = (
     (JsPath \ "chargableAmount").write[Long] and
     (JsPath \ "exceedingAAAmount").write[Long] and 
     (JsPath \ "availableAllowance").write[Long] and
     (JsPath \ "unusedAllowance").write[Long] and 
     (JsPath \ "availableAAWithCF").write[Long] and
     (JsPath \ "availableAAWithCCF").write[Long] and
-    (JsPath \ "unusedAllowanceCF").write[Long] and
-    (JsPath \ "moneyPurchaseAA").write[Long] and
-    (JsPath \ "alternativeAA").write[Long] and
-    (JsPath \ "dbist").write[Long] and
-    (JsPath \ "mpist").write[Long] and
-    (JsPath \ "alternativeChargableAmount").write[Long] and
-    (JsPath \ "defaultChargableAmount").write[Long]
-  )(unlift(SummaryResult.unapply))
+    (JsPath \ "unusedAllowanceCF").write[Long]
+  )(Summary.toTuple _ )
 
-  implicit val summaryResultReads: Reads[SummaryResult] = (
+  implicit val summaryResultReads: Reads[Summary] = (
     (JsPath \ "chargableAmount").read[Long] and
     (JsPath \ "exceedingAAAmount").read[Long] and
     (JsPath \ "availableAllowance").read[Long] and
     (JsPath \ "unusedAllowance").read[Long] and
     (JsPath \ "availableAAWithCF").read[Long] and
     (JsPath \ "availableAAWithCCF").read[Long] and
-    (JsPath \ "unusedAllowanceCF").read[Long] and 
-    (JsPath \ "moneyPurchaseAA").read[Long] and
-    (JsPath \ "alternativeAA").read[Long] and
-    (JsPath \ "dbist").read[Long] and
-    (JsPath \ "mpist").read[Long] and
-    (JsPath \ "alternativeChargableAmount").read[Long] and
-    (JsPath \ "defaultChargableAmount").read[Long]  
-  )(SummaryResult.apply _)
+    (JsPath \ "unusedAllowanceCF").read[Long]
+  )(Summary.toSummary _)
+
+  def toTuple(summary: Summary): (Long, Long, Long, Long, Long, Long, Long) = {
+    (summary.chargableAmount, summary.exceedingAAAmount, summary.availableAllowance, summary.unusedAllowance, summary.availableAAWithCF, summary.availableAAWithCCF, summary.unusedAllowanceCF)
+  }
+
+  def toSummary(chargableAmount: Long = 0,
+                exceedingAAAmount: Long = 0,
+                availableAllowance: Long = 0,
+                unusedAllowance: Long = 0,
+                availableAAWithCF: Long = 0,    // total available allowance for current year should be renamed to totalAA
+                availableAAWithCCF: Long = 0,   // available allowance carried forward to following year
+                unusedAllowanceCF: Long = 0): Summary = {
+    SummaryResult(chargableAmount,
+                  exceedingAAAmount,
+                  availableAllowance,
+                  unusedAllowance,
+                  availableAAWithCF,
+                  availableAAWithCCF,
+                  unusedAllowanceCF)
+  }
 }
 
 object TaxYearResults {
   implicit val summaryWrites: Writes[TaxYearResults] = (
     (JsPath \ "input").write[Contribution] and
-    (JsPath \ "summaryResult").write[SummaryResult]
+    (JsPath \ "summaryResult").write[Summary] 
   )(unlift(TaxYearResults.unapply))
 
   implicit val summaryReads: Reads[TaxYearResults] = (
     (JsPath \ "input").read[Contribution] and
-    (JsPath \ "summaryResult").read[SummaryResult]
+    (JsPath \ "summaryResult").read[Summary]
   )(TaxYearResults.apply _)
 }

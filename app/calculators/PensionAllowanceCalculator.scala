@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package logic
+package calculators
 
 import models._
 
@@ -24,7 +24,9 @@ trait PensionAllowanceCalculator {
     def sortByYearAndPeriod(left: Contribution, right: Contribution): Boolean = {
       if (left.taxPeriodStart.year == right.taxPeriodStart.year &&
           left.taxPeriodStart.year == 2015) {
-        left.isPeriod1 && right.isPeriod2
+        left.isPeriod1 && right.isPeriod2 || 
+        (left.isPeriod1 && right.isPeriod1 && !left.amounts.get.triggered.get) ||
+        (left.isPeriod2 && right.isPeriod2 && !left.amounts.get.triggered.get)
       } else {  
         left.taxPeriodStart.year < right.taxPeriodStart.year
       }
@@ -52,7 +54,6 @@ trait PensionAllowanceCalculator {
           (if (contribution.isEmpty) contribution.copy(amounts=Some(InputAmounts(0,0))) else contribution) :: lst
         } else { generatePeriod1And2Contributions(inputsByTaxYear, lst) }
     }
-
     allContributions.sortWith(sortByYearAndPeriod _)
   }
 
@@ -62,9 +63,9 @@ trait PensionAllowanceCalculator {
     val results = provideMissingYearContributions(contributions).foldLeft(List[TaxYearResults]()) {
       (lst, contribution) =>
 
-      val calculator = CalculatorFactory.get(contribution)
-      val maybeSummary = calculator.map(_.summary(lst.map(_.summaryResult), contribution).getOrElse(SummaryResult()))
-      val summary: SummaryResult = maybeSummary.getOrElse(SummaryResult())
+      val maybeCalculator = CalculatorFactory.get(contribution)
+      val maybeSummary = maybeCalculator.map(_.summary(lst, contribution)).getOrElse(None)
+      val summary: Summary = maybeSummary.getOrElse(SummaryResult())
       
       TaxYearResults(contribution, summary) :: lst
     }.dropWhile(_.input.taxYearLabel > inputsByTaxYear.keys.max).toList.reverse
