@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package logic
+package calculators.results
 
 import play.api.Play
 import play.api.test.FakeApplication
@@ -115,7 +115,7 @@ class Year2015Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropert
       forAll(invalidContributions) { (contribution: Contribution) =>
         whenever (contribution.taxPeriodStart.year != 2015 ||
                   contribution.taxPeriodStart.year != 2016) { 
-          val results = Year2015Period2Calculator.summary(Seq[SummaryResult](), contribution)
+          val results = Year2015Period2Calculator.summary(Seq[TaxYearResults](), contribution)
           results shouldBe None 
         }
       }
@@ -136,7 +136,7 @@ class Year2015Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropert
                                         Some(InputAmounts(5000L)))
 
         // do it
-        val results = Year2015Period2Calculator.summary(Seq[SummaryResult](), contribution)  
+        val results = Year2015Period2Calculator.summary(Seq[TaxYearResults](), contribution)  
 
         // check it
         // With no previous inputs as period 2 has no allowance then exceeding is same as defined benefit input
@@ -163,18 +163,19 @@ class Year2015Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropert
 
         forAll(validContributions) { (contribution: Contribution) =>
           whenever (contribution.amounts.get.definedBenefit.get < 4000000) { 
-            val resultsP1 = Year2015Period1Calculator.summary(Seq[SummaryResult](), Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END,Some(InputAmounts(0L,0L)))).get
-            val results = Year2015Period2Calculator.summary(Seq(resultsP1), contribution)
+            val resultsP1 = Year2015Period1Calculator.summary(Seq[TaxYearResults](), Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END,Some(InputAmounts(0L)))).get
+            val results = Year2015Period2Calculator.summary(Seq(TaxYearResults(contribution, resultsP1)), contribution)
             results.get.chargableAmount shouldBe 0 
           }
         }
       }
 
       "return correct amount of 0 chargable amount for value of 4000000" in {
-        val resultsP1 = Year2015Period1Calculator.summary(Seq[SummaryResult](), Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END,Some(InputAmounts(0L,0L)))).get
-        val results = Year2015Period2Calculator.summary(Seq(resultsP1), Contribution(TaxPeriod.PERIOD_2_2015_START, 
-                                                                                     TaxPeriod.PERIOD_2_2015_END,
-                                                                                     Some(InputAmounts(4000000L))))
+        val c = Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END,Some(InputAmounts(0L)))
+        val resultsP1 = Year2015Period1Calculator.summary(Seq[TaxYearResults](), c).get
+        val results = Year2015Period2Calculator.summary(Seq(TaxYearResults(c, resultsP1)), Contribution(TaxPeriod.PERIOD_2_2015_START, 
+                                                                                                        TaxPeriod.PERIOD_2_2015_END,
+                                                                                                        Some(InputAmounts(4000000L))))
         results.get.chargableAmount shouldBe 0 
       }
 
@@ -185,8 +186,8 @@ class Year2015Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropert
 
         forAll(validContributions) { (contribution: Contribution) =>
           whenever (contribution.amounts.get.definedBenefit.get > 4000000) { 
-            val resultsP1 = Year2015Period1Calculator.summary(Seq[SummaryResult](), Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END,Some(InputAmounts(4000000L,0L)))).get
-            val results = Year2015Period2Calculator.summary(Seq(resultsP1), contribution)
+            val resultsP1 = Year2015Period1Calculator.summary(Seq[TaxYearResults](), Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END,Some(InputAmounts(4000000L)))).get
+            val results = Year2015Period2Calculator.summary(Seq(TaxYearResults(contribution,resultsP1)), contribution)
             results.get.chargableAmount should not be 0 
             val db = contribution.amounts.get.definedBenefit.get
             results.get.chargableAmount shouldBe (db - 4000000L).max(0) 
@@ -195,7 +196,7 @@ class Year2015Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropert
       }
 
       "return correct amount of 0 unused allowance for value of 4000000" in {
-        val results = Year2015Period2Calculator.summary(Seq[SummaryResult](), Contribution(TaxPeriod.PERIOD_2_2015_START, 
+        val results = Year2015Period2Calculator.summary(Seq[TaxYearResults](), Contribution(TaxPeriod.PERIOD_2_2015_START, 
                                                                                            TaxPeriod.PERIOD_2_2015_END,
                                                                                            Some(InputAmounts(4000000L))))
         results.get.unusedAllowance shouldBe 0 
@@ -208,7 +209,7 @@ class Year2015Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropert
 
         forAll(validContributions) { (contribution: Contribution) =>
           whenever (contribution.amounts.get.definedBenefit.get > 4000000) { 
-            val results = Year2015Period2Calculator.summary(Seq[SummaryResult](), contribution)
+            val results = Year2015Period2Calculator.summary(Seq[TaxYearResults](), contribution)
             results.get.unusedAllowance shouldBe 0  
           }
         }
@@ -216,9 +217,9 @@ class Year2015Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropert
 
       "return None when defined benefit is None" in {
         // do it
-        val results = Year2015Period2Calculator.summary(Seq[SummaryResult](), Contribution(TaxPeriod.PERIOD_2_2015_START, 
+        val results = Year2015Period2Calculator.summary(Seq[TaxYearResults](), Contribution(TaxPeriod.PERIOD_2_2015_START, 
                                                                                            TaxPeriod.PERIOD_2_2015_END,
-                                                                                           Some(InputAmounts(None, None))))
+                                                                                           Some(InputAmounts(None, None, None))))
         // check it
         results shouldBe None
       }

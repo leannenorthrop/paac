@@ -17,7 +17,7 @@
 package controllers
 
 import models._
-import logic._
+import calculators.PensionAllowanceCalculator
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import play.api.mvc._

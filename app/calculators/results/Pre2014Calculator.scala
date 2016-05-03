@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 
-package logic
+package calculators.results
 
 import config.PaacConfiguration
 import models._
 import java.util._
 
-object Year2014Calculator extends BasicCalculator {
-  protected def getAnnualAllowanceInPounds: Long = PaacConfiguration.config.flatMap[Long](_.getLong("annualallowances.Year2014Calculator")).getOrElse(50000L)
-  protected val amountsCalculator: BasicAmountsCalculator = BasicAmountsCalculator(getAnnualAllowanceInPounds)
-  protected val PERIOD_START_AFTER = new GregorianCalendar(2014, 3, 5)
-  protected val PERIOD_END_BEFORE = new GregorianCalendar(2015, 3, 6)
+object Pre2014Calculator extends BasicAllowanceCalculator with calculators.AllowanceCalculator {
+  protected def getAnnualAllowanceInPounds: Long =
+    PaacConfiguration.config.flatMap[Long](_.getLong("annualallowances.Pre2014Calculator")).getOrElse(50000L)
 
-  def isSupported(contribution:Contribution):Boolean = {
+  def isSupported(contribution:Contribution): Boolean = {
     val start = contribution.taxPeriodStart.toCalendar
     val end = contribution.taxPeriodEnd.toCalendar
-    start.after(PERIOD_START_AFTER) && start.before(PERIOD_END_BEFORE) && end.after(PERIOD_START_AFTER) && end.before(PERIOD_END_BEFORE)
+    val periodStartAfter = new GregorianCalendar(2006, 3, 5)
+    val periodEndBefore = new GregorianCalendar(2014, 3, 6)
+    start.after(periodStartAfter) && start.before(periodEndBefore) && end.after(periodStartAfter) && end.before(periodEndBefore)
   }
 }

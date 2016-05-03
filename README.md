@@ -38,6 +38,12 @@ of the format:
 ]
 ```
 
+### CURL Example
+
+```
+curl -H "Content-Type: application/json" -d '[{"taxPeriodStart":{"year":2014,"month":3,"day":6},"taxPeriodEnd":{"year":2015,"month":3,"day":5}, "amounts":{"definedBenefit":3000,"moneyPurchase":0}},{"taxPeriodStart":{"year":2013,"month":3,"day":6},"taxPeriodEnd":{"year":2014,"month":3,"day":5}, "amounts":{"definedBenefit":8000,"moneyPurchase":0}}]' -X POST -vvvv http://127.0.0.1:9443/paac/calculate
+```
+
 ### Peculiarities
 The only peculiarity in this data format is that the month is 0 based with 0 being January, 1 being Feburary and so on
 to match Java's [GregorianCalendar](https://docs.oracle.com/javase/7/docs/api/index.html?java/util/GregorianCalendar.html) class.
