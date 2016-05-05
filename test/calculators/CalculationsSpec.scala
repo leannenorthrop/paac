@@ -54,14 +54,18 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
     Utilities.assertResults(table, results, false)
     if (print) info(Utilities.toString(results))
   }
-  
-  def doGroup2Test(table: String, print: Boolean = false): Unit = {
+
+  def group2Contributions(table: String): List[Contribution] = {
     val years = table.split('\n').drop(1).toList.map(_.split('|').toList(0).trim)
     val definedBenefit = table.split('\n').drop(1).toList.map(_.split('|').toList(1).trim.toLong)
     val moneyPurchase = table.split('\n').drop(1).toList.map(_.split('|').toList(2).trim.toLong)
     val isTriggered = table.split('\n').drop(1).toList.map(_.split('|').toList(3).trim.toBoolean)
-    val inputs = Map(years.zip((definedBenefit,moneyPurchase,isTriggered).zipped.toList): _*)
-    val results = PensionAllowanceCalculator.calculateAllowances(Utilities.generateDBandMPContributions(inputs))
+    val inputs = Map(years.zip((definedBenefit,moneyPurchase,isTriggered).zipped.toList): _*)    
+    Utilities.generateDBandMPContributions(inputs)
+  }  
+
+  def doGroup2Test(table: String, print: Boolean = false): Unit = {
+    val results = PensionAllowanceCalculator.calculateAllowances(group2Contributions(table))
     if (print) info(Utilities.toString(results))
     Utilities.assertResults(table, results, false)
   }
@@ -984,6 +988,21 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :""".stripMargin(':')
         doGroup2Test(table)
       }
+
+      /*"a test" in {
+        val table = """:year    | Defined Benefit | Money Purchase  | Is Triggered | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward | MPAA 
+                       :2012    | 49000           | 0               | false        | 0                   | 0                | 200000                     | 1000         | 101000                   | 0
+                       :2013    | 48000           | 0               | false        | 0                   | 0                | 151000                     | 2000         | 53000                    | 0
+                       :2014    | 35000           | 0               | false        | 0                   | 0                | 93000                      | 5000         | 8000                     | 0
+                       :""".stripMargin(':')
+        val l = List(Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod(2015, 5, 31), Some(InputAmounts(1L, 2L))), 
+                     Contribution(TaxPeriod(2015, 6, 1), TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(3L), Some(4L), Some(0L), Some(true)))), 
+                     Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(5L), Some(6L), Some(0L), Some(true)))))
+        val c = group2Contributions(table) ++ l
+        val results = PensionAllowanceCalculator.calculateAllowances(c)
+        info(Utilities.toString(results))
+        Utilities.assertResults(table, results, false)
+      }*/
     }
   }
 }
