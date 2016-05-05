@@ -82,7 +82,7 @@ Not supported yet but will look like this:
 {
 "taxPeriodStart": {"year": 2015, "month": 4, "day": 1},
  "taxPeriodEnd": {"year": 2015, "month": 6, "day": 8},
- "amounts":{"definedBenefit":3000,"moneyPurchase":11000,"income":0,"triggered":true}
+ "amounts":{"definedBenefit":0,"moneyPurchase":13450,"income":0,"triggered":true}
 },
 {
 "taxPeriodStart": {"year": 2015, "month": 6, "day": 9},
