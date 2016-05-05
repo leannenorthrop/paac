@@ -21,22 +21,77 @@ either `sbt "run 9443"` or `sbt run -Dhttp.port=9443`
 
 You can use [curl](https://curl.haxx.se) to send JSON directly to the service.
 There is a single REST endpoint on http://127.0.0.1:9443/paac/calculate which expects a JSON array of objects
-of the format:
+of the format where amounts are in pence:
 
 ```
 [
 {
 "taxPeriodStart": {"year": 2013, "month": 3, "day": 6},
  "taxPeriodEnd": {"year": 2014, "month": 3, "day": 5},
- "amounts":{"definedBenefit":3000,"moneyPurchase":0}
+ "amounts":{"definedBenefit":300000,"moneyPurchase":0}
 },
 {
 "taxPeriodStart": {"year": 2014, "month": 3, "day": 6},
  "taxPeriodEnd": {"year": 2015, "month": 3, "day": 5},
- "amounts":{"definedBenefit":12000,"moneyPurchase":0}
+ "amounts":{"definedBenefit":1200000,"moneyPurchase":0}
 }
 ]
 ```
+
+## Trigger in Period 1 (Group 2)
+```
+[
+{
+"taxPeriodStart": {"year": 2015, "month": 3, "day": 6},
+ "taxPeriodEnd": {"year": 2015, "month": 6, "day": 8},
+ "amounts":{"definedBenefit":3000,"moneyPurchase":11000,"income":0,"triggered":true}
+},
+{
+"taxPeriodStart": {"year": 2015, "month": 6, "day": 9},
+ "taxPeriodEnd": {"year": 2016, "month": 3, "day": 5},
+ "amounts":{"definedBenefit":0,"moneyPurchase":12000,"income":0,"triggered":true}
+}
+]
+```
+
+## Trigger in Period 2 (Group 2)
+```
+[
+{
+"taxPeriodStart": {"year": 2015, "month": 3, "day": 6},
+ "taxPeriodEnd": {"year": 2015, "month": 6, "day": 8},
+ "amounts":{"definedBenefit":3000,"moneyPurchase":11000,"income":0,"triggered":false}
+},
+{
+"taxPeriodStart": {"year": 2015, "month": 6, "day": 9},
+ "taxPeriodEnd": {"year": 2016, "month": 3, "day": 5},
+ "amounts":{"definedBenefit":0,"moneyPurchase":12000,"income":0,"triggered":true}
+}
+]
+```
+
+## Trigger part-way through in Period 1 (Group 2)
+Not supported yet but will look like this:
+```
+[
+{
+"taxPeriodStart": {"year": 2015, "month": 3, "day": 6},
+ "taxPeriodEnd": {"year": 2015, "month": 3, "day": 31},
+ "amounts":{"definedBenefit":3000,"moneyPurchase":11000,"income":0,"triggered":false}
+},
+{
+"taxPeriodStart": {"year": 2015, "month": 4, "day": 1},
+ "taxPeriodEnd": {"year": 2015, "month": 6, "day": 8},
+ "amounts":{"definedBenefit":3000,"moneyPurchase":11000,"income":0,"triggered":true}
+},
+{
+"taxPeriodStart": {"year": 2015, "month": 6, "day": 9},
+ "taxPeriodEnd": {"year": 2016, "month": 3, "day": 5},
+ "amounts":{"definedBenefit":0,"moneyPurchase":12000,"income":0,"triggered":true}
+}
+]
+```
+
 
 ### CURL Example
 
