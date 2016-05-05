@@ -66,7 +66,6 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
     Utilities.assertResults(table, results, false)
   }
 
-/*
   "Group 1" should {
     "pre-2014" should {
       "return correct calculations when pension contributions are 0" in {
@@ -705,7 +704,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
       }
     }
   }
-*/
+
   "Group 2 calculators" should {
     "in Period 2" can {
       "do Scenario 14" in {
@@ -852,7 +851,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
         doGroup2Test(table)
       }
     }
-/*
+
     "in Period 1" can {
       "do Scenario 14" in {
         val table = """:year    | Defined Benefit | Money Purchase  | Is Triggered | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward | MPAA 
@@ -985,6 +984,6 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :""".stripMargin(':')
         doGroup2Test(table)
       }
-    }*/
+    }
   }
 }
