@@ -37,18 +37,31 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
       super.afterAll()
     } finally Play.stop()
   }
-    trait ContributionPre2014Fixture {
-      val contribution0 = Contribution(2008, 500000)
-      val contribution1 = Contribution(2009, 600000)
-      val contribution2 = Contribution(2010, 700000)
-      val contribution3 = Contribution(2011, 800000)
-      val contribution4 = Contribution(2012, 900000)
-      val contribution5 = Contribution(2013, 1000000)
-    }
+  
+  trait ContributionPre2014Fixture {
+    val contribution0 = Contribution(2008, 500000)
+    val contribution1 = Contribution(2009, 600000)
+    val contribution2 = Contribution(2010, 700000)
+    val contribution3 = Contribution(2011, 800000)
+    val contribution4 = Contribution(2012, 900000)
+    val contribution5 = Contribution(2013, 1000000)
+  }
 
   "BasicCalculator" should {
-    val calculator = calculators.results.BasicCalculator(100)
-    calculator.summary(Seq[TaxYearResults](), Contribution(TaxPeriod(2014,3,5), TaxPeriod(2015,3,6), None)) shouldBe None
+    "return None when no amounts given" in {
+      val calculator = calculators.results.BasicCalculator(100)
+      calculator.summary(Seq[TaxYearResults](), Contribution(TaxPeriod(2014,3,5), TaxPeriod(2015,3,6), None)) shouldBe None
+    }
+
+    "return 0 for defined benefit if no amounts given" in {
+      val calculator = calculators.results.BasicCalculator(100)
+      calculator.definedBenefit(Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, None)) shouldBe 0L
+    }
+
+    "return 0 for defined contribution if no amounts given" in {
+      val calculator = calculators.results.BasicCalculator(100)
+      calculator.definedContribution(Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, None)) shouldBe 0L
+    }
   }
 
   "Pre2014Calculator" should {

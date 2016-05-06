@@ -23,10 +23,15 @@ case class BasicCalculator(annualAllowanceInPounds: Long) extends calculators.Ca
 
   def definedBenefit(implicit contribution: Contribution): Long = {
     val amounts = contribution.amounts.getOrElse(InputAmounts())
-    if (contribution.taxPeriodStart.year < 2015)
+    val year = contribution.taxPeriodStart.year
+    if (year < 2015)
       amounts.definedBenefit.getOrElse(0L) + amounts.moneyPurchase.getOrElse(0L)
     else {
-      amounts.definedBenefit.getOrElse(0L)
+      if (year == 2015 && !contribution.isTriggered) {
+        amounts.definedBenefit.getOrElse(0L) + amounts.moneyPurchase.getOrElse(0L)
+      } else {
+        amounts.definedBenefit.getOrElse(0L)
+      }
     }
   }
 

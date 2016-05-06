@@ -59,9 +59,9 @@ case class Contribution(taxPeriodStart: TaxPeriod, taxPeriodEnd: TaxPeriod, amou
 
   def label() : String = {
     val beforeAfter = if (amounts.getOrElse(InputAmounts()).triggered.getOrElse(false)) "A" else "B"
-    if (taxPeriodStart.year == 2015 && taxPeriodStart.month == 6) {
+    if (isPeriod2) {
       s"15/16 P2 $beforeAfter"  
-    } else if (taxPeriodStart.year == 2015 && taxPeriodStart.month == 3) {
+    } else if (isPeriod1) {
       s"15/16 P1 $beforeAfter"  
     } else {
       s"${taxPeriodStart.year.toString().drop(2)}/${taxPeriodEnd.year.toString().drop(2)}   "
@@ -103,12 +103,11 @@ case class Contribution(taxPeriodStart: TaxPeriod, taxPeriodEnd: TaxPeriod, amou
   }
 
   def isGroup1(): Boolean = {
-    amounts.isDefined && (taxPeriodStart.year < 2015 && !amounts.isEmpty ||
-                          ((isPeriod1() || isPeriod2()) && amounts.get.moneyPurchase == None))
+    amounts.isDefined && !amounts.isEmpty && (taxPeriodStart.year < 2015 || ((isPeriod1() || isPeriod2()) && amounts.get.moneyPurchase == None))
   }
 
   def isGroup2(): Boolean = {
-    amounts.isDefined && (isPeriod1() && amounts.get.triggered.getOrElse(false) || amounts.get.moneyPurchase != None)
+    amounts.isDefined && !amounts.isEmpty && (isPeriod1() || isPeriod2()) && amounts.get.moneyPurchase != None
   }
 
   def isTriggered(): Boolean = {

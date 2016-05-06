@@ -90,7 +90,6 @@ class PensionAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
         val results = Test.test(contributions)
 
         // check
-
         Some(Seq(Contribution(2011,0L),Contribution(2012,0L),Contribution(2014,0L),Contribution(2014,0L)))
       }
 
@@ -102,8 +101,22 @@ class PensionAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
         val results = Test.test(contributions)
 
         // check
-
         Some(Seq(Contribution(2011,0L),Contribution(2012,0L),Contribution(2014,0L),Contribution(2014,0L)))
+      }
+
+      "return corrected sorted contributions" in {
+        // set up
+        val c1 = Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, Some(false))))
+        val c2 = Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, Some(true))))
+        val contributions = Seq(c2, c1)
+
+        // test
+        val results = Test.test(contributions)
+
+        // check
+        val r = results.reverse
+        r(0) shouldBe c2
+        r(1) shouldBe c1
       }
     }
   }

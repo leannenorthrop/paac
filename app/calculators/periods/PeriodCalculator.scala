@@ -22,15 +22,6 @@ trait PeriodCalculator extends calculators.Calculator {
   def previous3YearsUnusedAllowance()(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Long = previousPeriods.filter(_.input.taxPeriodStart.year < 2015).slice(0,3).foldLeft(0L)(_+_.summaryResult.unusedAllowance)
   def previous2YearsUnusedAllowance()(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Long = previousPeriods.filter(_.input.taxPeriodStart.year < 2015).slice(0,2).foldLeft(0L)(_+_.summaryResult.unusedAllowance)
 
-  def preFlexiSavings(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution): Long = {
-    val values = previousPeriods.filter((r)=> r.input.isTriggered == false && (r.input.isPeriod1() || r.input.isPeriod2())).map {
-      (row)=>
-      val amounts = row.input.amounts.getOrElse(InputAmounts())
-      amounts.definedBenefit.getOrElse(0L) + amounts.moneyPurchase.getOrElse(0L)
-    }
-    values.foldLeft(0L)( _ + _ )
-  }
-
   def definedContribution(implicit contribution:Contribution): Long = contribution.amounts.getOrElse(InputAmounts()).moneyPurchase.getOrElse(0L)
 }
 
