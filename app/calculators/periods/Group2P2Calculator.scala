@@ -25,29 +25,30 @@ case class Group2P2Calculator(amountsCalculator: BasicCalculator) extends Period
   val MPA = 10000 * 100L
   val AAA = 30000 * 100L
 
+  def period1(implicit previousPeriods:Seq[TaxYearResults]) = {
+    previousPeriods.headOption.map(_.summaryResult.asInstanceOf[Group2Fields]).getOrElse(Group2Fields())
+  }
+
   def isMPAAApplicable(implicit contribution: Contribution): Boolean = {
     me.definedContribution > MPA
   }
 
   def definedBenefit(): Long = 0L
 
-  def dbist(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution): Long = 0L
+  def dbist(): Long = 0L
 
   def mpist(implicit contribution:Contribution): Long = me.definedContribution
 
-  def moneyPurchaseAA(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution): Long = {
-    val period1 = previousPeriods.headOption.map(_.summaryResult.asInstanceOf[Group2Fields]).getOrElse(Group2Fields())
+  def moneyPurchaseAA(implicit previousPeriods:Seq[TaxYearResults]): Long = {
     period1.unusedMPAA
   }
 
-  def alternativeAA(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution): Long = {
-    val period1 = previousPeriods.headOption.map(_.summaryResult.asInstanceOf[Group2Fields]).getOrElse(Group2Fields())
+  def alternativeAA(implicit previousPeriods:Seq[TaxYearResults]): Long = {
     period1.unusedAAA
   }
 
   def alternativeChargableAmount(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution): Long = {
     if (me.isMPAAApplicable(contribution)) {
-      val period1 = previousPeriods.headOption.map(_.summaryResult.asInstanceOf[Group2Fields]).getOrElse(Group2Fields())
       (me.definedContribution - period1.unusedMPAA).max(0)
     } else {
       0L
@@ -56,7 +57,6 @@ case class Group2P2Calculator(amountsCalculator: BasicCalculator) extends Period
 
   def defaultChargableAmount(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution): Long = {
     val savings = me.mpist
-    val period1 = previousPeriods.headOption.map(_.summaryResult.asInstanceOf[Group2Fields]).getOrElse(Group2Fields())
     val period1ACA = period1.alternativeChargableAmount
     val period1AA = period1.unusedAllowance
     val period1AAA = period1.unusedAAA
@@ -76,17 +76,13 @@ case class Group2P2Calculator(amountsCalculator: BasicCalculator) extends Period
     }
   }
 
-  def exceedingAllowance(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution): Long = 0L
+  def exceedingAllowance(): Long = 0L
 
-  def annualAllowance(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution): Long = {
-    val period1 = previousPeriods.headOption.map(_.summaryResult.asInstanceOf[Group2Fields]).getOrElse(Group2Fields())
-    period1.unusedAllowance
-  }
+  def annualAllowance(implicit previousPeriods:Seq[TaxYearResults]): Long = period1.unusedAllowance
 
   def unusedAllowance(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution): Long = {
     val period1Amounts = previousPeriods.headOption.map(_.input.amounts.get).getOrElse(InputAmounts())
-    val period1 = previousPeriods.headOption.map(_.summaryResult.asInstanceOf[Group2Fields]).getOrElse(Group2Fields())
-    val period1DC = period1Amounts.moneyPurchase.get
+    val period1DC = period1Amounts.moneyPurchase.getOrElse(0L)
     val period2DC = me.definedContribution
     if (period1.unusedAAA > 0) {
       0L
@@ -109,10 +105,7 @@ case class Group2P2Calculator(amountsCalculator: BasicCalculator) extends Period
     }
   }
 
-  def aaCF(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution): Long = {
-    val period1 = previousPeriods.headOption.map(_.summaryResult.asInstanceOf[Group2Fields]).getOrElse(Group2Fields())
-    period1.availableAAWithCCF
-  }
+  def aaCF(implicit previousPeriods:Seq[TaxYearResults]): Long = period1.availableAAWithCCF
 
   def aaCCF(implicit previousPeriods: Seq[TaxYearResults], contribution:Contribution): Long = {
     val unused = me.unusedAllowance
@@ -124,12 +117,10 @@ case class Group2P2Calculator(amountsCalculator: BasicCalculator) extends Period
   }
 
   def cumulativeMP(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Long = {
-    val period1 = previousPeriods.headOption.map(_.summaryResult.asInstanceOf[Group2Fields]).getOrElse(Group2Fields())
     me.definedContribution + period1.cumulativeMP
   }
 
   def cumulativeDB(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Long = {
-    val period1 = previousPeriods.headOption.map(_.summaryResult.asInstanceOf[Group2Fields]).getOrElse(Group2Fields())
     me.definedBenefit + period1.cumulativeDB
   }
 
@@ -141,14 +132,11 @@ case class Group2P2Calculator(amountsCalculator: BasicCalculator) extends Period
     }
   }
 
-  def exceedingAAA(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Long = 0L
+  def exceedingAAA(): Long = 0L
 
-  def unusedAAA(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Long = {
-    val period1 = previousPeriods.headOption.map(_.summaryResult.asInstanceOf[Group2Fields]).getOrElse(Group2Fields())
-    period1.unusedAAA
-  }
+  def unusedAAA(implicit previousPeriods:Seq[TaxYearResults]): Long = period1.unusedAAA
 
-  def unusedMPAA(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Long = 0L
+  def unusedMPAA(): Long = 0L
 
   def summary(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Option[Summary] = {
     if (!contribution.isTriggered) {
