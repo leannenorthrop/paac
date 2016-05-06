@@ -24,16 +24,16 @@ object Year2015Period1Calculator extends calculators.AllowanceCalculator {
   protected def getAnnualAllowanceInPounds: Long =
     PaacConfiguration.config.flatMap[Long](_.getLong("annualallowances.Year2015Period1Calculator")).getOrElse(80000L)
 
-  def isSupported(contribution:Contribution): Boolean = contribution.isPeriod1()
+  def isSupported(contribution:Contribution): Boolean = contribution.isPeriod1() && !contribution.isEmpty
 
   def summary(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Option[Summary] = {
     if (isSupported(contribution)) {
       val amountsCalculator = BasicCalculator(getAnnualAllowanceInPounds)
-      if (contribution.isGroup1()) {
-        Group1P1Calculator(amountsCalculator).summary
-      } else if (contribution.isGroup2) {
+      if (contribution.isGroup2) {
         Group2P1Calculator(amountsCalculator).summary
-      } else None
+      } else {
+        Group1P1Calculator(amountsCalculator).summary
+      }
     } else None
   }
 }

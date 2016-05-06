@@ -48,8 +48,20 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
   }
 
   "BasicCalculator" should {
-    val calculator = calculators.results.BasicCalculator(100)
-    calculator.summary(Seq[TaxYearResults](), Contribution(TaxPeriod(2014,3,5), TaxPeriod(2015,3,6), None)) shouldBe None
+    "return None when no amounts given" in {
+      val calculator = calculators.results.BasicCalculator(100)
+      calculator.summary(Seq[TaxYearResults](), Contribution(TaxPeriod(2014,3,5), TaxPeriod(2015,3,6), None)) shouldBe None
+    }
+
+    "return 0 for defined benefit if no amounts given" in {
+      val calculator = calculators.results.BasicCalculator(100)
+      calculator.definedBenefit(Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, None)) shouldBe 0L
+    }
+
+    "return 0 for defined contribution if no amounts given" in {
+      val calculator = calculators.results.BasicCalculator(100)
+      calculator.definedContribution(Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, None)) shouldBe 0L
+    }
   }
 
   "Pre2014Calculator" should {
