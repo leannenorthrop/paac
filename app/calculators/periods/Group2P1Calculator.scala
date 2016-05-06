@@ -28,7 +28,7 @@ case class Group2P1Calculator(amountsCalculator: BasicCalculator) extends Period
   val MAX_CF = 4000000L
 
   def isMPAAApplicable(implicit contribution: Contribution): Boolean = {
-    me.definedContribution > MPA
+    me.definedContribution > MPA && contribution.isTriggered
   }
 
   def definedBenefit(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution): Long = {
@@ -37,7 +37,9 @@ case class Group2P1Calculator(amountsCalculator: BasicCalculator) extends Period
       if (!contribution.isTriggered)
         amounts.definedBenefit.getOrElse(0L) + amounts.moneyPurchase.getOrElse(0L)
       else {
-        val db = previousPeriods.headOption.map(_.input.amounts.get.definedBenefit.getOrElse(0L)).getOrElse(0L)
+        val preFlexiAccessSavings = previousPeriods.headOption.map(_.input.amounts.get).getOrElse(InputAmounts())
+        // treat both money purchase and defined benefit as same prior to flexi access
+        val db = (preFlexiAccessSavings.definedBenefit.getOrElse(0L) + preFlexiAccessSavings.moneyPurchase.getOrElse(0L)) 
         amounts.definedBenefit.getOrElse(0L) + db
       }
     }.getOrElse(0L)

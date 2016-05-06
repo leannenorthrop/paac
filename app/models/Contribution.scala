@@ -59,9 +59,9 @@ case class Contribution(taxPeriodStart: TaxPeriod, taxPeriodEnd: TaxPeriod, amou
 
   def label() : String = {
     val beforeAfter = if (amounts.getOrElse(InputAmounts()).triggered.getOrElse(false)) "A" else "B"
-    if (taxPeriodStart.year == 2015 && taxPeriodStart.month == 6) {
+    if (isPeriod2) {
       s"15/16 P2 $beforeAfter"  
-    } else if (taxPeriodStart.year == 2015 && taxPeriodStart.month == 3) {
+    } else if (isPeriod1) {
       s"15/16 P1 $beforeAfter"  
     } else {
       s"${taxPeriodStart.year.toString().drop(2)}/${taxPeriodEnd.year.toString().drop(2)}   "

@@ -143,12 +143,12 @@ object Utilities {
       (row) =>
       val year = row("year")(0)
       val result = year match {
-        case 4 => results.find((r)=>r.input.taxPeriodStart == TaxPeriod.PERIOD_1_2015_START && r.input.label.contains("B")).get
-        case 5 => results.find((r)=>r.input.taxPeriodStart == TaxPeriod.PERIOD_1_2015_START && r.input.label.contains("A")).get
-        case 6 => results.find((r)=>r.input.taxPeriodStart == TaxPeriod.PERIOD_2_2015_START && r.input.label.contains("B")).get
-        case 7 => results.find((r)=>r.input.taxPeriodStart == TaxPeriod.PERIOD_2_2015_START && r.input.label.contains("A")).get
-        case 15 => results.find(_.input.taxPeriodStart == TaxPeriod.PERIOD_2_2015_START).get
-        case 2015 => results.find(_.input.taxPeriodStart == TaxPeriod.PERIOD_1_2015_START).get
+        case 4 => results.find((r)=>r.input.isPeriod1() && r.input.label.contains("B")).get
+        case 5 => results.find((r)=>r.input.isPeriod1() && r.input.label.contains("A")).get
+        case 6 => results.find((r)=>r.input.isPeriod2() && r.input.label.contains("B")).get
+        case 7 => results.find((r)=>r.input.isPeriod2() && r.input.label.contains("A")).get
+        case 15 => results.find(_.input.isPeriod2()).get
+        case 2015 => results.find(_.input.isPeriod1()).get
         case _ => results.find(_.input.taxPeriodStart.year == year).get
       }
       row.foreach {
