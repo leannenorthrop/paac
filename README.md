@@ -71,7 +71,7 @@ of the format where amounts are in pence:
 ```
 
 ## Trigger part-way through in Period 1 (Group 2)
-Not supported yet but will look like this:
+
 ```
 [
 {
