@@ -40,14 +40,24 @@ object Utilities {
   def generateDBandMPContributions(map:Map[String,(Long,Long,Boolean)]): List[Contribution] = {
     map.keys.toList.map {
       (key)=>
+      val maybeDB = if (map(key)._1 == -1) {
+        None
+      } else {
+        Some(map(key)._1*100L)
+      }
+      val maybeDC = if (map(key)._2 == -1) {
+        None
+      } else {
+        Some(map(key)._2*100L)
+      }
       key match {
-        case "2015P1" => Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(map(key)._1*100L), Some(map(key)._2*100L), None, None)))
-        case "2015P2" => Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(map(key)._1*100L), Some(map(key)._2*100L), None, None)))
-        case "2015P1B" => Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(map(key)._1*100L), Some(map(key)._2*100L), None, Some(false))))
-        case "2015P1A" => Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(map(key)._1*100L), Some(map(key)._2*100L), None, Some(true))))
-        case "2015P2B" => Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(map(key)._1*100L), Some(map(key)._2*100L), None, Some(false))))
-        case "2015P2A" => Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(map(key)._1*100L), Some(map(key)._2*100L), None, Some(true))))
-        case _ => Contribution(key.toInt, Some(InputAmounts(Some(map(key)._1*100L), Some(map(key)._2*100L), None, Some(false))))
+        case "2015P1" => Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(maybeDB, maybeDC, None, None)))
+        case "2015P2" => Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(maybeDB, maybeDC, None, None)))
+        case "2015P1B" => Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(maybeDB, maybeDC, None, Some(false))))
+        case "2015P1A" => Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(maybeDB, maybeDC, None, Some(true))))
+        case "2015P2B" => Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(maybeDB, maybeDC, None, Some(false))))
+        case "2015P2A" => Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(maybeDB, maybeDC, None, Some(true))))
+        case _ => Contribution(key.toInt, Some(InputAmounts(maybeDB, maybeDC, None, Some(false))))
       }
     }
   }

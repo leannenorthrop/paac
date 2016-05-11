@@ -61,7 +61,8 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
     val moneyPurchase = table.split('\n').drop(1).toList.map(_.split('|').toList(2).trim.toLong)
     val isTriggered = table.split('\n').drop(1).toList.map(_.split('|').toList(3).trim.toBoolean)
     val inputs = Map(years.zip((definedBenefit,moneyPurchase,isTriggered).zipped.toList): _*)    
-    Utilities.generateDBandMPContributions(inputs).sortBy(_.taxPeriodStart.year)
+    val contributions = Utilities.generateDBandMPContributions(inputs).sortBy(_.taxPeriodStart.year)
+    contributions
   }  
 
   def doGroup2Test(table: String, print: Boolean = false): Unit = {
@@ -746,15 +747,15 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
   }
 
   "Group 2 calculators" should {
-    "in Period 2" can {
+    "in Period 2" can {     
       "do Scenario 14" in {
         val table = """:year    | Defined Benefit | Money Purchase  | Is Triggered | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward | MPAA 
                        :2012    | 50000           | 0               | false        | 0                   | 0                | 200000                     | 0            | 100000                   | 0
                        :2013    | 50000           | 0               | false        | 0                   | 0                | 150000                     | 0            | 50000                    | 0
                        :2014    | 40000           | 0               | false        | 0                   | 0                | 90000                      | 0            | 0                        | 0
-                       :2015P1B | 0               | 15000           | false        | 0                   | 0                | 80000                      | 40000        | 40000                    | 0
-                       :2015P1A | 0               | 18000           | true         | 0                   | 0                | 80000                      | 40000        | 40000                    | 2000
-                       :2015P2A | 0               | 1000            | true         | 0                   | 0                | 40000                      | 39000        | 39000                    | 0
+                       :2015P1B | -1              | 15000           | false        | 0                   | 0                | 80000                      | 40000        | 40000                    | 0
+                       :2015P1A | -1              | 18000           | true         | 0                   | 0                | 80000                      | 40000        | 40000                    | 2000
+                       :2015P2A | -1              | 1000            | true         | 0                   | 0                | 40000                      | 39000        | 39000                    | 0
                        :""".stripMargin(':')
         doGroup2Test(table)
       }
@@ -764,13 +765,13 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2012    | 50000           | 0               | false        | 0                   | 0                | 200000                     | 0            | 100000                   | 0
                        :2013    | 50000           | 0               | false        | 0                   | 0                | 150000                     | 0            | 50000                    | 0
                        :2014    | 40000           | 0               | false        | 0                   | 0                | 90000                      | 0            | 0                        | 0
-                       :2015P1B | 0               | 15000           | false        | 0                   | 0                | 80000                      | 40000        | 40000                    | 0
-                       :2015P1A | 0               | 18000           | true         | 0                   | 0                | 80000                      | 40000        | 40000                    | 2000
-                       :2015P2A | 0               | 1000            | true         | 0                   | 0                | 40000                      | 39000        | 39000                    | 0
+                       :2015P1B | -1              | 15000           | false        | 0                   | 0                | 80000                      | 40000        | 40000                    | 0
+                       :2015P1A | -1              | 18000           | true         | 0                   | 0                | 80000                      | 40000        | 40000                    | 2000
+                       :2015P2A | -1              | 1000            | true         | 0                   | 0                | 40000                      | 39000        | 39000                    | 0
                        :""".stripMargin(':')
-        val contributionP1PreTrigger = Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod(2015, 4, 23), Some(InputAmounts(Some(0L), Some(1500000L), None, Some(false))))
-        val contributionP1PostTrigger = Contribution(TaxPeriod(2015, 4, 24), TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(0L), Some(1800000L), None, Some(true))))
-        val contributionP2PostTrigger = Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(0L), Some(100000L), None, Some(true))))
+        val contributionP1PreTrigger = Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod(2015, 4, 23), Some(InputAmounts(None, Some(1500000L), None, Some(false))))
+        val contributionP1PostTrigger = Contribution(TaxPeriod(2015, 4, 24), TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(None, Some(1800000L), None, Some(true))))
+        val contributionP2PostTrigger = Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(None, Some(100000L), None, Some(true))))
         val contributions = group2Contributions(table).slice(0, 3) ++ List(contributionP1PreTrigger, contributionP1PostTrigger, contributionP2PostTrigger)
         val results = PensionAllowanceCalculator.calculateAllowances(contributions)
         Utilities.assertResults(table, results, false)
@@ -781,9 +782,9 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2012    | 50000           | 0               | false        | 0                   | 0                | 200000                     | 0            | 100000                   | 0
                        :2013    | 50000           | 0               | false        | 0                   | 0                | 150000                     | 0            | 50000                    | 0
                        :2014    | 40000           | 0               | false        | 0                   | 0                | 90000                      | 0            | 0                        | 0
-                       :2015P1B | 0               | 15000           | false        | 0                   | 0                | 80000                      | 40000        | 40000                    | 0
-                       :2015P1A | 0               | 0               | true         | 0                   | 0                | 80000                      | 40000        | 40000                    | 10000
-                       :2015P2A | 0               | 11000           | true         | 0                   | 1000             | 40000                      | 40000        | 40000                    | 0
+                       :2015P1B | -1              | 15000           | false        | 0                   | 0                | 80000                      | 40000        | 40000                    | 0
+                       :2015P1A | -1              | 0               | true         | 0                   | 0                | 80000                      | 40000        | 40000                    | 10000
+                       :2015P2A | -1              | 11000           | true         | 0                   | 1000             | 40000                      | 40000        | 40000                    | 0
                        :""".stripMargin(':')
         doGroup2Test(table)
       } 
@@ -793,9 +794,9 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2012    | 50000           | 0               | false        | 0                   | 0                | 200000                     | 0            | 100000                   | 0
                        :2013    | 50000           | 0               | false        | 0                   | 0                | 150000                     | 0            | 50000                    | 0
                        :2014    | 40000           | 0               | false        | 0                   | 0                | 90000                      | 0            | 0                        | 0
-                       :2015P1B | 0               | 15000           | false        | 0                   | 0                | 80000                      | 40000        | 40000                    | 0
-                       :2015P1A | 0               | 75000           | true         | 10000               | 55000            | 80000                      | 0            | 0                        | 0
-                       :2015P2A | 0               | 35000           | true         | 0                   | 35000            | 0                          | 0            | 0                        | 0
+                       :2015P1B | -1              | 15000           | false        | 0                   | 0                | 80000                      | 40000        | 40000                    | 0
+                       :2015P1A | -1              | 75000           | true         | 10000               | 55000            | 80000                      | 0            | 0                        | 0
+                       :2015P2A | -1              | 35000           | true         | 0                   | 35000            | 0                          | 0            | 0                        | 0
                        :""".stripMargin(':')
         doGroup2Test(table)
       }
@@ -805,9 +806,9 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2012    | 50000           | 0               | false        | 0                   | 0                | 200000                     | 0            | 100000                   | 0
                        :2013    | 50000           | 0               | false        | 0                   | 0                | 150000                     | 0            | 50000                    | 0
                        :2014    | 40000           | 0               | false        | 0                   | 0                | 90000                      | 0            | 0                        | 0
-                       :2015P1B | 0               | 50000           | false        | 0                   | 0                | 80000                      | 30000        | 30000                    | 0
-                       :2015P1A | 0               | 15000           | true         | 0                   | 0                | 80000                      | 15000        | 15000                    | 5000
-                       :2015P2A | 0               | 30000           | true         | 0                   | 25000            | 15000                      | 15000        | 15000                    | 0
+                       :2015P1B | -1              | 50000           | false        | 0                   | 0                | 80000                      | 30000        | 30000                    | 0
+                       :2015P1A | -1              | 15000           | true         | 0                   | 0                | 80000                      | 15000        | 15000                    | 5000
+                       :2015P2A | -1              | 30000           | true         | 0                   | 25000            | 15000                      | 15000        | 15000                    | 0
                        :""".stripMargin(':')
         doGroup2Test(table)
       } 
@@ -817,9 +818,9 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2012    | 50000           | 0               | false        | 0                   | 0                | 200000                     | 0            | 100000                   | 0
                        :2013    | 50000           | 0               | false        | 0                   | 0                | 150000                     | 0            | 50000                    | 0
                        :2014    | 40000           | 0               | false        | 0                   | 0                | 90000                      | 0            | 0                        | 0
-                       :2015P1B | 0               | 55000           | false        | 0                   | 0                | 80000                      | 25000        | 25000                    | 0
-                       :2015P1A | 0               | 0               | true         | 0                   | 0                | 80000                      | 25000        | 25000                    | 10000
-                       :2015P2A | 0               | 30000           | true         | 0                   | 20000            | 25000                      | 25000        | 25000                    | 0
+                       :2015P1B | -1              | 55000           | false        | 0                   | 0                | 80000                      | 25000        | 25000                    | 0
+                       :2015P1A | -1              | 0               | true         | 0                   | 0                | 80000                      | 25000        | 25000                    | 10000
+                       :2015P2A | -1              | 30000           | true         | 0                   | 20000            | 25000                      | 25000        | 25000                    | 0
                        :""".stripMargin(':')
         doGroup2Test(table)
       } 
@@ -829,9 +830,9 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2012    | 50000           | 0               | false        | 0                   | 0                | 200000                     | 0            | 100000                   | 0
                        :2013    | 50000           | 0               | false        | 0                   | 0                | 150000                     | 0            | 50000                    | 0
                        :2014    | 40000           | 0               | false        | 0                   | 0                | 90000                      | 0            | 0                        | 0
-                       :2015P1B | 0               | 85000           | false        | 5000                | 5000             | 80000                      | 0            | 0                        | 0
-                       :2015P1A | 0               | 0               | true         | 5000                | 5000             | 80000                      | 0            | 0                        | 10000
-                       :2015P2A | 0               | 8000            | true         | 0                   | 8000             | 0                          | 0            | 0                        | 0
+                       :2015P1B | -1              | 85000           | false        | 5000                | 5000             | 80000                      | 0            | 0                        | 0
+                       :2015P1A | -1              | 0               | true         | 5000                | 5000             | 80000                      | 0            | 0                        | 10000
+                       :2015P2A | -1              | 8000            | true         | 0                   | 8000             | 0                          | 0            | 0                        | 0
                        :""".stripMargin(':')
         doGroup2Test(table)
       } 
@@ -841,9 +842,9 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2012    | 50000           | 0               | false        | 0                   | 0                | 200000                     | 0            | 100000                   | 0
                        :2013    | 50000           | 0               | false        | 0                   | 0                | 150000                     | 0            | 50000                    | 0
                        :2014    | 40000           | 0               | false        | 0                   | 0                | 90000                      | 0            | 0                        | 0
-                       :2015P1B | 0               | 100000          | false        | 20000               | 20000            | 80000                      | 0            | 0                        | 0
-                       :2015P1A | 0               | 25000           | true         | 45000               | 45000            | 80000                      | 0            | 0                        | 0
-                       :2015P2A | 0               | 12000           | true         | 0                   | 12000            | 0                          | 0            | 0                        | 0
+                       :2015P1B | -1              | 100000          | false        | 20000               | 20000            | 80000                      | 0            | 0                        | 0
+                       :2015P1A | -1              | 25000           | true         | 45000               | 45000            | 80000                      | 0            | 0                        | 0
+                       :2015P2A | -1              | 12000           | true         | 0                   | 12000            | 0                          | 0            | 0                        | 0
                        :""".stripMargin(':')
         doGroup2Test(table)
       } 
@@ -853,9 +854,9 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2012    | 50000           | 0               | false        | 0                   | 0                | 200000                     | 0            | 100000                   | 0
                        :2013    | 50000           | 0               | false        | 0                   | 0                | 150000                     | 0            | 50000                    | 0
                        :2014    | 40000           | 0               | false        | 0                   | 0                | 90000                      | 0            | 0                        | 0
-                       :2015P1B | 0               | 125000          | false        | 45000               | 45000            | 80000                      | 0            | 0                        | 0
-                       :2015P1A | 0               | 23000           | true         | 68000               | 68000            | 80000                      | 0            | 0                        | 0
-                       :2015P2A | 0               | 45000           | true         | 0                   | 45000            | 0                          | 0            | 0                        | 0
+                       :2015P1B | -1              | 125000          | false        | 45000               | 45000            | 80000                      | 0            | 0                        | 0
+                       :2015P1A | -1              | 23000           | true         | 68000               | 68000            | 80000                      | 0            | 0                        | 0
+                       :2015P2A | -1              | 45000           | true         | 0                   | 45000            | 0                          | 0            | 0                        | 0
                        :""".stripMargin(':')
         doGroup2Test(table)
       }
@@ -865,9 +866,9 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2012    | 50000           | 0               | false        | 0                   | 0                | 200000                     | 0            | 100000                   | 0
                        :2013    | 50000           | 0               | false        | 0                   | 0                | 150000                     | 0            | 50000                    | 0
                        :2014    | 40000           | 0               | false        | 0                   | 0                | 90000                      | 0            | 0                        | 0
-                       :2015P1B | 0               | 115000          | false        | 35000               | 35000            | 80000                      | 0            | 0                        | 0
-                       :2015P1A | 0               | 0               | true         | 35000               | 35000            | 80000                      | 0            | 0                        | 10000
-                       :2015P2A | 0               | 25000           | true         | 0                   | 25000            | 0                          | 0            | 0                        | 0
+                       :2015P1B | -1              | 115000          | false        | 35000               | 35000            | 80000                      | 0            | 0                        | 0
+                       :2015P1A | -1              | 0               | true         | 35000               | 35000            | 80000                      | 0            | 0                        | 10000
+                       :2015P2A | -1              | 25000           | true         | 0                   | 25000            | 0                          | 0            | 0                        | 0
                        :""".stripMargin(':')
         doGroup2Test(table)
       }
@@ -877,9 +878,9 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2012    | 49000           | 0               | false        | 0                   | 0                | 200000                     | 1000         | 101000                   | 0
                        :2013    | 48000           | 0               | false        | 0                   | 0                | 151000                     | 2000         | 53000                    | 0
                        :2014    | 35000           | 0               | false        | 0                   | 0                | 93000                      | 5000         | 8000                     | 0
-                       :2015P1B | 0               | 85000           | false        | 5000                | 0                | 88000                      | 0            | 3000                     | 0
-                       :2015P1A | 0               | 0               | true         | 5000                | 0                | 88000                      | 0            | 3000                     | 10000
-                       :2015P2A | 0               | 8000            | true         | 0                   | 5000             | 3000                       | 0            | 0                        | 0
+                       :2015P1B | -1              | 85000           | false        | 5000                | 0                | 88000                      | 0            | 3000                     | 0
+                       :2015P1A | -1              | 0               | true         | 5000                | 0                | 88000                      | 0            | 3000                     | 10000
+                       :2015P2A | -1              | 8000            | true         | 0                   | 5000             | 3000                       | 0            | 0                        | 0
                        :""".stripMargin(':')
         doGroup2Test(table)
       }
@@ -889,9 +890,9 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2012    | 49000           | 0               | false        | 0                   | 0                | 200000                     | 1000         | 101000                   | 0
                        :2013    | 48000           | 0               | false        | 0                   | 0                | 151000                     | 2000         | 53000                    | 0
                        :2014    | 35000           | 0               | false        | 0                   | 0                | 93000                      | 5000         | 8000                     | 0
-                       :2015P1B | 0               | 10000           | false        | 0                   | 0                | 88000                      | 40000        | 48000                    | 0
-                       :2015P1A | 0               | 0               | true         | 0                   | 0                | 88000                      | 40000        | 48000                    | 10000
-                       :2015P2A | 0               | 25000           | true         | 0                   | 15000            | 48000                      | 40000        | 47000                    | 0
+                       :2015P1B | -1              | 10000           | false        | 0                   | 0                | 88000                      | 40000        | 48000                    | 0
+                       :2015P1A | -1              | 0               | true         | 0                   | 0                | 88000                      | 40000        | 48000                    | 10000
+                       :2015P2A | -1              | 25000           | true         | 0                   | 15000            | 48000                      | 40000        | 47000                    | 0
                        :""".stripMargin(':')
         doGroup2Test(table)
       }
@@ -901,9 +902,9 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2012    | 49000           | 0               | false        | 0                   | 0                | 200000                     | 1000         | 101000                   | 0
                        :2013    | 48000           | 0               | false        | 0                   | 0                | 151000                     | 2000         | 53000                    | 0
                        :2014    | 35000           | 0               | false        | 0                   | 0                | 93000                      | 5000         | 8000                     | 0
-                       :2015P1B | 0               | 85000           | false        | 5000                | 0                | 88000                      | 0            | 3000                     | 0
-                       :2015P1A | 0               | 0               | true         | 5000                | 0                | 88000                      | 0            | 3000                     | 10000
-                       :2015P2A | 0               | 100000          | true         | 0                   | 97000            | 3000                       | 0            | 0                        | 0
+                       :2015P1B | -1              | 85000           | false        | 5000                | 0                | 88000                      | 0            | 3000                     | 0
+                       :2015P1A | -1              | 0               | true         | 5000                | 0                | 88000                      | 0            | 3000                     | 10000
+                       :2015P2A | -1              | 100000          | true         | 0                   | 97000            | 3000                       | 0            | 0                        | 0
                        :""".stripMargin(':')
         doGroup2Test(table)
       }
@@ -913,13 +914,13 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2012    | 50000           | 0               | false        | 0                   | 0                | 200000                     | 0            | 100000                   | 0
                        :2013    | 50000           | 0               | false        | 0                   | 0                | 150000                     | 0            | 50000                    | 0
                        :2014    | 40000           | 0               | false        | 0                   | 0                | 90000                      | 0            | 0                        | 0
-                       :2015P1B | 0               | 15000           | false        | 0                   | 0                | 80000                      | 40000        | 40000                    | 0
-                       :2015P2B | 0               | 18000           | false        | 0                   | 0                | 40000                      | 22000        | 22000                    | 0
-                       :2015P2A | 0               | 1000            | true         | 0                   | 0                | 22000                      | 21000        | 21000                    | 0
+                       :2015P1B | -1              | 15000           | false        | 0                   | 0                | 80000                      | 40000        | 40000                    | 0
+                       :2015P2B | -1              | 18000           | false        | 0                   | 0                | 40000                      | 22000        | 22000                    | 0
+                       :2015P2A | -1              | 1000            | true         | 0                   | 0                | 22000                      | 21000        | 21000                    | 0
                        :""".stripMargin(':')
-        val contributionP1PreTrigger = Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(0L), Some(1500000L), None, Some(false))))
-        val contributionP2PreTrigger = Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod(2015, 10, 24), Some(InputAmounts(Some(0L), Some(1800000L), None, Some(false))))
-        val contributionP2PostTrigger = Contribution(TaxPeriod(2015, 10, 25), TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(0L), Some(100000L), None, Some(true))))
+        val contributionP1PreTrigger = Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(None, Some(1500000L), None, Some(false))))
+        val contributionP2PreTrigger = Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod(2015, 10, 24), Some(InputAmounts(None, Some(1800000L), None, Some(false))))
+        val contributionP2PostTrigger = Contribution(TaxPeriod(2015, 10, 25), TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(None, Some(100000L), None, Some(true))))
         val contributions = group2Contributions(table).slice(0, 3) ++ List(contributionP1PreTrigger, contributionP2PreTrigger, contributionP2PostTrigger)
         val results = PensionAllowanceCalculator.calculateAllowances(contributions)
         Utilities.assertResults(table, results, false)
@@ -932,8 +933,8 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2012    | 50000           | 0               | false        | 0                   | 0                | 200000                     | 0            | 100000                   | 0
                        :2013    | 50000           | 0               | false        | 0                   | 0                | 150000                     | 0            | 50000                    | 0
                        :2014    | 40000           | 0               | false        | 0                   | 0                | 90000                      | 0            | 0                        | 0
-                       :2015P1B | 0               | 15000           | false        | 0                   | 0                | 80000                      | 40000        | 40000                    | 0
-                       :2015P1A | 0               | 18000           | true         | 0                   | 0                | 80000                      | 40000        | 40000                    | 2000
+                       :2015P1B | -1              | 15000           | false        | 0                   | 0                | 80000                      | 40000        | 40000                    | 0
+                       :2015P1A | -1              | 18000           | true         | 0                   | 0                | 80000                      | 40000        | 40000                    | 2000
                        :""".stripMargin(':')
         doGroup2Test(table)
       } 
@@ -943,8 +944,8 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2012    | 50000           | 0               | false        | 0                   | 0                | 200000                     | 0            | 100000                   | 0
                        :2013    | 50000           | 0               | false        | 0                   | 0                | 150000                     | 0            | 50000                    | 0
                        :2014    | 40000           | 0               | false        | 0                   | 0                | 90000                      | 0            | 0                        | 0
-                       :2015P1B | 0               | 15000           | false        | 0                   | 0                | 80000                      | 40000        | 40000                    | 0
-                       :2015P1A | 0               | 0               | true         | 0                   | 0                | 80000                      | 40000        | 40000                    | 10000
+                       :2015P1B | -1              | 15000           | false        | 0                   | 0                | 80000                      | 40000        | 40000                    | 0
+                       :2015P1A | -1              | 0               | true         | 0                   | 0                | 80000                      | 40000        | 40000                    | 10000
                        :""".stripMargin(':')
         doGroup2Test(table)
       } 
@@ -954,8 +955,8 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2012    | 50000           | 0               | false        | 0                   | 0                | 200000                     | 0            | 100000                   | 0
                        :2013    | 50000           | 0               | false        | 0                   | 0                | 150000                     | 0            | 50000                    | 0
                        :2014    | 40000           | 0               | false        | 0                   | 0                | 90000                      | 0            | 0                        | 0
-                       :2015P1B | 0               | 15000           | false        | 0                   | 0                | 80000                      | 40000        | 40000                    | 0
-                       :2015P1A | 0               | 75000           | true         | 10000               | 55000            | 80000                      | 0            | 0                        | 0
+                       :2015P1B | -1              | 15000           | false        | 0                   | 0                | 80000                      | 40000        | 40000                    | 0
+                       :2015P1A | -1              | 75000           | true         | 10000               | 55000            | 80000                      | 0            | 0                        | 0
                        :""".stripMargin(':')
         doGroup2Test(table)
       } 
@@ -965,8 +966,8 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2012    | 50000           | 0               | false        | 0                   | 0                | 200000                     | 0            | 100000                   | 0
                        :2013    | 50000           | 0               | false        | 0                   | 0                | 150000                     | 0            | 50000                    | 0
                        :2014    | 40000           | 0               | false        | 0                   | 0                | 90000                      | 0            | 0                        | 0
-                       :2015P1B | 0               | 50000           | false        | 0                   | 0                | 80000                      | 30000        | 30000                    | 0
-                       :2015P1A | 0               | 15000           | true         | 0                   | 0                | 80000                      | 15000        | 15000                    | 5000
+                       :2015P1B | -1              | 50000           | false        | 0                   | 0                | 80000                      | 30000        | 30000                    | 0
+                       :2015P1A | -1              | 15000           | true         | 0                   | 0                | 80000                      | 15000        | 15000                    | 5000
                        :""".stripMargin(':')
         doGroup2Test(table)
       } 
@@ -976,8 +977,8 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2012    | 50000           | 0               | false        | 0                   | 0                | 200000                     | 0            | 100000                   | 0
                        :2013    | 50000           | 0               | false        | 0                   | 0                | 150000                     | 0            | 50000                    | 0
                        :2014    | 40000           | 0               | false        | 0                   | 0                | 90000                      | 0            | 0                        | 0
-                       :2015P1B | 0               | 55000           | false        | 0                   | 0                | 80000                      | 25000        | 25000                    | 0
-                       :2015P1A | 0               | 0               | true         | 0                   | 0                | 80000                      | 25000        | 25000                    | 10000
+                       :2015P1B | -1              | 55000           | false        | 0                   | 0                | 80000                      | 25000        | 25000                    | 0
+                       :2015P1A | -1              | 0               | true         | 0                   | 0                | 80000                      | 25000        | 25000                    | 10000
                        :""".stripMargin(':')
         doGroup2Test(table)
       } 
@@ -987,8 +988,8 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2012    | 50000           | 0               | false        | 0                   | 0                | 200000                     | 0            | 100000                   | 0
                        :2013    | 50000           | 0               | false        | 0                   | 0                | 150000                     | 0            | 50000                    | 0
                        :2014    | 40000           | 0               | false        | 0                   | 0                | 90000                      | 0            | 0                        | 0
-                       :2015P1B | 0               | 85000           | false        | 5000                | 5000             | 80000                      | 0            | 0                        | 0
-                       :2015P1A | 0               | 0               | true         | 5000                | 5000             | 80000                      | 0            | 0                        | 10000
+                       :2015P1B | -1              | 85000           | false        | 5000                | 5000             | 80000                      | 0            | 0                        | 0
+                       :2015P1A | -1              | 0               | true         | 5000                | 5000             | 80000                      | 0            | 0                        | 10000
                        :""".stripMargin(':')
         doGroup2Test(table)
       } 
@@ -998,8 +999,8 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2012    | 50000           | 0               | false        | 0                   | 0                | 200000                     | 0            | 100000                   | 0
                        :2013    | 50000           | 0               | false        | 0                   | 0                | 150000                     | 0            | 50000                    | 0
                        :2014    | 40000           | 0               | false        | 0                   | 0                | 90000                      | 0            | 0                        | 0
-                       :2015P1B | 0               | 100000          | false        | 20000               | 20000            | 80000                      | 0            | 0                        | 0
-                       :2015P1A | 0               | 25000           | true         | 45000               | 45000            | 80000                      | 0            | 0                        | 0
+                       :2015P1B | -1              | 100000          | false        | 20000               | 20000            | 80000                      | 0            | 0                        | 0
+                       :2015P1A | -1              | 25000           | true         | 45000               | 45000            | 80000                      | 0            | 0                        | 0
                        :""".stripMargin(':')
         doGroup2Test(table)
       } 
@@ -1009,8 +1010,8 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2012    | 50000           | 0               | false        | 0                   | 0                | 200000                     | 0            | 100000                   | 0
                        :2013    | 50000           | 0               | false        | 0                   | 0                | 150000                     | 0            | 50000                    | 0
                        :2014    | 40000           | 0               | false        | 0                   | 0                | 90000                      | 0            | 0                        | 0
-                       :2015P1B | 0               | 125000          | false        | 45000               | 45000            | 80000                      | 0            | 0                        | 0
-                       :2015P1A | 0               | 23000           | true         | 68000               | 68000            | 80000                      | 0            | 0                        | 0
+                       :2015P1B | -1              | 125000          | false        | 45000               | 45000            | 80000                      | 0            | 0                        | 0
+                       :2015P1A | -1              | 23000           | true         | 68000               | 68000            | 80000                      | 0            | 0                        | 0
                        :""".stripMargin(':')
         doGroup2Test(table)
       }
@@ -1020,8 +1021,8 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2012    | 50000           | 0               | false        | 0                   | 0                | 200000                     | 0            | 100000                   | 0
                        :2013    | 50000           | 0               | false        | 0                   | 0                | 150000                     | 0            | 50000                    | 0
                        :2014    | 40000           | 0               | false        | 0                   | 0                | 90000                      | 0            | 0                        | 0
-                       :2015P1B | 0               | 115000          | false        | 35000               | 35000            | 80000                      | 0            | 0                        | 0
-                       :2015P1A | 0               | 0               | true         | 35000               | 35000            | 80000                      | 0            | 0                        | 10000
+                       :2015P1B | -1              | 115000          | false        | 35000               | 35000            | 80000                      | 0            | 0                        | 0
+                       :2015P1A | -1              | 0               | true         | 35000               | 35000            | 80000                      | 0            | 0                        | 10000
                        :""".stripMargin(':')
         doGroup2Test(table)
       }
@@ -1031,8 +1032,8 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2012    | 49000           | 0               | false        | 0                   | 0                | 200000                     | 1000         | 101000                   | 0
                        :2013    | 48000           | 0               | false        | 0                   | 0                | 151000                     | 2000         | 53000                    | 0
                        :2014    | 35000           | 0               | false        | 0                   | 0                | 93000                      | 5000         | 8000                     | 0
-                       :2015P1B | 0               | 85000           | false        | 5000                | 0                | 88000                      | 0            | 3000                     | 0
-                       :2015P1A | 0               | 0               | true         | 5000                | 0                | 88000                      | 0            | 3000                     | 10000
+                       :2015P1B | -1              | 85000           | false        | 5000                | 0                | 88000                      | 0            | 3000                     | 0
+                       :2015P1A | -1              | 0               | true         | 5000                | 0                | 88000                      | 0            | 3000                     | 10000
                        :""".stripMargin(':')
         doGroup2Test(table)
       }
@@ -1042,8 +1043,8 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2012    | 49000           | 0               | false        | 0                   | 0                | 200000                     | 1000         | 101000                   | 0
                        :2013    | 48000           | 0               | false        | 0                   | 0                | 151000                     | 2000         | 53000                    | 0
                        :2014    | 35000           | 0               | false        | 0                   | 0                | 93000                      | 5000         | 8000                     | 0
-                       :2015P1B | 0               | 10000           | false        | 0                   | 0                | 88000                      | 40000        | 48000                    | 0
-                       :2015P1A | 0               | 0               | true         | 0                   | 0                | 88000                      | 40000        | 48000                    | 10000
+                       :2015P1B | -1              | 10000           | false        | 0                   | 0                | 88000                      | 40000        | 48000                    | 0
+                       :2015P1A | -1              | 0               | true         | 0                   | 0                | 88000                      | 40000        | 48000                    | 10000
                        :""".stripMargin(':')
         doGroup2Test(table)
       }
@@ -1053,8 +1054,8 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2012    | 49000           | 0               | false        | 0                   | 0                | 200000                     | 1000         | 101000                   | 0
                        :2013    | 48000           | 0               | false        | 0                   | 0                | 151000                     | 2000         | 53000                    | 0
                        :2014    | 35000           | 0               | false        | 0                   | 0                | 93000                      | 5000         | 8000                     | 0
-                       :2015P1B | 0               | 85000           | false        | 5000                | 0                | 88000                      | 0            | 3000                     | 0
-                       :2015P1A | 0               | 0               | true         | 5000                | 0                | 88000                      | 0            | 3000                     | 10000
+                       :2015P1B | -1              | 85000           | false        | 5000                | 0                | 88000                      | 0            | 3000                     | 0
+                       :2015P1A | -1              | 0               | true         | 5000                | 0                | 88000                      | 0            | 3000                     | 10000
                        :""".stripMargin(':')
         doGroup2Test(table)
       }
