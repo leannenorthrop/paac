@@ -158,6 +158,42 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :""".stripMargin(':')
         doGroup1Test(table)
       }
+      "return correct allowances and carry forward values for 2014/15 and Previous-Three Years" in {
+        val table = """:year  | Defined Benefit  | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
+                      :2008   | 0                | 0                   | -1               | 50000                      | 50000        | 50000
+                      :2009   | 0                | 0                   | -1               | 100000                     | 50000        | 100000
+                      :2010   | 0                | 0                   | -1               | 150000                     | 50000        | 150000
+                      :2011   | 0                | 0                   | 0                | 200000                     | 50000        | 150000
+                      :2012   | 0                | 0                   | 0                | 200000                     | 50000        | 150000
+                      :2013   | 0                | 0                   | 0                | 200000                     | 50000        | 150000
+                      :2014   | 190000           | 150000              | 0                | 190000                     | 0            | 0
+                      :""".stripMargin(':')
+        doGroup1Test(table)
+      }
+
+      "return correct allowances and carry forward values for 2013/14 (With 59K PIA) and Previous-Three Years" in {
+        val table = """:year   | Defined Benefit | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
+                      :2008   | 0               | 0                   | -1               | 50000                      | 50000        | 50000
+                      :2009   | 0               | 0                   | -1               | 100000                     | 50000        | 100000
+                      :2010   | 0               | 0                   | -1               | 150000                     | 50000        | 150000
+                      :2011   | 0               | 0                   | 0                | 200000                     | 50000        | 150000
+                      :2012   | 0               | 0                   | 0                | 200000                     | 50000        | 150000
+                      :2013   | 59000           | 9000                | 0                | 200000                     | 0            | 100000
+                      :""".stripMargin(':')
+        doGroup1Test(table)
+      }
+
+      "return correct allowances and carry forward values for 2013/14 (With 109k PIA) and Previous-Three Years" in {
+        val table = """:year   | Defined Benefit | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
+                      :2008   | 0               | 0                   | -1               | 50000                      | 50000        | 50000
+                      :2009   | 0               | 0                   | -1               | 100000                     | 50000        | 100000
+                      :2010   | 0               | 0                   | -1               | 150000                     | 50000        | 150000
+                      :2011   | 0               | 0                   | 0                | 200000                     | 50000        | 150000
+                      :2012   | 0               | 0                   | 0                | 200000                     | 50000        | 150000
+                      :2013   | 109000          | 59000               | 0                | 200000                     | 0            | 91000
+                      :""".stripMargin(':')
+        doGroup1Test(table)
+      }
     }
 
     "2015 Period 1" should {

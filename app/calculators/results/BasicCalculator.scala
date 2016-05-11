@@ -50,10 +50,15 @@ case class BasicCalculator(annualAllowanceInPounds: Long) extends calculators.Ca
   // cumulative carry forwards is 2 previous years plus current year's annual allowance - used allowance
   def annualAllowanceCCF(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Long = {
     val unusedAllowances = previousPeriods.map(_.summaryResult).slice(0,2).foldLeft(0L)(_+_.unusedAllowance)
+
     if (contribution.taxPeriodStart.year < 2011 && calc.definedBenefit >= calc.annualAllowance) {
       (calc.annualAllowance + unusedAllowances - calc.definedBenefit.min(calc.annualAllowance)).max(0)
     } else if (calc.exceedingAllowance > 0) {
-      unusedAllowances
+      val unusedAllowancesOf3rdPreviousYear = previousPeriods.map(_.summaryResult.unusedAllowance).slice(0,3).reverse.headOption.getOrElse(0L)
+      if(unusedAllowancesOf3rdPreviousYear >= calc.exceedingAllowance)
+        unusedAllowances
+      else
+        (unusedAllowances - (calc.exceedingAllowance - unusedAllowancesOf3rdPreviousYear)).max(0)
     } else {
       (calc.annualAllowance + unusedAllowances - calc.definedBenefit).max(0)
     }
