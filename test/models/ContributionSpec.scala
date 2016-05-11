@@ -267,7 +267,7 @@ class ContributionSpec extends ModelSpec {
   }
 
   "A Contribution" can {
-    "label" can {
+    "have tax year label which" should {
       "have a simple tax year label" in {
         // set up
         val c = Contribution(2008, 0)
@@ -299,6 +299,85 @@ class ContributionSpec extends ModelSpec {
 
         // check
         label shouldBe "2015/16 P2"
+      }
+
+      "have a non standard 2015 Period 1 tax year label" in {
+        // set up
+        val c = Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod(2015, 4, 12), Some(InputAmounts(0,0)))
+
+        // do it 
+        val label = c.taxYearLabel
+
+        // check
+        label shouldBe "2015/16 P1"
+      }
+
+      "have a non standard 2015 Period 2 tax year label" in {
+        // set up
+        val c = Contribution(TaxPeriod(2015, 9, 12), TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(0,0)))
+
+        // do it 
+        val label = c.taxYearLabel
+
+        // check
+        label shouldBe "2015/16 P2"
+      }
+    }
+
+    "label" can {
+      "have a simple label" in {
+        // set up
+        val c = Contribution(2008, 0)
+
+        // do it 
+        val label = c.label
+
+        // check
+        label shouldBe "08/09   "
+      }
+
+      "have a 2015 Period 1 label" in {
+        // set up
+        val c = Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(0,0)))
+
+        // do it 
+        val label = c.label
+
+        // check
+        label shouldBe "15/16 P1 B"
+      }
+
+      "have a 2015 Period 2 label" in {
+        // set up
+        val c = Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(0,0)))
+
+        // do it 
+        val label = c.label
+
+        // check
+        label shouldBe "15/16 P2 B"
+      }      
+
+      "have a 2015 Period 1 triggered label" in {
+        // set up
+        val c = Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(0), Some(0), None, Some(true))))
+
+        // do it 
+        val label = c.label
+
+        // check
+        label shouldBe "15/16 P1 A"
+      }
+
+      "have a 2015 Period 2 triggered label" in {
+        // set up
+        val c = Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(0), Some(0), None, Some(true))))
+
+        // do it 
+        val label = c.label
+
+        // check
+        label shouldBe "15/16 P2 A"
       }
     }
 
@@ -342,6 +421,50 @@ class ContributionSpec extends ModelSpec {
 
         // check
         contrib.amounts.get.moneyPurchase shouldBe Some(mpAmountInPounds)
+      }
+
+      "have a triggered value" in {
+        // set up
+        val contribution = Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(0), Some(0), None, Some(true))))
+
+        // do it
+        val isTriggered = contribution.isTriggered
+
+        // check
+        isTriggered shouldBe true
+      }
+
+      "have a non-triggered value" in {
+        // set up
+        val contribution = Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(0), Some(0), None, Some(false))))
+
+        // do it
+        val isTriggered = contribution.isTriggered
+
+        // check
+        isTriggered shouldBe false
+      }
+
+      "have a non-triggered value if set to none" in {
+        // set up
+        val contribution = Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(0), Some(0), None, None)))
+
+        // do it
+        val isTriggered = contribution.isTriggered
+
+        // check
+        isTriggered shouldBe false
+      }
+
+      "have a non-triggered value by default" in {
+        // set up
+        val contribution = Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(0,0)))
+
+        // do it
+        val isTriggered = contribution.isTriggered
+
+        // check
+        isTriggered shouldBe false
       }
     }
 
