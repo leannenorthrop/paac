@@ -533,6 +533,25 @@ class ContributionSpec extends ModelSpec {
       }
     }
 
+    "isGroup3" can {
+      "return false if only defined benefit and not triggered" in {
+        Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(12), None, None, None))).isGroup3 shouldBe false
+        Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(12), None, None, None))).isGroup3 shouldBe false
+      }
+      "return false if only defined contribution/money purchase and not triggered" in {
+        Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(None, Some(12), None, None))).isGroup3 shouldBe false
+        Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(None, Some(12), None, None))).isGroup3 shouldBe false
+      }
+      "return false if not triggered" in {
+        Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(23), Some(12), None, None))).isGroup3 shouldBe false
+        Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(23), Some(12), None, None))).isGroup3 shouldBe false
+      }
+      "return true if triggered and both definedBenefit and moneyPurchase" in {
+        Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(23), Some(12), None, Some(true)))).isGroup3 shouldBe true
+        Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(23), Some(12), None, Some(true)))).isGroup3 shouldBe true
+      }
+    }
+
     "+" should{
       "sum definedBenefit of two contributions regardless of year" in {
         // set up
