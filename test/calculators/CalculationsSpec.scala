@@ -77,6 +77,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
     Utilities.assertResults(table, results, false)
   }
 
+/*
   "Group 1" should {
     "pre-2014" should {
       "return correct calculations when pension contributions are 0" in {
@@ -180,27 +181,40 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
 
       "return correct allowances and carry forward values for 2013/14 (With 59K PIA) and Previous-Three Years" in {
         val table = """:year   | Defined Benefit | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
-                      :2008   | 0               | 0                   | -1               | 50000                      | 50000        | 50000
-                      :2009   | 0               | 0                   | -1               | 100000                     | 50000        | 100000
-                      :2010   | 0               | 0                   | -1               | 150000                     | 50000        | 150000
-                      :2011   | 0               | 0                   | 0                | 200000                     | 50000        | 150000
-                      :2012   | 0               | 0                   | 0                | 200000                     | 50000        | 150000
-                      :2013   | 59000           | 9000                | 0                | 200000                     | 0            | 100000
+                      :2008   | 0                | 0                   | -1               | 50000                      | 50000        | 50000
+                      :2009   | 0                | 0                   | -1               | 100000                     | 50000        | 100000
+                      :2010   | 0                | 0                   | -1               | 150000                     | 50000        | 150000
+                      :2011   | 0                | 0                   | 0                | 200000                     | 50000        | 150000
+                      :2012   | 0                | 0                   | 0                | 200000                     | 50000        | 150000
+                      :2013   | 59000            | 9000                | 0                | 200000                     | 0            | 141000
                       :""".stripMargin(':')
         doGroup1Test(table)
       }
 
       "return correct allowances and carry forward values for 2013/14 (With 109k PIA) and Previous-Three Years" in {
         val table = """:year   | Defined Benefit | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
-                      :2008   | 0               | 0                   | -1               | 50000                      | 50000        | 50000
-                      :2009   | 0               | 0                   | -1               | 100000                     | 50000        | 100000
-                      :2010   | 0               | 0                   | -1               | 150000                     | 50000        | 150000
-                      :2011   | 0               | 0                   | 0                | 200000                     | 50000        | 150000
-                      :2012   | 0               | 0                   | 0                | 200000                     | 50000        | 150000
-                      :2013   | 109000          | 59000               | 0                | 200000                     | 0            | 91000
+                      :2008   | 0                | 0                   | -1               | 50000                      | 50000        | 50000
+                      :2009   | 0                | 0                   | -1               | 100000                     | 50000        | 100000
+                      :2010   | 0                | 0                   | -1               | 150000                     | 50000        | 150000
+                      :2011   | 0                | 0                   | 0                | 200000                     | 50000        | 150000
+                      :2012   | 0                | 0                   | 0                | 200000                     | 50000        | 150000
+                      :2013   | 109000           | 59000               | 0                | 200000                     | 0            | 91000
                       :""".stripMargin(':')
         doGroup1Test(table)
       }
+
+      "return correct calculations when pension contributions are over allowances" in {
+        val table = """:year   | Defined Benefit | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
+                       :2008   | 0               | 0                   | -1               | 50000                      | 50000        | 50000
+                       :2009   | 0               | 0                   | -1               | 100000                     | 50000        | 100000
+                       :2010   | 0               | 0                   | -1               | 150000                     | 50000        | 150000
+                       :2011   | 0               | 0                   | 0                | 200000                     | 50000        | 150000
+                       :2012   | 210000          | 160000              | 10000            | 200000                     | 0            | 0
+                       :2013   | 60000           | 10000               | 10000            | 50000                      | 0            | 0
+                       :2014   | 40000           | 0                   | 0                | 40000                      | 0            | 0
+                       :""".stripMargin(':')
+        doGroup1Test(table)
+      } 
     }
 
     "2015 Period 1" should {
@@ -727,8 +741,8 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2010   | 0               | 0                   | -1               | 150000                     | 50000        | 150000
                        :2011   | 0               | 0                   | 0                | 200000                     | 50000        | 150000
                        :2012   | 0               | 0                   | 0                | 200000                     | 50000        | 150000
-                       :2013   | 59000           | 9000                | 0                | 200000                     | 0            | 100000
-                       :2014   | 1000            | 0                   | 0                | 140000                     | 39000        | 89000
+                       :2013   | 59000           | 9000                | 0                | 200000                     | 0            | 141000
+                       :2014   | 1000            | 0                   | 0                | 181000                     | 39000        | 89000
                        :2015P1 | 2000            | 0                   | 0                | 169000                     | 40000        | 129000
                        :2015P2 | 3000            | 0                   | 0                | 129000                     | 37000        | 76000
                        :""".stripMargin(':')
@@ -742,8 +756,8 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2010   | 0               | 0                   | -1               | 150000                     | 50000        | 150000
                        :2011   | 0               | 0                   | 0                | 200000                     | 50000        | 150000
                        :2012   | 0               | 0                   | 0                | 200000                     | 50000        | 150000
-                       :2013   | 59000           | 9000                | 0                | 200000                     | 0            | 100000
-                       :2014   | 49000           | 9000                | 0                | 140000                     | 0            | 50000
+                       :2013   | 59000           | 9000                | 0                | 200000                     | 0            | 141000
+                       :2014   | 49000           | 9000                | 0                | 181000                     | 0            | 132000
                        :2015P1 | 2000            | 0                   | 0                | 130000                     | 40000        | 90000
                        :2015P2 | 3000            | 0                   | 0                | 90000                      | 37000        | 37000
                        :""".stripMargin(':')
@@ -1067,9 +1081,9 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
       }
     }
   }
-
+*/
   "Group 3" should {
-    "in Period 1" can {
+    /*"in Period 1" can {
       "do Scenario 14" in {
         val table = """:year    | Defined Benefit | Money Purchase  | Is Triggered | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward | MPAA 
                        :2012    | 50000           | 0               | false        | 0                   | 0                | 200000                     | 0            | 100000                   | 0
@@ -1190,6 +1204,44 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2013    | 40000           | 8000            | false        | 0                   | 0                | 151000                     | 2000         | 53000                    | 0
                        :2014    | 30000           | 5000            | false        | 0                   | 0                | 93000                      | 5000         | 8000                     | 0
                        :2015P1  | 80000           | 5000            | false        | 5000                | 0                | 88000                      | 0            | 3000                     | 0
+                       :""".stripMargin(':')
+        doGroup3Test(table)
+      }
+    }*/
+
+    "in Period 2" can {
+      "do Scenario 14" in {
+        val table = """:year    | Defined Benefit | Money Purchase  | Is Triggered | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward | MPAA 
+                       :2012    | 50000           | 0               | false        | 0                   | 0                | 200000                     | 0            | 100000                   | 0
+                       :2013    | 50000           | 0               | false        | 0                   | 0                | 150000                     | 0            | 50000                    | 0
+                       :2014    | 40000           | 0               | false        | 0                   | 0                | 90000                      | 0            | 0                        | 0
+                       :2015P1B | 40000           | 5000            | false        | 0                   | 0                | 80000                      | 35000        | 35000                    | 0
+                       :2015P2B | 40000           | 3000            | false        | 8000                | 8000             | 35000                      | 0            | 0                        | 0
+                       :2015P2A | 0               | 12000           | true         | 0                   | 20000            | 35000                      | 0            | 0                        | 0
+                       :""".stripMargin(':')
+        doGroup3Test(table)
+      }
+
+      "do Scenario 15" in {
+        val table = """:year    | Defined Benefit | Money Purchase  | Is Triggered | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward | MPAA 
+                       :2012    | 50000           | 0               | false        | 0                   | 0                | 200000                     | 0            | 100000                   | 0
+                       :2013    | 50000           | 0               | false        | 0                   | 0                | 150000                     | 0            | 50000                    | 0
+                       :2014    | 40000           | 0               | false        | 0                   | 0                | 90000                      | 0            | 0                        | 0
+                       :2015P1B | 10000           | 5000            | false        | 0                   | 0                | 80000                      | 40000        | 40000                    | 0
+                       :2015P2B | 45000           | 0               | false        | 5000                | 5000             | 40000                      | 0            | 0                        | 0
+                       :2015P2A | 0               | 11000           | true         | 0                   | 16000            | 40000                      | 0            | 0                        | 0
+                       :""".stripMargin(':')
+        doGroup3Test(table)
+      }
+
+      "do Scenario 16" in {
+        val table = """:year    | Defined Benefit | Money Purchase  | Is Triggered | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward | MPAA 
+                       :2012    | 50000           | 0               | false        | 0                   | 0                | 200000                     | 0            | 100000                   | 0
+                       :2013    | 50000           | 0               | false        | 0                   | 0                | 150000                     | 0            | 50000                    | 0
+                       :2014    | 40000           | 0               | false        | 0                   | 0                | 90000                      | 0            | 0                        | 0
+                       :2015P1B | 10000           | 5000            | false        | 0                   | 0                | 80000                      | 40000        | 40000                    | 0
+                       :2015P1A | 0               | 75000           | true         | 10000               | 55000            | 80000                      | 0            | 0                        | 0
+                       :2015P2A | 20000           | 35000           | true         | 0                   | 35000            | 0                          | 10000        | 10000                    | 0
                        :""".stripMargin(':')
         doGroup3Test(table)
       }

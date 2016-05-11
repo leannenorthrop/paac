@@ -244,7 +244,10 @@ case class Group2P1Calculator(amountsCalculator: BasicCalculator) extends Period
                         me.exceedingMPAA,
                         me.exceedingAAA,
                         me.unusedAAA,
-                        me.unusedMPAA))
+                        me.unusedMPAA,
+                        0,
+                        0,
+                        me.isMPAAApplicable))
     }
   }
 }

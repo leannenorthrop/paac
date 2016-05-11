@@ -23,6 +23,7 @@ case class Group3P1Calculator(amountsCalculator: BasicCalculator) extends Period
   me: Group3P1Calculator =>
 
   def summary(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Option[Summary] = {
-    None
+    // Group 3 doesn't apply to period 1 so revert to group 2 calculator
+    Group2P1Calculator(amountsCalculator).summary
   }
 }

@@ -45,4 +45,5 @@ case class Group2Fields(chargableAmount: Long = 0,
                         unusedAAA: Long = 0,
                         unusedMPAA: Long = 0,
                         preFlexiSavings: Long = 0,
-                        postFlexiSavings: Long = 0) extends Summary
+                        postFlexiSavings: Long = 0,
+                        isMPA: Boolean = false) extends Summary
