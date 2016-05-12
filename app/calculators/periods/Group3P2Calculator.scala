@@ -102,7 +102,10 @@ case class Group3P2Calculator(amountsCalculator: BasicCalculator) extends Period
     period1Triggered.map {
       (fields) =>
       if (fields.isMPA) {
-        ((me.definedContribution + me.definedBenefit) - (me.previous3YearsUnusedAllowance + fields.unusedAAA)).max(0)
+        val previous = previousPeriods.headOption.map(_.summaryResult.asInstanceOf[Group2Fields]).getOrElse(Group2Fields())
+        val savings = previous.preFlexiSavings + previous.postFlexiSavings
+        val aacf = previous.availableAAWithCF
+        me.postFlexiSavings - previous.dcaCF
       } else {
         ((me.definedContribution + me.definedBenefit) - period1.availableAAWithCCF).max(0)
       }
@@ -189,6 +192,21 @@ case class Group3P2Calculator(amountsCalculator: BasicCalculator) extends Period
 
   def unusedMPAA(): Long = 0L
 
+  def preFlexiSavings(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution) : Long = {
+    if (contribution.isTriggered) {
+      preTriggerAmounts.get.definedBenefit.getOrElse(0L) + preTriggerAmounts.get.moneyPurchase.getOrElse(0L)
+    } else {
+      me.definedContribution + me.definedBenefit
+    }
+  }  
+  def postFlexiSavings(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution) : Long = {
+    if (contribution.isTriggered) {
+      me.definedContribution + me.definedBenefit
+    } else {
+      0L
+    }
+  }
+
   def summary(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Option[Summary] = {
     if (!contribution.isTriggered) {
       Group1P2Calculator(amountsCalculator).summary.map {
@@ -221,8 +239,8 @@ case class Group3P2Calculator(amountsCalculator: BasicCalculator) extends Period
                         me.exceedingAAA,
                         me.unusedAAA,
                         me.unusedMPAA,
-                        0,
-                        0,
+                        me.preFlexiSavings,
+                        me.postFlexiSavings,
                         me.isMPAAApplicable))
     }
   }

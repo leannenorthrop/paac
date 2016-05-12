@@ -235,6 +235,30 @@ case class Group2P1Calculator(amountsCalculator: BasicCalculator) extends Period
     }
   }
 
+  def preFlexiSavings(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution) : Long = {
+    if (contribution.isTriggered) {
+      preTriggerAmounts.get.definedBenefit.getOrElse(0L) + preTriggerAmounts.get.moneyPurchase.getOrElse(0L)
+    } else {
+      me.definedContribution + me.definedBenefit
+    }
+  }
+
+  def postFlexiSavings(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution) : Long = {
+    if (contribution.isTriggered) {
+      me.definedContribution + me.definedBenefit
+    } else {
+      0L
+    }
+  }
+
+  def acaCF(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution) : Long = {
+     (AAA + me.previous3YearsUnusedAllowance) - me.preFlexiSavings
+  }
+
+  def dcaCF(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution) : Long = {
+    (AA + me.previous3YearsUnusedAllowance) - me.postFlexiSavings
+  }
+
   def summary(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Option[Summary] = {
     if (!contribution.isTriggered) {
       Group1P1Calculator(amountsCalculator).summary.map {
@@ -267,9 +291,11 @@ case class Group2P1Calculator(amountsCalculator: BasicCalculator) extends Period
                         me.exceedingAAA,
                         me.unusedAAA,
                         me.unusedMPAA,
-                        0,
-                        0,
-                        me.isMPAAApplicable))
+                        me.preFlexiSavings,
+                        me.postFlexiSavings,
+                        me.isMPAAApplicable,
+                        me.acaCF,
+                        me.dcaCF))
     }
   }
 }
