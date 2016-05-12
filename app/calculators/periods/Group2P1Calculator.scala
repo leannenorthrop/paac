@@ -27,6 +27,14 @@ case class Group2P1Calculator(amountsCalculator: BasicCalculator) extends Period
   val AA = 80000*100L
   val MAX_CF = 4000000L
 
+  def preTriggerFields(implicit previousPeriods:Seq[TaxYearResults]): Option[Group2Fields] = {
+    previousPeriods.find(!_.input.amounts.getOrElse(InputAmounts()).triggered.getOrElse(false)).map(_.summaryResult.asInstanceOf[Group2Fields])
+  }
+
+  def preTriggerAmounts(implicit previousPeriods:Seq[TaxYearResults]): Option[InputAmounts] = {
+    previousPeriods.find(!_.input.amounts.getOrElse(InputAmounts()).triggered.getOrElse(false)).flatMap(_.input.amounts)
+  }
+
   def isMPAAApplicable(implicit contribution: Contribution): Boolean = {
     me.definedContribution > MPA && contribution.isTriggered
   }
@@ -46,10 +54,20 @@ case class Group2P1Calculator(amountsCalculator: BasicCalculator) extends Period
   }
 
   def dbist(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution): Long = {
-    if (me.definedBenefit > AAA) {
-      me.definedBenefit - AAA
+    val previousYear = previousPeriods.find(_.input.taxPeriodStart.year != 2015).headOption.map(_.summaryResult).getOrElse(SummaryResult())
+    if (contribution.isTriggered) {
+      val allowances = (me.preTriggerFields.get.unusedAAA + previousYear.availableAAWithCCF)
+      if (me.definedBenefit < allowances) {
+        0L
+      } else {
+        (allowances - me.definedBenefit).max(0)
+      }
     } else {
-      0L
+      val db = me.preTriggerAmounts.map {
+        (amounts) =>
+        amounts.definedBenefit.getOrElse(0L)+amounts.moneyPurchase.getOrElse(0L)
+      }.getOrElse(0L)
+      (db - previousYear.availableAAWithCCF).max(0)
     }
   }
 
@@ -152,7 +170,11 @@ case class Group2P1Calculator(amountsCalculator: BasicCalculator) extends Period
     val definedBenefit = me.definedBenefit
     val annualAllowance = AA
     val previous3YearsUnusedAllowance = me.previous3YearsUnusedAllowance
-    if (definedBenefit >= annualAllowance) {
+    if (isMPAAApplicable) {
+      val amounts = me.preTriggerAmounts.getOrElse(InputAmounts())
+      val preSavings = amounts.definedBenefit.getOrElse(0L) + amounts.moneyPurchase.getOrElse(0L)
+      (AAA + previous3YearsUnusedAllowance - preSavings).max(0)
+    } else if (definedBenefit >= annualAllowance) {
       (annualAllowance + previous3YearsUnusedAllowance - (definedBenefit+definedContribution)).max(0)
     } else {
       (me.unusedAllowance.min(MAX_CF) + previous3YearsUnusedAllowance).max(0)

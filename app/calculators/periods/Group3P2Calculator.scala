@@ -42,6 +42,10 @@ case class Group3P2Calculator(amountsCalculator: BasicCalculator) extends Period
     previousPeriods.find(_.input.amounts.getOrElse(InputAmounts()).triggered.getOrElse(false)).map(_.summaryResult.asInstanceOf[Group2Fields])
   }
 
+  def isPeriod1Triggered(implicit previousPeriods:Seq[TaxYearResults]): Boolean = {
+    previousPeriods.find(_.input.amounts.getOrElse(InputAmounts()).triggered.getOrElse(false)) != None
+  }
+
   def isMPAAApplicable(implicit contribution: Contribution): Boolean = {
     me.definedContribution > MPA
   }
@@ -49,20 +53,19 @@ case class Group3P2Calculator(amountsCalculator: BasicCalculator) extends Period
   def definedBenefit(implicit contribution: Contribution): Long = contribution.amounts.map(_.definedBenefit.getOrElse(0L)).getOrElse(0L)
 
   def dbist(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Long = {
-    val period1Triggered = me.preTriggerFields
-    if (period1Triggered.isDefined) {
-      val allowances = (preTriggerFields.get.unusedAAA + me.previous3YearsUnusedAllowance)
+    if (me.isPeriod1Triggered) {
+      val allowances = (preTriggerFields.get.unusedAAA + period1.availableAAWithCCF)
       if (me.definedBenefit < allowances) {
-        0L
-      } else {
         (allowances - me.definedBenefit).max(0)
+      } else {
+        (me.definedBenefit - allowances).max(0)
       }
     } else {
       val db = me.preTriggerAmounts.map {
         (amounts) =>
         amounts.definedBenefit.getOrElse(0L)+amounts.moneyPurchase.getOrElse(0L)
       }.getOrElse(0L)
-      (db - AAA)
+      (db - period1.availableAAWithCCF).max(0)
     }
   }
 
@@ -88,7 +91,7 @@ case class Group3P2Calculator(amountsCalculator: BasicCalculator) extends Period
   }
 
   def alternativeChargableAmount(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution): Long = {
-    if (me.isMPAAApplicable(contribution)) {
+    if (me.isMPAAApplicable(contribution) || (me.isPeriod1Triggered && me.period1Triggered.get.isMPA)) {
       (me.mpist + me.dbist).max(0)
     } else {
       0L
@@ -109,9 +112,9 @@ case class Group3P2Calculator(amountsCalculator: BasicCalculator) extends Period
         amounts.definedBenefit.getOrElse(0L)+amounts.moneyPurchase.getOrElse(0L)
       }.getOrElse(0L)
       if (me.isMPAAApplicable(contribution)) {
-        ((preTriggerSavings + me.definedContribution + me.definedBenefit) - (me.previous3YearsUnusedAllowance + period1.unusedAllowance)).max(0)
+        ((preTriggerSavings + me.definedContribution + me.definedBenefit) - period1.availableAAWithCCF).max(0)
       } else {
-        ((me.definedContribution + me.definedBenefit) - (me.previous3YearsUnusedAllowance + period1.unusedAllowance)).max(0)
+        ((me.definedContribution + me.definedBenefit) - period1.availableAAWithCCF).max(0)
       }
     }
   }
