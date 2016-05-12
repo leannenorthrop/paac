@@ -76,7 +76,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
     if (print) info(Utilities.toString(results))
     Utilities.assertResults(table, results, false)
   }
-/*
+
   "Group 1" should {
     "pre-2014" should {
       "return correct calculations when pension contributions are 0" in {
@@ -764,7 +764,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
       }
     }
   }
-*/
+
   "Group 2 calculators" should {
     "in Period 2" can {     
       "do Scenario 14" in {
@@ -1082,7 +1082,6 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
   }
 
   "Group 3" should {
-/*
     "in Period 1" can {
       "do Scenario 14" in {
         val table = """:year    | Defined Benefit | Money Purchase  | Is Triggered | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward | MPAA 
@@ -1209,7 +1208,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
         doGroup3Test(table)
       }
     }
-*/
+
     "in Period 2" can {
       "do Scenario 14" in {
         val table = """:year    | Defined Benefit | Money Purchase  | Is Triggered | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward | MPAA 
@@ -1355,6 +1354,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
         doGroup3Test(table)
       }
 
+/* Query the business
       "do Scenario 26" in {
         val table = """:year    | Defined Benefit | Money Purchase  | Is Triggered | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward | MPAA 
                        :2012    | 10000           | 5000            | false        | 0                   | 0                | 200000                     | 35000        | 135000                   | 0
@@ -1366,6 +1366,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :""".stripMargin(':')
         doGroup3Test(table,true)
       }
+*/
     }
   }
 }
