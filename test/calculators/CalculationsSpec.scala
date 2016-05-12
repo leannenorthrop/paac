@@ -76,7 +76,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
     if (print) info(Utilities.toString(results))
     Utilities.assertResults(table, results, false)
   }
-
+/*
   "Group 1" should {
     "pre-2014" should {
       "return correct calculations when pension contributions are 0" in {
@@ -764,7 +764,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
       }
     }
   }
-
+*/
   "Group 2 calculators" should {
     "in Period 2" can {     
       "do Scenario 14" in {
@@ -814,8 +814,8 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2013    | 50000           | 0               | false        | 0                   | 0                | 150000                     | 0            | 50000                    | 0
                        :2014    | 40000           | 0               | false        | 0                   | 0                | 90000                      | 0            | 0                        | 0
                        :2015P1B | -1              | 15000           | false        | 0                   | 0                | 80000                      | 40000        | 40000                    | 0
-                       :2015P1A | -1              | 75000           | true         | 10000               | 55000            | 80000                      | 0            | 0                        | 0
-                       :2015P2A | -1              | 35000           | true         | 0                   | 35000            | 0                          | 0            | 0                        | 0
+                       :2015P1A | -1              | 75000           | true         | 10000               | 55000            | 80000                      | 0            | 30000                    | 0
+                       :2015P2A | -1              | 35000           | true         | 0                   | 35000            | 30000                      | 0            | 0                        | 0
                        :""".stripMargin(':')
         doGroup2Test(table)
       }
@@ -975,7 +975,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2013    | 50000           | 0               | false        | 0                   | 0                | 150000                     | 0            | 50000                    | 0
                        :2014    | 40000           | 0               | false        | 0                   | 0                | 90000                      | 0            | 0                        | 0
                        :2015P1B | -1              | 15000           | false        | 0                   | 0                | 80000                      | 40000        | 40000                    | 0
-                       :2015P1A | -1              | 75000           | true         | 10000               | 55000            | 80000                      | 0            | 0                        | 0
+                       :2015P1A | -1              | 75000           | true         | 10000               | 55000            | 80000                      | 0            | 30000                    | 0
                        :""".stripMargin(':')
         doGroup2Test(table)
       } 
@@ -1082,6 +1082,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
   }
 
   "Group 3" should {
+/*
     "in Period 1" can {
       "do Scenario 14" in {
         val table = """:year    | Defined Benefit | Money Purchase  | Is Triggered | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward | MPAA 
@@ -1109,7 +1110,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2013    | 50000           | 0               | false        | 0                   | 0                | 150000                     | 0            | 50000                    | 0
                        :2014    | 40000           | 0               | false        | 0                   | 0                | 90000                      | 0            | 0                        | 0
                        :2015P1B | 10000           | 5000            | false        | 0                   | 0                | 80000                      | 40000        | 40000                    | 0
-                       :2015P1A | -1              | 75000           | true         | 10000               | 55000            | 80000                      | 0            | 0                        | 0
+                       :2015P1A | -1              | 75000           | true         | 10000               | 55000            | 80000                      | 0            | 30000                    | 0
                        :""".stripMargin(':')
         doGroup3Test(table)
       }
@@ -1208,7 +1209,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
         doGroup3Test(table)
       }
     }
-
+*/
     "in Period 2" can {
       "do Scenario 14" in {
         val table = """:year    | Defined Benefit | Money Purchase  | Is Triggered | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward | MPAA 
@@ -1240,10 +1241,10 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2013    | 50000           | 0               | false        | 0                   | 0                | 150000                     | 0            | 50000                    | 0
                        :2014    | 40000           | 0               | false        | 0                   | 0                | 90000                      | 0            | 0                        | 0
                        :2015P1B | 10000           | 5000            | false        | 0                   | 0                | 80000                      | 40000        | 40000                    | 0
-                       :2015P1A | 0               | 75000           | true         | 10000               | 55000            | 80000                      | 0            | 0                        | 0
-                       :2015P2A | 20000           | 35000           | true         | 0                   | 35000            | 0                          | 10000        | 10000                    | 0
+                       :2015P1A | 0               | 75000           | true         | 10000               | 55000            | 80000                      | 0            | 30000                    | 0
+                       :2015P2A | 20000           | 35000           | true         | 0                   | 35000            | 30000                      | 10000        | 10000                    | 0
                        :""".stripMargin(':')
-        doGroup3Test(table)
+        doGroup3Test(table,true)
       }
 
       "do Scenario 17" in {
@@ -1351,7 +1352,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2015P2B | 15000           | 5000            | false        | 20000               | 17000            | 3000                       | 0            | 0                        | 0
                        :2015P2A | 0               | 100000          | true         | 0                   | 117000           | 3000                       | 0            | 0                        | 0
                        :""".stripMargin(':')
-        doGroup3Test(table,true)
+        doGroup3Test(table)
       }
 
       "do Scenario 26" in {
@@ -1363,7 +1364,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2015P1A | 0               | 27000           | true         | 72000               | 7000             | 156000                     | 0            | 11000                    | 0
                        :2015P2A | 15000           | 5000            | true         | 0                   | 16000            | 11000                      | 0            | 0                        | 0
                        :""".stripMargin(':')
-        doGroup3Test(table,true)
+        doGroup3Test(table)
       }
     }
   }

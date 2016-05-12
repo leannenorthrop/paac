@@ -68,8 +68,8 @@ object Utilities {
     results.foreach {
       (result)=>
       val values = if (!result.summaryResult.isInstanceOf[Group2Fields]) {
-        List(result.input.amounts.get.definedBenefit.get,
-            result.input.amounts.get.moneyPurchase.get,
+        List(result.input.amounts.get.definedBenefit.getOrElse(0L),
+            result.input.amounts.get.moneyPurchase.getOrElse(0L),
             result.summaryResult.chargableAmount,
             result.summaryResult.exceedingAAAmount,
             result.summaryResult.availableAllowance,
@@ -81,8 +81,8 @@ object Utilities {
             ).map(_ / 100.00).map((v)=>f"${v}%10.2f").mkString(" ")
       } else {
         val v = result.summaryResult.asInstanceOf[Group2Fields]
-        List(result.input.amounts.get.definedBenefit.get,
-            result.input.amounts.get.moneyPurchase.get,
+        List(result.input.amounts.get.definedBenefit.getOrElse(0L),
+            result.input.amounts.get.moneyPurchase.getOrElse(0L),
             v.chargableAmount,
             v.exceedingAAAmount,
             v.availableAllowance,

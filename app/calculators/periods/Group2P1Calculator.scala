@@ -173,7 +173,7 @@ case class Group2P1Calculator(amountsCalculator: BasicCalculator) extends Period
     if (isMPAAApplicable) {
       val amounts = me.preTriggerAmounts.getOrElse(InputAmounts())
       val preSavings = amounts.definedBenefit.getOrElse(0L) + amounts.moneyPurchase.getOrElse(0L)
-      (AAA + previous3YearsUnusedAllowance - preSavings).max(0)
+      ((AAA + previous3YearsUnusedAllowance - preSavings).min(3000000L)).max(0)
     } else if (definedBenefit >= annualAllowance) {
       (annualAllowance + previous3YearsUnusedAllowance - (definedBenefit+definedContribution)).max(0)
     } else {
