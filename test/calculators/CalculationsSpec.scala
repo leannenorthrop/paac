@@ -1244,7 +1244,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2015P1A | 0               | 75000           | true         | 10000               | 55000            | 80000                      | 0            | 30000                    | 0
                        :2015P2A | 20000           | 35000           | true         | 0                   | 35000            | 30000                      | 10000        | 10000                    | 0
                        :""".stripMargin(':')
-        doGroup3Test(table,true)
+        doGroup3Test(table)
       }
 
       "do Scenario 17" in {
@@ -1364,7 +1364,7 @@ class CalculationsSpec extends UnitSpec with BeforeAndAfterAll {
                        :2015P1A | 0               | 27000           | true         | 72000               | 7000             | 156000                     | 0            | 11000                    | 0
                        :2015P2A | 15000           | 5000            | true         | 0                   | 16000            | 11000                      | 0            | 0                        | 0
                        :""".stripMargin(':')
-        doGroup3Test(table)
+        doGroup3Test(table,true)
       }
     }
   }

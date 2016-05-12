@@ -56,7 +56,8 @@ case class Group3P2Calculator(amountsCalculator: BasicCalculator) extends Period
     if (me.isPeriod1Triggered) {
       val allowances = (preTriggerFields.get.unusedAAA + period1.availableAAWithCCF)
       if (me.definedBenefit < allowances) {
-        (allowances - me.definedBenefit).max(0)
+        //(allowances - me.definedBenefit).max(0)
+        0L
       } else {
         (me.definedBenefit - allowances).max(0)
       }
@@ -103,7 +104,7 @@ case class Group3P2Calculator(amountsCalculator: BasicCalculator) extends Period
       (fields) =>
       if (fields.isMPA) {
         val previous = previousPeriods.headOption.map(_.summaryResult.asInstanceOf[Group2Fields]).getOrElse(Group2Fields())
-        if (previous.preFlexiSavings > 8000000L) {
+        if (false) {
           val savings = previous.preFlexiSavings + previous.postFlexiSavings
           val aacf = previous.availableAAWithCF
           me.postFlexiSavings - previous.dcaCF
