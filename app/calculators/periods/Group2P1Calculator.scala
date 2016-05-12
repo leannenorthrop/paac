@@ -54,15 +54,15 @@ case class Group2P1Calculator(amountsCalculator: BasicCalculator) extends Period
   }
 
   def mpist(implicit contribution:Contribution): Long = {
-    if (me.definedContribution > MPA){
+    if (me.isMPAAApplicable(contribution)){
       me.definedContribution - MPA
     } else {
-      0L
+      me.definedContribution
     }
   }
 
   def moneyPurchaseAA(implicit contribution:Contribution): Long = {
-    if (me.definedContribution < MPA && me.isMPAAApplicable(contribution)) {
+    if (me.isMPAAApplicable(contribution)) {
       val v = MPA - me.definedContribution
       if (v > 1000000L) {
         1000000L
@@ -153,7 +153,7 @@ case class Group2P1Calculator(amountsCalculator: BasicCalculator) extends Period
     val annualAllowance = AA
     val previous3YearsUnusedAllowance = me.previous3YearsUnusedAllowance
     if (definedBenefit >= annualAllowance) {
-      (annualAllowance + previous3YearsUnusedAllowance - definedBenefit).max(0)
+      (annualAllowance + previous3YearsUnusedAllowance - (definedBenefit+definedContribution)).max(0)
     } else {
       (me.unusedAllowance.min(MAX_CF) + previous3YearsUnusedAllowance).max(0)
     }

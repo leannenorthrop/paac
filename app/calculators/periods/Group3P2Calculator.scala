@@ -69,10 +69,10 @@ case class Group3P2Calculator(amountsCalculator: BasicCalculator) extends Period
   def mpist(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution): Long = {
     val period1Triggered = me.period1Triggered
     if (period1Triggered.isDefined) {
-      me.definedContribution - period1Triggered.get.unusedMPAA
+      (me.definedContribution - period1Triggered.get.unusedMPAA).max(0)
     } else {
       if (isMPAAApplicable) {
-        me.definedContribution - MPA
+        (me.definedContribution - MPA).max(0)
       } else {
         0L
       }
@@ -101,7 +101,7 @@ case class Group3P2Calculator(amountsCalculator: BasicCalculator) extends Period
       if (fields.isMPA) {
         ((me.definedContribution + me.definedBenefit) - (me.previous3YearsUnusedAllowance + fields.unusedAAA)).max(0)
       } else {
-        ((me.definedContribution + me.definedBenefit) - (me.previous3YearsUnusedAllowance + fields.unusedAllowance)).max(0)
+        ((me.definedContribution + me.definedBenefit) - period1.availableAAWithCCF).max(0)
       }
     }.getOrElse {
       val preTriggerSavings = me.preTriggerAmounts.map {
@@ -127,11 +127,12 @@ case class Group3P2Calculator(amountsCalculator: BasicCalculator) extends Period
     }.getOrElse(0L)
 
     val allowances = period1.unusedAllowance + me.previous3YearsUnusedAllowance
-    if (allowances < preTriggerSavings) {
+    val unusedAllowance = if (allowances < preTriggerSavings) {
       period1.unusedAAA - me.definedBenefit
     } else {
       preTriggerSavings - allowances
     }
+    unusedAllowance.max(0)
   }
 
   def chargableAmount(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution): Long = {
