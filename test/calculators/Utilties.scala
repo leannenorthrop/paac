@@ -20,8 +20,43 @@ import models._
 import org.scalatest.Assertions._
 import scala.util._
 import calculators.periods._
+import io._
 
 object Utilities {
+  def using[A <: { def close(): Unit }, B](resource: A)(f: A => B): B = {
+    try {
+        f(resource)
+    } finally {
+        resource.close()
+    }
+  }
+
+  def getListOfFiles(dir: String):List[String] = {
+    val d = new java.io.File(dir)
+    if (d.exists && d.isDirectory) {
+      d.listFiles.filter(_.isFile).toList.map(_.getAbsolutePath())
+    } else {
+      List[String]()
+    }
+  }
+
+  def readTextFile(filename: String): Option[List[String]] = {
+    try {
+        val lines = using(io.Source.fromFile(filename)) { source =>
+            (for (line <- source.getLines) yield line).toList
+        }
+        Some(lines)
+    } catch {
+        case e: Exception => None
+    }
+  }
+
+  def writeTextFile(dir: String, name: String, contents: String): Unit = {
+    val pw = new java.io.PrintWriter(new java.io.File(dir + java.io.File.separator + name))
+    pw.write(contents)
+    pw.close
+  }
+
   def generateContributions(map:Map[String,Long]): List[Contribution] = {
     map.keys.toList.map {
       (key)=>
@@ -107,7 +142,7 @@ object Utilities {
 
   def assertResults(table:String, results:Seq[TaxYearResults], print:Boolean = false):Unit = {
     def getInts() = {
-      table.split("\n").drop(1).toList.map(_.split('|').toList.map{
+      table.split("\n").drop(2).toList.map(_.split('|').toList.map{
         (v)=>
         if (v.contains("2015P1B")) 
           4 
@@ -146,7 +181,7 @@ object Utilities {
                           0L
                        }
                        )
-    val headings = table.split("\n")(0).split('|').map(_.trim)
+    val headings = table.split("\n")(1).split('|').map(_.trim)
     val expectedResults = getInts
     val expected = expectedResults.map(headings.zip(_).groupBy(_._1).map{case (k,v)=>(k,v.map(_._2))})
     expected.foreach {

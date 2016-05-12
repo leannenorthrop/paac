@@ -1,0 +1,11 @@
+when defined benefit is equal to allowances carry forwards and chargable amounts should be correct
+year   | Defined Benefit | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
+2008   | 50000           | 0                   | -1               | 50000                      | 0            | 0
+2009   | 50000           | 0                   | -1               | 50000                      | 0            | 0
+2010   | 50000           | 0                   | -1               | 50000                      | 0            | 0
+2011   | 50000           | 0                   | 0                | 50000                      | 0            | 0
+2012   | 50000           | 0                   | 0                | 50000                      | 0            | 0
+2013   | 50000           | 0                   | 0                | 50000                      | 0            | 0
+2014   | 40000           | 0                   | 0                | 40000                      | 0            | 0
+2015P1 | 80000           | 0                   | 0                | 80000                      | 0            | 0
+2015P2 | 0               | 0                   | 0                | 0                          | 0            | 0

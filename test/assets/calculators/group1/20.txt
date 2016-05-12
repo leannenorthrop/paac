@@ -1,0 +1,6 @@
+when defined benefit Period 1 is 0 return expected results
+year   | Defined Benefit | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
+2012   | 45000           | 0                   | 0                | 200000                     | 5000         | 105000
+2013   | 50000           | 0                   | 0                | 155000                     | 0            | 55000
+2014   | 30000           | 0                   | 0                | 95000                      | 10000        | 15000
+2015P1 | 0               | 0                   | 0                | 95000                      | 40000        | 55000
