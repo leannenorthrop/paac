@@ -24,7 +24,7 @@ import org.scalatest.prop._
 import org.scalacheck.Gen
 import calculators.results.BasicCalculator
 
-class Group2P2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks with BeforeAndAfterAll {
+class Group2P2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks {
 
   trait TestFixture {
     val annualAllowance = 50000

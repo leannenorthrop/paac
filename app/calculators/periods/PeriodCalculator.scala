@@ -55,13 +55,13 @@ trait PeriodCalculator {
 
   def definedContribution(implicit contribution:Contribution): Long = contribution.amounts.getOrElse(InputAmounts()).moneyPurchase.getOrElse(0L)
   
-  def definedBenefit(): Long = 0L
-  def chargableAmount(): Long = 0L
-  def exceedingAllowance(): Long = 0L
-  def annualAllowance(): Long = 0L
-  def unusedAllowance(): Long = 0L
-  def aaCF(): Long = 0L
-  def aaCCF(): Long = 0L
+  def definedBenefit(): Long
+  def chargableAmount(): Long
+  def exceedingAllowance(): Long
+  def annualAllowance(): Long
+  def unusedAllowance(): Long
+  def aaCF(): Long
+  def aaCCF(): Long
   def moneyPurchaseAA(): Long = 0L
   def alternativeAA(): Long = 0L
   def dbist(): Long = 0L

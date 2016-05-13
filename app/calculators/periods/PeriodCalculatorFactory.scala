@@ -22,8 +22,7 @@ trait PeriodCalculatorFactory {
   def get(allowanceInPounds: Long)(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution) : Option[PeriodCalculator] = {
     implicit val amountsCalculator = calculators.results.BasicCalculator(allowanceInPounds)
     if (contribution.isPeriod1) {
-      if (contribution.isGroup3) Some(Group2P1Calculator())
-      else if (contribution.isGroup2) Some(Group2P1Calculator())
+      if (contribution.isGroup3 || contribution.isGroup2) Some(Group2P1Calculator())
       else Some(Group1P1Calculator())
     } else if (contribution.isPeriod2) {
       if (contribution.isGroup3) Some(Group3P2Calculator())
