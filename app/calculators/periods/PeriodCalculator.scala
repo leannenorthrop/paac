@@ -18,34 +18,34 @@ package calculators.periods
 
 import models._
 
-trait PeriodCalculator extends calculators.Calculator {
+trait PeriodCalculator {
   def previous3YearsUnusedAllowance()(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Long = previousPeriods.filter(_.input.taxPeriodStart.year < 2015).slice(0,3).foldLeft(0L)(_+_.summaryResult.unusedAllowance)
   def previous2YearsUnusedAllowance()(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Long = previousPeriods.filter(_.input.taxPeriodStart.year < 2015).slice(0,2).foldLeft(0L)(_+_.summaryResult.unusedAllowance)
 
   def definedContribution(implicit contribution:Contribution): Long = contribution.amounts.getOrElse(InputAmounts()).moneyPurchase.getOrElse(0L)
+  
+  def definedBenefit(): Long = 0L
+  def chargableAmount(): Long = 0L
+  def exceedingAllowance(): Long = 0L
+  def annualAllowance(): Long = 0L
+  def unusedAllowance(): Long = 0L
+  def aaCF(): Long = 0L
+  def aaCCF(): Long = 0L
+  def moneyPurchaseAA(): Long = 0L
+  def alternativeAA(): Long = 0L
+  def dbist(): Long = 0L
+  def mpist(): Long = 0L
+  def alternativeChargableAmount(): Long = 0L
+  def defaultChargableAmount(): Long = 0L
+  def cumulativeMP(): Long = 0L
+  def cumulativeDB(): Long = 0L
+  def exceedingMPAA(): Long = 0L
+  def exceedingAAA(): Long = 0L
+  def unusedAAA(): Long = 0L
+  def unusedMPAA(): Long = 0L
+  def preFlexiSavings(): Long = 0L
+  def postFlexiSavings(): Long = 0L
+  def isMPAAApplicable(): Boolean = false
+  def acaCF() : Long = 0L
+  def dcaCF() : Long = 0L
 }
-
-case class Group2Fields(chargableAmount: Long = 0,
-                        exceedingAAAmount: Long = 0,
-                        availableAllowance: Long = 0,
-                        unusedAllowance: Long = 0,
-                        availableAAWithCF: Long = 0,    // total available allowance for current year should be renamed to totalAA
-                        availableAAWithCCF: Long = 0,   // available allowance carried forward to following year
-                        unusedAllowanceCF: Long = 0,
-                        moneyPurchaseAA: Long = 0,
-                        alternativeAA: Long = 0,
-                        dbist: Long = 0,
-                        mpist: Long = 0,
-                        alternativeChargableAmount: Long = 0,
-                        defaultChargableAmount: Long = 0,
-                        cumulativeMP: Long = 0,
-                        cumulativeDB: Long = 0,
-                        exceedingMPAA: Long = 0,
-                        exceedingAAA: Long = 0,
-                        unusedAAA: Long = 0,
-                        unusedMPAA: Long = 0,
-                        preFlexiSavings: Long = 0,
-                        postFlexiSavings: Long = 0,
-                        isMPA: Boolean = false,
-                        acaCF: Long = 0,
-                        dcaCF: Long = 0) extends Summary

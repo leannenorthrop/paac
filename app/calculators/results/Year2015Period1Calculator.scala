@@ -28,13 +28,33 @@ object Year2015Period1Calculator extends calculators.AllowanceCalculator {
 
   def summary(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Option[Summary] = {
     if (isSupported(contribution)) {
-      val amountsCalculator = BasicCalculator(getAnnualAllowanceInPounds)
-      if (contribution.isGroup3) {
-        Group3P1Calculator(amountsCalculator).summary
-      } else if (contribution.isGroup2) {
-        Group2P1Calculator(amountsCalculator).summary
-      } else {
-        Group1P1Calculator(amountsCalculator).summary
+      val maybeCalculator = PeriodCalculatorFactory.get(getAnnualAllowanceInPounds)
+      maybeCalculator.map {
+        (calculator) =>
+        ExtendedSummaryFields(calculator.chargableAmount,
+                              calculator.exceedingAllowance,
+                              calculator.annualAllowance,
+                              calculator.unusedAllowance,
+                              calculator.aaCF,
+                              calculator.aaCCF,
+                              0L,
+                              calculator.moneyPurchaseAA,
+                              calculator.alternativeAA,
+                              calculator.dbist,
+                              calculator.mpist,
+                              calculator.alternativeChargableAmount,
+                              calculator.defaultChargableAmount,
+                              calculator.cumulativeMP,
+                              calculator.cumulativeDB,
+                              calculator.exceedingMPAA,
+                              calculator.exceedingAAA,
+                              calculator.unusedAAA,
+                              calculator.unusedMPAA,
+                              calculator.preFlexiSavings,
+                              calculator.postFlexiSavings,
+                              calculator.isMPAAApplicable,
+                              calculator.acaCF,
+                              calculator.dcaCF)
       }
     } else None
   }

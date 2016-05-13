@@ -102,7 +102,7 @@ object Utilities {
     var message: String = f"\n${headings}\n"
     results.foreach {
       (result)=>
-      val values = if (!result.summaryResult.isInstanceOf[Group2Fields]) {
+      val values = if (!result.summaryResult.isInstanceOf[ExtendedSummaryFields]) {
         List(result.input.amounts.get.definedBenefit.getOrElse(0L),
             result.input.amounts.get.moneyPurchase.getOrElse(0L),
             result.summaryResult.chargableAmount,
@@ -115,7 +115,7 @@ object Utilities {
             0L
             ).map(_ / 100.00).map((v)=>f"${v}%10.2f").mkString(" ")
       } else {
-        val v = result.summaryResult.asInstanceOf[Group2Fields]
+        val v = result.summaryResult.asInstanceOf[ExtendedSummaryFields]
         List(result.input.amounts.get.definedBenefit.getOrElse(0L),
             result.input.amounts.get.moneyPurchase.getOrElse(0L),
             v.chargableAmount,
@@ -175,8 +175,8 @@ object Utilities {
                        "Available Allowance"-> { (r:TaxYearResults) => r.summaryResult.availableAllowance },
                        "MPAA"-> { 
                         (r:TaxYearResults) => 
-                        if (r.summaryResult.isInstanceOf[Group2Fields])
-                          r.summaryResult.asInstanceOf[Group2Fields].unusedMPAA
+                        if (r.summaryResult.isInstanceOf[ExtendedSummaryFields])
+                          r.summaryResult.asInstanceOf[ExtendedSummaryFields].unusedMPAA
                         else 
                           0L
                        }

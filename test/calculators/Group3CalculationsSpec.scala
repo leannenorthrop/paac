@@ -65,7 +65,7 @@ class Group3CalculationsSpec extends FunSpec with BeforeAndAfterAll{
         val lines = maybeFileContents.get
         val filename = testFilename.split(java.io.File.separator).reverse(0)
         it (s"$filename: ${lines(0)}") {
-          doGroup3Test(lines.mkString("\n"), true)
+          doGroup3Test(lines.mkString("\n"), false)
         }
       }
     }

@@ -54,7 +54,7 @@ class Group1CalculationsSpec extends FunSpec with BeforeAndAfterAll{
           val inputs = Map(years.zip(definedBenefit): _*)
           val results = PensionAllowanceCalculator.calculateAllowances(Utilities.generateContributions(inputs))
           Utilities.assertResults(table, results, false)
-          if (true) info(Utilities.toString(results))
+          if (false) info(Utilities.toString(results))
         }
       }
     }

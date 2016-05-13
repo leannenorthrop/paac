@@ -41,6 +41,31 @@ case class SummaryResult(chargableAmount: Long = 0,
                          availableAAWithCCF: Long = 0,   // available allowance carried forward to following year
                          unusedAllowanceCF: Long = 0) extends Summary
 
+case class ExtendedSummaryFields(chargableAmount: Long = 0,
+                                 exceedingAAAmount: Long = 0,
+                                 availableAllowance: Long = 0,
+                                 unusedAllowance: Long = 0,
+                                 availableAAWithCF: Long = 0,    // total available allowance for current year should be renamed to totalAA
+                                 availableAAWithCCF: Long = 0,   // available allowance carried forward to following year
+                                 unusedAllowanceCF: Long = 0,
+                                 moneyPurchaseAA: Long = 0,
+                                 alternativeAA: Long = 0,
+                                 dbist: Long = 0,
+                                 mpist: Long = 0,
+                                 alternativeChargableAmount: Long = 0,
+                                 defaultChargableAmount: Long = 0,
+                                 cumulativeMP: Long = 0,
+                                 cumulativeDB: Long = 0,
+                                 exceedingMPAA: Long = 0,
+                                 exceedingAAA: Long = 0,
+                                 unusedAAA: Long = 0,
+                                 unusedMPAA: Long = 0,
+                                 preFlexiSavings: Long = 0,
+                                 postFlexiSavings: Long = 0,
+                                 isMPA: Boolean = false,
+                                 acaCF: Long = 0,
+                                 dcaCF: Long = 0) extends Summary
+
 object Summary {
   implicit val summaryResultWrites: Writes[Summary] = (
     (JsPath \ "chargableAmount").write[Long] and
