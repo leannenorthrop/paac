@@ -18,31 +18,63 @@ package calculators.periods
 
 import models._
 
-trait PeriodCalculator extends calculators.Calculator {
-  def previous3YearsUnusedAllowance()(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Long = previousPeriods.filter(_.input.taxPeriodStart.year < 2015).slice(0,3).foldLeft(0L)(_+_.summaryResult.unusedAllowance)
-  def previous2YearsUnusedAllowance()(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Long = previousPeriods.filter(_.input.taxPeriodStart.year < 2015).slice(0,2).foldLeft(0L)(_+_.summaryResult.unusedAllowance)
+trait PeriodCalculator {
+  def isTriggered(implicit contribution: Contribution): Boolean = contribution.isTriggered
+
+  def taxResultNotTriggered(tx: TaxYearResults): Boolean = !tx.input.amounts.getOrElse(InputAmounts()).triggered.getOrElse(false)
+
+  def taxResultTriggered(tx: TaxYearResults): Boolean = !taxResultNotTriggered(tx)
+
+  def isBefore2015(taxYearResult: TaxYearResults): Boolean = taxYearResult.input.taxPeriodStart.year <= 2015 && !taxYearResult.input.isPeriod1 && !taxYearResult.input.isPeriod2
+
+  def pre2015Results(implicit previousPeriods:Seq[TaxYearResults]) = previousPeriods.filter(isBefore2015)
+
+  def period1(implicit previousPeriods:Seq[TaxYearResults]) = previousPeriods.find(_.input.isPeriod1).map(_.summaryResult.asInstanceOf[ExtendedSummaryFields]).getOrElse(ExtendedSummaryFields())
+
+  def previous(implicit previousPeriods:Seq[TaxYearResults]): Summary = previousResults.map(_.summaryResult).getOrElse(ExtendedSummaryFields())
+
+  def previousResults(implicit previousPeriods:Seq[TaxYearResults]): Option[TaxYearResults] = previousPeriods.headOption
+
+  def previousInputs(implicit previousPeriods:Seq[TaxYearResults]): InputAmounts = previousResults.map(_.input.amounts.getOrElse(InputAmounts())).getOrElse(InputAmounts())
+
+  def preTriggerFields(implicit previousPeriods:Seq[TaxYearResults]): Option[ExtendedSummaryFields] = previousPeriods.find(taxResultNotTriggered).map(_.summaryResult.asInstanceOf[ExtendedSummaryFields])
+
+  def preTriggerAmounts(implicit previousPeriods:Seq[TaxYearResults]): Option[InputAmounts] = previousPeriods.find(taxResultNotTriggered).flatMap(_.input.amounts)
+
+  def period1Triggered(implicit previousPeriods:Seq[TaxYearResults]): Option[ExtendedSummaryFields] = previousPeriods.find(taxResultTriggered).map(_.summaryResult.asInstanceOf[ExtendedSummaryFields])
+
+  def isPeriod1Triggered(implicit previousPeriods:Seq[TaxYearResults]): Boolean = {
+    previousPeriods.find(_.input.amounts.getOrElse(InputAmounts()).triggered.getOrElse(false)) != None
+  }
+
+  def previous3YearsUnusedAllowance()(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Long = pre2015Results.slice(0,3).foldLeft(0L)(_+_.summaryResult.unusedAllowance)
+
+  def previous2YearsUnusedAllowance()(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Long = pre2015Results.slice(0,2).foldLeft(0L)(_+_.summaryResult.unusedAllowance)
 
   def definedContribution(implicit contribution:Contribution): Long = contribution.amounts.getOrElse(InputAmounts()).moneyPurchase.getOrElse(0L)
+  
+  def definedBenefit(): Long
+  def chargableAmount(): Long
+  def exceedingAllowance(): Long
+  def annualAllowance(): Long
+  def unusedAllowance(): Long
+  def aaCF(): Long
+  def aaCCF(): Long
+  def moneyPurchaseAA(): Long = 0L
+  def alternativeAA(): Long = 0L
+  def dbist(): Long = 0L
+  def mpist(): Long = 0L
+  def alternativeChargableAmount(): Long = 0L
+  def defaultChargableAmount(): Long = 0L
+  def cumulativeMP(): Long = 0L
+  def cumulativeDB(): Long = 0L
+  def exceedingMPAA(): Long = 0L
+  def exceedingAAA(): Long = 0L
+  def unusedAAA(): Long = 0L
+  def unusedMPAA(): Long = 0L
+  def preFlexiSavings(): Long = 0L
+  def postFlexiSavings(): Long = 0L
+  def isMPAAApplicable(): Boolean = false
+  def acaCF() : Long = 0L
+  def dcaCF() : Long = 0L
 }
-
-case class Group2Fields(chargableAmount: Long = 0,
-                        exceedingAAAmount: Long = 0,
-                        availableAllowance: Long = 0,
-                        unusedAllowance: Long = 0,
-                        availableAAWithCF: Long = 0,    // total available allowance for current year should be renamed to totalAA
-                        availableAAWithCCF: Long = 0,   // available allowance carried forward to following year
-                        unusedAllowanceCF: Long = 0,
-                        moneyPurchaseAA: Long = 0,
-                        alternativeAA: Long = 0,
-                        dbist: Long = 0,
-                        mpist: Long = 0,
-                        alternativeChargableAmount: Long = 0,
-                        defaultChargableAmount: Long = 0,
-                        cumulativeMP: Long = 0,
-                        cumulativeDB: Long = 0,
-                        exceedingMPAA: Long = 0,
-                        exceedingAAA: Long = 0,
-                        unusedAAA: Long = 0,
-                        unusedMPAA: Long = 0,
-                        preFlexiSavings: Long = 0,
-                        postFlexiSavings: Long = 0) extends Summary

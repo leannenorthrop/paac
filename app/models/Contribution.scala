@@ -48,9 +48,11 @@ case class TaxPeriod(year: Int, month: Int, day: Int) {
 
 case class Contribution(taxPeriodStart: TaxPeriod, taxPeriodEnd: TaxPeriod, amounts: Option[InputAmounts]) extends CalculationParam {
   def taxYearLabel() : String = {
-    if (taxPeriodStart.year == 2015 && taxPeriodStart.month == 6) {
+    if (taxPeriodStart.year == 2015 && taxPeriodStart.month == 6 ||
+        taxPeriodEnd.year == 2016 && taxPeriodEnd.month == 3) {
       s"2015/16 P2"  
-    } else if (taxPeriodStart.year == 2015 && taxPeriodStart.month == 3) {
+    } else if (taxPeriodStart.year == 2015 && taxPeriodStart.month == 3 ||
+               taxPeriodEnd.year == 2015 && taxPeriodEnd.month == 6) {
       s"2015/16 P1"  
     } else {
       s"${taxPeriodStart.year}/${taxPeriodEnd.year.toString().drop(2)}"
@@ -79,7 +81,7 @@ case class Contribution(taxPeriodStart: TaxPeriod, taxPeriodEnd: TaxPeriod, amou
     PERIOD_END_BEFORE.add(java.util.Calendar.DAY_OF_MONTH, 1)
     val start = taxPeriodStart.toCalendar
     val end = taxPeriodEnd.toCalendar
-    start.after(PERIOD_START_AFTER) && start.before(PERIOD_END_BEFORE) && end.after(PERIOD_START_AFTER) && end.before(PERIOD_END_BEFORE) 
+    (start.after(PERIOD_START_AFTER) && start.before(PERIOD_END_BEFORE)) && (end.after(PERIOD_START_AFTER) && end.before(PERIOD_END_BEFORE))
   }
 
   def isPeriod1(): Boolean = {
@@ -103,11 +105,24 @@ case class Contribution(taxPeriodStart: TaxPeriod, taxPeriodEnd: TaxPeriod, amou
   }
 
   def isGroup1(): Boolean = {
-    amounts.isDefined && !amounts.isEmpty && (taxPeriodStart.year < 2015 || ((isPeriod1() || isPeriod2()) && amounts.get.moneyPurchase == None))
+    amounts.isDefined && 
+    (isPeriod1() || isPeriod2()) &&
+    (amounts.get.moneyPurchase == None &&
+     (amounts.get.triggered == None || !amounts.get.triggered.get))
   }
 
   def isGroup2(): Boolean = {
-    amounts.isDefined && !amounts.isEmpty && (isPeriod1() || isPeriod2()) && amounts.get.moneyPurchase != None
+    amounts.isDefined && 
+    (isPeriod1() || isPeriod2()) && 
+    amounts.get.moneyPurchase != None
+  }
+
+  def isGroup3(): Boolean = {
+    amounts.isDefined && 
+    (isPeriod2() && 
+    amounts.get.triggered.getOrElse(false) && 
+    amounts.get.moneyPurchase != None && 
+    amounts.get.definedBenefit != None)
   }
 
   def isTriggered(): Boolean = {

@@ -1,0 +1,8 @@
+return correct calculations when pension contributions are 60000
+year   | Defined Benefit | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
+2008   | 60000           | 10000               | -1               | 50000                      | 0            | 0
+2009   | 60000           | 10000               | -1               | 50000                      | 0            | 0
+2010   | 60000           | 10000               | -1               | 50000                      | 0            | 0
+2011   | 60000           | 10000               | 10000            | 50000                      | 0            | 0
+2012   | 60000           | 10000               | 10000            | 50000                      | 0            | 0
+2013   | 60000           | 10000               | 10000            | 50000                      | 0            | 0

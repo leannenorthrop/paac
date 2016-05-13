@@ -1,0 +1,7 @@
+do Scenario 23
+year    | Defined Benefit | Money Purchase  | Is Triggered | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward | MPAA 
+2012    | 40000           | 5000            | false        | 0                   | 0                | 200000                     | 5000         | 105000                   | 0
+2013    | 40000           | 7000            | false        | 0                   | 0                | 155000                     | 3000         | 58000                    | 0
+2014    | 30000           | 2000            | false        | 0                   | 0                | 98000                      | 8000         | 16000                    | 0
+2015P1B | 80000           | 5000            | false        | 5000                | 0                | 96000                      | 0            | 11000                    | 0
+2015P1A | 0               | 8000            | true         | 13000               | 0                | 96000                      | 0            | 3000                     | 10000

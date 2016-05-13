@@ -267,7 +267,7 @@ class ContributionSpec extends ModelSpec {
   }
 
   "A Contribution" can {
-    "label" can {
+    "have tax year label which" should {
       "have a simple tax year label" in {
         // set up
         val c = Contribution(2008, 0)
@@ -299,6 +299,85 @@ class ContributionSpec extends ModelSpec {
 
         // check
         label shouldBe "2015/16 P2"
+      }
+
+      "have a non standard 2015 Period 1 tax year label" in {
+        // set up
+        val c = Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod(2015, 4, 12), Some(InputAmounts(0,0)))
+
+        // do it 
+        val label = c.taxYearLabel
+
+        // check
+        label shouldBe "2015/16 P1"
+      }
+
+      "have a non standard 2015 Period 2 tax year label" in {
+        // set up
+        val c = Contribution(TaxPeriod(2015, 9, 12), TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(0,0)))
+
+        // do it 
+        val label = c.taxYearLabel
+
+        // check
+        label shouldBe "2015/16 P2"
+      }
+    }
+
+    "label" can {
+      "have a simple label" in {
+        // set up
+        val c = Contribution(2008, 0)
+
+        // do it 
+        val label = c.label
+
+        // check
+        label shouldBe "08/09   "
+      }
+
+      "have a 2015 Period 1 label" in {
+        // set up
+        val c = Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(0,0)))
+
+        // do it 
+        val label = c.label
+
+        // check
+        label shouldBe "15/16 P1 B"
+      }
+
+      "have a 2015 Period 2 label" in {
+        // set up
+        val c = Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(0,0)))
+
+        // do it 
+        val label = c.label
+
+        // check
+        label shouldBe "15/16 P2 B"
+      }      
+
+      "have a 2015 Period 1 triggered label" in {
+        // set up
+        val c = Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(0), Some(0), None, Some(true))))
+
+        // do it 
+        val label = c.label
+
+        // check
+        label shouldBe "15/16 P1 A"
+      }
+
+      "have a 2015 Period 2 triggered label" in {
+        // set up
+        val c = Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(0), Some(0), None, Some(true))))
+
+        // do it 
+        val label = c.label
+
+        // check
+        label shouldBe "15/16 P2 A"
       }
     }
 
@@ -343,6 +422,50 @@ class ContributionSpec extends ModelSpec {
         // check
         contrib.amounts.get.moneyPurchase shouldBe Some(mpAmountInPounds)
       }
+
+      "have a triggered value" in {
+        // set up
+        val contribution = Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(0), Some(0), None, Some(true))))
+
+        // do it
+        val isTriggered = contribution.isTriggered
+
+        // check
+        isTriggered shouldBe true
+      }
+
+      "have a non-triggered value" in {
+        // set up
+        val contribution = Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(0), Some(0), None, Some(false))))
+
+        // do it
+        val isTriggered = contribution.isTriggered
+
+        // check
+        isTriggered shouldBe false
+      }
+
+      "have a non-triggered value if set to none" in {
+        // set up
+        val contribution = Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(0), Some(0), None, None)))
+
+        // do it
+        val isTriggered = contribution.isTriggered
+
+        // check
+        isTriggered shouldBe false
+      }
+
+      "have a non-triggered value by default" in {
+        // set up
+        val contribution = Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(0,0)))
+
+        // do it
+        val isTriggered = contribution.isTriggered
+
+        // check
+        isTriggered shouldBe false
+      }
     }
 
     "isEmpty" can {
@@ -380,16 +503,18 @@ class ContributionSpec extends ModelSpec {
     }
 
     "isGroup1" can {
-      "return true if either defined benefit or defined contribution is not None prior to 2011" in {
-        val c = Contribution(2010, 50000L)
-        c.isGroup1 shouldBe true
-        c.copy(amounts=Some(InputAmounts(None,Some(5000L)))).isGroup1 shouldBe true
+      "return true for group 1 contributions" in {
+        Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(4322L))).isGroup1 shouldBe true
+        Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(4322L))).isGroup1 shouldBe true
+        Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(4322L),None,None,None))).isGroup1 shouldBe true
+        Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(4322L),None,None,Some(false)))).isGroup1 shouldBe true
       }
-      "return true if either defined benefit is not None prior after 2010" in {
-        Contribution(2012, 50000L).isGroup1 shouldBe true
-      }
-      "return false if defined contribution is defined after 2010" in {
-        Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(None,Some(474789L),None))).isGroup1 shouldBe false
+
+      "return false for non group 1 contributions" in {
+        Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(None, Some(4322L)))).isGroup1 shouldBe false
+        Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(None, Some(4322L)))).isGroup1 shouldBe false
+        Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(4322L),None,None,Some(true)))).isGroup1 shouldBe false
+        Contribution(2012,243L).isGroup1 shouldBe false
       }
     }
 
@@ -407,6 +532,25 @@ class ContributionSpec extends ModelSpec {
       "return false if not period 1 or 2" in {
         Contribution(2014, 324L).isGroup2 shouldBe false
         Contribution(2016, 429L).isGroup2 shouldBe false
+      }
+    }
+
+    "isGroup3" can {
+      "return false if only defined benefit and not triggered" in {
+        Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(12), None, None, None))).isGroup3 shouldBe false
+        Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(12), None, None, None))).isGroup3 shouldBe false
+      }
+      "return false if only defined contribution/money purchase and not triggered" in {
+        Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(None, Some(12), None, None))).isGroup3 shouldBe false
+        Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(None, Some(12), None, None))).isGroup3 shouldBe false
+      }
+      "return false if not triggered" in {
+        Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(23), Some(12), None, None))).isGroup3 shouldBe false
+        Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(23), Some(12), None, None))).isGroup3 shouldBe false
+      }
+      "return true if triggered and both definedBenefit and moneyPurchase" in {
+        Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(23), Some(12), None, Some(true)))).isGroup3 shouldBe false
+        Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(23), Some(12), None, Some(true)))).isGroup3 shouldBe true
       }
     }
 

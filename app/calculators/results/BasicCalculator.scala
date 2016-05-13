@@ -45,7 +45,9 @@ case class BasicCalculator(annualAllowanceInPounds: Long) extends calculators.Ca
 
   // total annual allowance possible
   // LN TODO Update to consider 2015 2 periods if this is reused for 2016
-  def annualAllowanceCF(implicit previousPeriods:Seq[TaxYearResults]): Long = previousPeriods.map(_.summaryResult).slice(0,3).foldLeft(0L)(_+_.unusedAllowance) + calc.annualAllowance
+  def annualAllowanceCF(implicit previousPeriods:Seq[TaxYearResults]): Long = {
+    previousPeriods.map(_.summaryResult.availableAAWithCCF).headOption.map(_ + calc.annualAllowance).getOrElse(calc.annualAllowance)
+  }
 
   // cumulative carry forwards is 2 previous years plus current year's annual allowance - used allowance
   def annualAllowanceCCF(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Long = {
@@ -54,17 +56,21 @@ case class BasicCalculator(annualAllowanceInPounds: Long) extends calculators.Ca
     if (contribution.taxPeriodStart.year < 2011 && calc.definedBenefit >= calc.annualAllowance) {
       (calc.annualAllowance + unusedAllowances - calc.definedBenefit.min(calc.annualAllowance)).max(0)
     } else if (calc.exceedingAllowance > 0) {
-      val unusedAllowancesOf3rdPreviousYear = previousPeriods.map(_.summaryResult.unusedAllowance).slice(0,3).reverse.headOption.getOrElse(0L)
-      if(unusedAllowancesOf3rdPreviousYear >= calc.exceedingAllowance)
-        unusedAllowances
-      else
-        (unusedAllowances - (calc.exceedingAllowance - unusedAllowancesOf3rdPreviousYear)).max(0)
-    } else {
+      val allowances = previousPeriods.map(_.summaryResult.availableAAWithCCF).headOption
+      allowances.map {
+        (leftOver) =>
+        (leftOver - calc.exceedingAllowance).max(0)
+      }.getOrElse(0L)
+    } else {      
       (calc.annualAllowance + unusedAllowances - calc.definedBenefit).max(0)
     }
   }
 
-  def chargableAmount(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Long = if (contribution.taxPeriodStart.year < 2011) -1 else (calc.definedBenefit - calc.annualAllowanceCF).max(0)
+  def chargableAmount(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Long = {
+    if (contribution.taxPeriodStart.year < 2011) -1 else {
+      (calc.definedBenefit - calc.annualAllowanceCF).max(0)
+    }
+  }
 
   def summary(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Option[Summary] = {
     contribution.amounts.map {

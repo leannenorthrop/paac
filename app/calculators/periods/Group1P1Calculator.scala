@@ -19,29 +19,26 @@ package calculators.periods
 import models._ 
 import calculators.results.BasicCalculator
 
-case class Group1P1Calculator(amountsCalculator: BasicCalculator) extends PeriodCalculator {
-  me => Group1P1Calculator
+case class Group1P1Calculator(implicit amountsCalculator: BasicCalculator,
+                                       previousPeriods:Seq[TaxYearResults], 
+                                       contribution: Contribution) extends PeriodCalculator {
+  override def chargableAmount(): Long = amountsCalculator.chargableAmount
 
-  def aaCF(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Long = amountsCalculator.annualAllowance + me.previous3YearsUnusedAllowance()
+  override def exceedingAllowance(): Long = amountsCalculator.exceedingAllowance
 
-  def aaCCF(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Long = {
-    val definedBenefit = amountsCalculator.definedBenefit
-    val annualAllowance = amountsCalculator.annualAllowance
-    val previous3YearsUnusedAllowance = me.previous3YearsUnusedAllowance()
+  override def annualAllowance(): Long = amountsCalculator.annualAllowance
 
-    if (definedBenefit >= annualAllowance) {
+  override def unusedAllowance(): Long = amountsCalculator.unusedAllowance.min(4000000L)
+
+  override def aaCF(): Long = amountsCalculator.annualAllowance + previous3YearsUnusedAllowance
+
+  override def definedBenefit(): Long = amountsCalculator.definedBenefit
+
+  override def aaCCF(): Long = {
+    if (definedBenefit >= amountsCalculator.annualAllowance) {
       (annualAllowance + previous3YearsUnusedAllowance - definedBenefit).max(0)
     } else {
-      (amountsCalculator.unusedAllowance.min(4000000L) + previous3YearsUnusedAllowance).max(0)
+      (unusedAllowance + previous3YearsUnusedAllowance).max(0)
     }
-  }
-
-  def summary(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Option[Summary] = {
-    Some(SummaryResult(amountsCalculator.chargableAmount, 
-                       amountsCalculator.exceedingAllowance, 
-                       amountsCalculator.annualAllowance, 
-                       amountsCalculator.unusedAllowance.min(4000000L), 
-                       me.aaCF, 
-                       me.aaCCF))
   }
 }

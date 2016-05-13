@@ -16,28 +16,13 @@
 
 package calculators.results
 
-import play.api.Play
-import play.api.test.FakeApplication
 import uk.gov.hmrc.play.test.UnitSpec
 import models._
 import org.scalatest._
 import org.scalatest.prop._
 import org.scalacheck.Gen
 
-class Year2015Period1CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks with BeforeAndAfterAll {
-  val app = FakeApplication()
-
-  override def beforeAll() {
-    Play.start(app)
-    super.beforeAll() // To be stackable, must call super.beforeEach
-  }
-
-  override def afterAll() {
-    try {
-      super.afterAll()
-    } finally Play.stop()
-  }
-
+class Year2015Period1CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks {
   "Year 2015 Period 1 Calculator" should {
     "support defined benefits amounts for on 6 April but before 9th July 2015" in {
       (0 until 94).foreach {
@@ -121,7 +106,7 @@ class Year2015Period1CalculatorSpec extends UnitSpec with GeneratorDrivenPropert
         val results = Year2015Period1Calculator.summary(Seq[TaxYearResults](), contribution)
 
         // check it
-        withClue(s"Contributions with date '$taxDay/${taxMonth+1}/$taxYear' should be supported but") { results shouldBe Some(SummaryResult(0L,0L,8000000L,4000000L,8000000L,4000000L,0)) }
+        withClue(s"Contributions with date '$taxDay/${taxMonth+1}/$taxYear' should be supported but") { results shouldBe Some(ExtendedSummaryFields(0L,0L,8000000L,4000000L,8000000L,4000000L,0)) }
       }
     }
 
@@ -132,7 +117,7 @@ class Year2015Period1CalculatorSpec extends UnitSpec with GeneratorDrivenPropert
                                                                               TaxPeriod(2015, 3, 9),
                                                                               Some(InputAmounts(0L))))
         // check it
-        results shouldBe Some(SummaryResult(0,0,8000000,4000000,8000000,4000000,0))
+        results shouldBe Some(ExtendedSummaryFields(0,0,8000000,4000000,8000000,4000000,0))
       }
 
       "return annual allowance of 8000000 pence for all valid amounts" in {

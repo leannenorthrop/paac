@@ -16,7 +16,6 @@
 
 package calculators.periods
 
-import play.api.Play
 import uk.gov.hmrc.play.test.UnitSpec
 import models._
 import org.scalatest._
@@ -24,11 +23,10 @@ import org.scalatest.prop._
 import org.scalacheck.Gen
 import calculators.results.BasicCalculator
 
-class Group1P1CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks with BeforeAndAfterAll {
+class Group1P1CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks {
   trait TestFixture {
     val annualAllowance = 50000
-    val basicCalculator = BasicCalculator(annualAllowance)
-    val group1P1Calculator = Group1P1Calculator(basicCalculator)
+    implicit val amountsCalculator = BasicCalculator(annualAllowance)
   }
 
   "Group1P1Calculator" should {
@@ -36,18 +34,13 @@ class Group1P1CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks
       // set up
       implicit val previousPeriods = List[TaxYearResults]()
       implicit val contribution = Contribution(2014, 123L)
-      val expectedBasicSummary = basicCalculator.summary
-
-      // do
-      val maybeSummary = group1P1Calculator.summary
+      val expectedBasicSummary = amountsCalculator.summary.get
 
       // check
-      maybeSummary should not be None
-      maybeSummary.get.unusedAllowanceCF shouldBe 0L
-      maybeSummary.get.chargableAmount shouldBe maybeSummary.get.chargableAmount
-      maybeSummary.get.exceedingAAAmount shouldBe maybeSummary.get.exceedingAAAmount
-      maybeSummary.get.availableAllowance shouldBe maybeSummary.get.availableAllowance
-      maybeSummary.get.unusedAllowance shouldBe maybeSummary.get.unusedAllowance
+      Group1P1Calculator().chargableAmount shouldBe expectedBasicSummary.chargableAmount 
+      Group1P1Calculator().exceedingAllowance shouldBe expectedBasicSummary.exceedingAAAmount
+      Group1P1Calculator().annualAllowance shouldBe expectedBasicSummary.availableAllowance
+      Group1P1Calculator().unusedAllowance shouldBe 4000000L
     }
   }
 }

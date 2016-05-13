@@ -19,49 +19,36 @@ package calculators.periods
 import models._
 import calculators.results.BasicCalculator
 
-case class Group1P2Calculator(amountsCalculator: BasicCalculator) extends PeriodCalculator {
-  me => Group1P2Calculator
+case class Group1P2Calculator(implicit amountsCalculator: BasicCalculator, 
+                                       previousPeriods:Seq[TaxYearResults], 
+                                       contribution: Contribution) extends PeriodCalculator {
 
-  def period1UnusedAllowance(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Long = previousPeriods.headOption.map(_.summaryResult.unusedAllowance).getOrElse(0L)
-  def previous2YearsUnusedAllowances(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Long = previousPeriods.drop(1).slice(0,2).foldLeft(0L)(_+_.summaryResult.unusedAllowance) 
-  def unusedAllowance(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Long = (me.period1UnusedAllowance - amountsCalculator.definedBenefit).max(0)
-  def exceedingAllowance(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Long = (amountsCalculator.definedBenefit - me.period1UnusedAllowance).max(0)
-  def annualAllowanceCF(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Long = if (previousPeriods.headOption.isDefined) previousPeriods.head.summaryResult.availableAAWithCCF else 0L
+  def noCharge(): Boolean = previousPeriods.slice(0,3).exists(_.summaryResult.unusedAllowance == 0 && chargableAmount == 0)
 
-  def annualAllowanceCCF(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Long = {
-    val definedBenefit = amountsCalculator.definedBenefit
-    val previous2YearsUnusedAllowances = me.previous2YearsUnusedAllowances
-    val period1UnusedAllowance = me.period1UnusedAllowance
-    if (definedBenefit == 0)
-      previous2YearsUnusedAllowances + period1UnusedAllowance 
-    else if (definedBenefit > period1UnusedAllowance &&
-            previousPeriods.headOption.map(_.summaryResult.exceedingAAAmount).getOrElse(0L) == 0 &&
-            previousPeriods.slice(0,3).exists(_.summaryResult.unusedAllowance == 0 && me.chargableAmount == 0)) {
-      previous2YearsUnusedAllowances 
-    } else if (definedBenefit < period1UnusedAllowance &&
-               previousPeriods.headOption.map(_.summaryResult.exceedingAAAmount).getOrElse(0L) == 0) {
-      ((previous2YearsUnusedAllowances + period1UnusedAllowance) - definedBenefit).max(0)
+  override def definedBenefit(): Long = amountsCalculator.definedBenefit
+
+  override def annualAllowance(): Long = amountsCalculator.annualAllowance
+  
+  override def unusedAllowance(): Long = (period1.unusedAllowance - definedBenefit).max(0)
+  
+  override def exceedingAllowance(): Long = (definedBenefit - period1.unusedAllowance).max(0)
+  
+  override def aaCF(): Long = period1.availableAAWithCCF
+
+  override def aaCCF(): Long = {
+    if (definedBenefit == 0) 
+      previous2YearsUnusedAllowance + period1.unusedAllowance 
+    else if (definedBenefit > period1.unusedAllowance && previous.exceedingAAAmount == 0 && noCharge) {
+      previous2YearsUnusedAllowance 
+    } else if (definedBenefit < period1.unusedAllowance && previous.exceedingAAAmount == 0) {
+      ((previous2YearsUnusedAllowance + period1.unusedAllowance) - definedBenefit).max(0)
     } else {
-      (me.annualAllowanceCF - definedBenefit).max(0)
+      (aaCF - definedBenefit).max(0)
     }
   }
 
-  def chargableAmount(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Long = {
-    val definedBenefit = amountsCalculator.definedBenefit
-    val cf = previousPeriods.headOption.map(_.summaryResult.availableAAWithCCF).getOrElse(0L)
+  override def chargableAmount(): Long = {
+    val cf = previous.availableAAWithCCF
     if (definedBenefit > cf) definedBenefit - cf else 0L
-  }
-
-  def summary(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Option[Summary] = {
-    amountsCalculator.summary(previousPeriods, contribution).map{
-      (results)=>
-      SummaryResult(me.chargableAmount,
-                    me.exceedingAllowance,
-                    results.availableAllowance,
-                    me.unusedAllowance,
-                    me.annualAllowanceCF,    // total available allowance for current year should be renamed to totalAA
-                    me.annualAllowanceCCF,   // available allowance carried forward to following year
-                    0L)
-    }
   }
 }

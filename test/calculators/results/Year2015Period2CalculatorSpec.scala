@@ -16,28 +16,13 @@
 
 package calculators.results
 
-import play.api.Play
-import play.api.test.FakeApplication
 import uk.gov.hmrc.play.test.UnitSpec
 import models._
 import org.scalatest._
 import org.scalatest.prop._
 import org.scalacheck.Gen
 
-class Year2015Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks with BeforeAndAfterAll {
-  val app = FakeApplication()
-
-  override def beforeAll() {
-    Play.start(app)
-    super.beforeAll() // To be stackable, must call super.beforeEach
-  }
-
-  override def afterAll() {
-    try {
-      super.afterAll()
-    } finally Play.stop()
-  }
-
+class Year2015Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks {
   "Year 2015 Period 2 Calculator" should {
     "support defined benefits amounts for on 9th July but before 6th April 2016" in {
       (0 until 250).foreach {
@@ -140,7 +125,7 @@ class Year2015Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropert
 
         // check it
         // With no previous inputs as period 2 has no allowance then exceeding is same as defined benefit input
-        withClue(s"Contributions with date '$taxDay/${taxMonth+1}/$taxYear' should be supported but") { results shouldBe Some(SummaryResult(5000,5000,0,0,0,0,0)) }
+        withClue(s"Contributions with date '$taxDay/${taxMonth+1}/$taxYear' should be supported but") { results shouldBe Some(ExtendedSummaryFields(5000,5000,0,0,0,0,0)) }
       }
     }
 

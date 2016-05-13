@@ -16,14 +16,8 @@
 
 package models
 
-import play.api.test.Helpers._
-import play.api.libs.json._
-
 import uk.gov.hmrc.play.test.UnitSpec
-
-import org.scalatest._
-import org.scalatest.concurrent._
 
 class ModelSpec extends UnitSpec {
 
-} 
+}
