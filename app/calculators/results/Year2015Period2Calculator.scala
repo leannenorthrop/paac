@@ -21,8 +21,7 @@ import models._
 import calculators.periods._ 
 
 object Year2015Period2Calculator extends calculators.AllowanceCalculator {
-  protected def getAnnualAllowanceInPounds: Long =
-    PaacConfiguration.config.flatMap[Long](_.getLong("annualallowances.Year2015Period2Calculator")).getOrElse(0L)
+  protected def getAnnualAllowanceInPounds: Long = 0L
 
   def isSupported(contribution:Contribution): Boolean = contribution.isPeriod2() && !contribution.isEmpty
 
