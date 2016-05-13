@@ -16,7 +16,6 @@
 
 package calculators.periods
 
-import play.api.Play
 import uk.gov.hmrc.play.test.UnitSpec
 import models._
 import org.scalatest._
@@ -24,7 +23,7 @@ import org.scalatest.prop._
 import org.scalacheck.Gen
 import calculators.results.BasicCalculator
 
-class Group1P1CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks with BeforeAndAfterAll {
+class Group1P1CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks {
   trait TestFixture {
     val annualAllowance = 50000
     implicit val amountsCalculator = BasicCalculator(annualAllowance)

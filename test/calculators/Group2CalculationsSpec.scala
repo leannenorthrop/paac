@@ -21,25 +21,11 @@ import calculators.periods._
 import calculators.results._
 import models._
 
-import play.api.Play
 import org.scalatest._
-import play.api.test.{FakeApplication}
 import uk.gov.hmrc.play.test.UnitSpec
 
-trait Group2TestBase extends BeforeAndAfterAll with Informing {
+trait Group2TestBase extends Informing {
   this: Suite =>
-  val app = FakeApplication()
-
-  override def beforeAll() {
-    Play.start(app)
-    super.beforeAll() // To be stackable, must call super.beforeEach
-  }
-
-  override def afterAll() {
-    try {
-      super.afterAll()
-    } finally Play.stop()
-  }
 
   def group2Contributions(table: String): List[Contribution] = {
     val years = table.split('\n').drop(2).toList.map(_.split('|').toList(0).trim)

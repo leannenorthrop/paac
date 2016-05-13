@@ -16,7 +16,6 @@
 
 package calculators.periods
 
-import play.api.Play
 import uk.gov.hmrc.play.test.UnitSpec
 import models._
 import org.scalatest._

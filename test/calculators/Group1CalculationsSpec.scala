@@ -20,24 +20,10 @@ import calculators._
 import calculators.periods._
 import calculators.results._
 
-import play.api.Play
 import org.scalatest._
-import play.api.test.{FakeApplication}
 
-class Group1CalculationsSpec extends FunSpec with BeforeAndAfterAll{
+class Group1CalculationsSpec extends FunSpec {
   val dir = "./test/assets/calculators/group1"
-  val app = FakeApplication()
-
-  override def beforeAll() {
-    Play.start(app)
-    super.beforeAll() // To be stackable, must call super.beforeEach
-  }
-
-  override def afterAll() {
-    try {
-      super.afterAll()
-    } finally Play.stop()
-  }
 
   describe ("Group 1") {
     info(s"Tests in $dir:")

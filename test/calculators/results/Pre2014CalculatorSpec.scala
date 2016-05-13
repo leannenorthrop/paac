@@ -16,27 +16,13 @@
 
 package calculators.results
 
-import play.api.Play
-import play.api.test.FakeApplication
 import uk.gov.hmrc.play.test.UnitSpec
 import models._
 import org.scalatest._
 import org.scalatest.prop._
 import org.scalacheck.Gen
 
-class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks with BeforeAndAfterAll {
-  val app = FakeApplication()
-
-  override def beforeAll() {
-    Play.start(app)
-    super.beforeAll() // To be stackable, must call super.beforeEach
-  }
-
-  override def afterAll() {
-    try {
-      super.afterAll()
-    } finally Play.stop()
-  }
+class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks {
   
   trait ContributionPre2014Fixture {
     val contribution0 = Contribution(2008, 500000)
