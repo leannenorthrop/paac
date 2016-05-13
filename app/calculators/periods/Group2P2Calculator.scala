@@ -26,7 +26,7 @@ case class Group2P2Calculator(implicit amountsCalculator: BasicCalculator,
   val MPA = 10000 * 100L
   val AAA = 30000 * 100L
 
-  def period1() = {
+  override def period1(implicit previousPeriods:Seq[TaxYearResults]) = {
     previousPeriods.headOption.map(_.summaryResult.asInstanceOf[ExtendedSummaryFields]).getOrElse(ExtendedSummaryFields())
   }
 

@@ -26,10 +26,6 @@ case class Group3P2Calculator(implicit amountsCalculator: BasicCalculator,
   val MPA = 10000 * 100L
   val AAA = 30000 * 100L
 
-  def period1() = {
-    previousPeriods.find(_.input.isPeriod1).headOption.map(_.summaryResult.asInstanceOf[ExtendedSummaryFields]).getOrElse(ExtendedSummaryFields())
-  }
-
   def preTriggerFields(): Option[ExtendedSummaryFields] = {
     previousPeriods.find(!_.input.amounts.getOrElse(InputAmounts()).triggered.getOrElse(false)).map(_.summaryResult.asInstanceOf[ExtendedSummaryFields])
   }

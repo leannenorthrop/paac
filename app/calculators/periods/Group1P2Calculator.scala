@@ -23,35 +23,32 @@ case class Group1P2Calculator(implicit amountsCalculator: BasicCalculator,
                                        previousPeriods:Seq[TaxYearResults], 
                                        contribution: Contribution) extends PeriodCalculator {
 
-  def period1UnusedAllowance(): Long = previousPeriods.headOption.map(_.summaryResult.unusedAllowance).getOrElse(0L)
-  
+  def noCharge(): Boolean = previousPeriods.slice(0,3).exists(_.summaryResult.unusedAllowance == 0 && chargableAmount == 0)
+
+  override def definedBenefit(): Long = amountsCalculator.definedBenefit
+
   override def annualAllowance(): Long = amountsCalculator.annualAllowance
   
-  override def unusedAllowance(): Long = (period1UnusedAllowance - amountsCalculator.definedBenefit).max(0)
+  override def unusedAllowance(): Long = (period1.unusedAllowance - definedBenefit).max(0)
   
-  override def exceedingAllowance(): Long = (amountsCalculator.definedBenefit - period1UnusedAllowance).max(0)
+  override def exceedingAllowance(): Long = (definedBenefit - period1.unusedAllowance).max(0)
   
-  override def aaCF(): Long = if (previousPeriods.headOption.isDefined) previousPeriods.head.summaryResult.availableAAWithCCF else 0L
+  override def aaCF(): Long = period1.availableAAWithCCF
 
   override def aaCCF(): Long = {
-    val definedBenefit = amountsCalculator.definedBenefit
-    if (definedBenefit == 0)
-      previous2YearsUnusedAllowance + period1UnusedAllowance 
-    else if (definedBenefit > period1UnusedAllowance &&
-            previousPeriods.headOption.map(_.summaryResult.exceedingAAAmount).getOrElse(0L) == 0 &&
-            previousPeriods.slice(0,3).exists(_.summaryResult.unusedAllowance == 0 && chargableAmount == 0)) {
+    if (definedBenefit == 0) 
+      previous2YearsUnusedAllowance + period1.unusedAllowance 
+    else if (definedBenefit > period1.unusedAllowance && previous.exceedingAAAmount == 0 && noCharge) {
       previous2YearsUnusedAllowance 
-    } else if (definedBenefit < period1UnusedAllowance &&
-               previousPeriods.headOption.map(_.summaryResult.exceedingAAAmount).getOrElse(0L) == 0) {
-      ((previous2YearsUnusedAllowance + period1UnusedAllowance) - definedBenefit).max(0)
+    } else if (definedBenefit < period1.unusedAllowance && previous.exceedingAAAmount == 0) {
+      ((previous2YearsUnusedAllowance + period1.unusedAllowance) - definedBenefit).max(0)
     } else {
       (aaCF - definedBenefit).max(0)
     }
   }
 
   override def chargableAmount(): Long = {
-    val definedBenefit = amountsCalculator.definedBenefit
-    val cf = previousPeriods.headOption.map(_.summaryResult.availableAAWithCCF).getOrElse(0L)
+    val cf = previous.availableAAWithCCF
     if (definedBenefit > cf) definedBenefit - cf else 0L
   }
 }
