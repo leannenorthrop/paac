@@ -26,22 +26,6 @@ case class Group3P2Calculator(implicit amountsCalculator: BasicCalculator,
   val MPA = 10000 * 100L
   val AAA = 30000 * 100L
 
-  def preTriggerFields(): Option[ExtendedSummaryFields] = {
-    previousPeriods.find(!_.input.amounts.getOrElse(InputAmounts()).triggered.getOrElse(false)).map(_.summaryResult.asInstanceOf[ExtendedSummaryFields])
-  }
-
-  def preTriggerAmounts(): Option[InputAmounts] = {
-    previousPeriods.find(!_.input.amounts.getOrElse(InputAmounts()).triggered.getOrElse(false)).flatMap(_.input.amounts)
-  }
-
-  def period1Triggered(): Option[ExtendedSummaryFields] = {
-    previousPeriods.find(_.input.amounts.getOrElse(InputAmounts()).triggered.getOrElse(false)).map(_.summaryResult.asInstanceOf[ExtendedSummaryFields])
-  }
-
-  def isPeriod1Triggered(): Boolean = {
-    previousPeriods.find(_.input.amounts.getOrElse(InputAmounts()).triggered.getOrElse(false)) != None
-  }
-
   override def isMPAAApplicable(): Boolean = {
     definedContribution > MPA
   }

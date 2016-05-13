@@ -19,11 +19,38 @@ package calculators.periods
 import models._
 
 trait PeriodCalculator {
+  def isTriggered(implicit contribution: Contribution): Boolean = contribution.isTriggered
+
   def isBefore2015(taxYearResult: TaxYearResults): Boolean = taxYearResult.input.taxPeriodStart.year < 2015
+
   def pre2015Results(implicit previousPeriods:Seq[TaxYearResults]) = previousPeriods.filter(isBefore2015)
+
   def period1(implicit previousPeriods:Seq[TaxYearResults]) = previousPeriods.find(_.input.isPeriod1).map(_.summaryResult.asInstanceOf[ExtendedSummaryFields]).getOrElse(ExtendedSummaryFields())
-  def previous(implicit previousPeriods:Seq[TaxYearResults]): Summary = previousPeriods.headOption.map(_.summaryResult).getOrElse(ExtendedSummaryFields())
+
+  def previous(implicit previousPeriods:Seq[TaxYearResults]): Summary = previousResults.map(_.summaryResult).getOrElse(ExtendedSummaryFields())
+
+  def previousResults(implicit previousPeriods:Seq[TaxYearResults]): Option[TaxYearResults] = previousPeriods.headOption
+
+  def previousInputs(implicit previousPeriods:Seq[TaxYearResults]): InputAmounts = previousResults.map(_.input.amounts.getOrElse(InputAmounts())).getOrElse(InputAmounts())
+
+  def preTriggerFields(implicit previousPeriods:Seq[TaxYearResults]): Option[ExtendedSummaryFields] = {
+    previousPeriods.find(!_.input.amounts.getOrElse(InputAmounts()).triggered.getOrElse(false)).map(_.summaryResult.asInstanceOf[ExtendedSummaryFields])
+  }
+
+  def preTriggerAmounts(implicit previousPeriods:Seq[TaxYearResults]): Option[InputAmounts] = {
+    previousPeriods.find(!_.input.amounts.getOrElse(InputAmounts()).triggered.getOrElse(false)).flatMap(_.input.amounts)
+  }
+
+  def period1Triggered(implicit previousPeriods:Seq[TaxYearResults]): Option[ExtendedSummaryFields] = {
+    previousPeriods.find(_.input.amounts.getOrElse(InputAmounts()).triggered.getOrElse(false)).map(_.summaryResult.asInstanceOf[ExtendedSummaryFields])
+  }
+
+  def isPeriod1Triggered(implicit previousPeriods:Seq[TaxYearResults]): Boolean = {
+    previousPeriods.find(_.input.amounts.getOrElse(InputAmounts()).triggered.getOrElse(false)) != None
+  }
+
   def previous3YearsUnusedAllowance()(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Long = pre2015Results.slice(0,3).foldLeft(0L)(_+_.summaryResult.unusedAllowance)
+
   def previous2YearsUnusedAllowance()(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Long = pre2015Results.slice(0,2).foldLeft(0L)(_+_.summaryResult.unusedAllowance)
 
   def definedContribution(implicit contribution:Contribution): Long = contribution.amounts.getOrElse(InputAmounts()).moneyPurchase.getOrElse(0L)
