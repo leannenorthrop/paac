@@ -21,7 +21,11 @@ import models._
 trait PeriodCalculator {
   def isTriggered(implicit contribution: Contribution): Boolean = contribution.isTriggered
 
-  def isBefore2015(taxYearResult: TaxYearResults): Boolean = taxYearResult.input.taxPeriodStart.year < 2015
+  def taxResultNotTriggered(tx: TaxYearResults): Boolean = !tx.input.amounts.getOrElse(InputAmounts()).triggered.getOrElse(false)
+
+  def taxResultTriggered(tx: TaxYearResults): Boolean = !taxResultNotTriggered(tx)
+
+  def isBefore2015(taxYearResult: TaxYearResults): Boolean = taxYearResult.input.taxPeriodStart.year <= 2015 && !taxYearResult.input.isPeriod1 && !taxYearResult.input.isPeriod2
 
   def pre2015Results(implicit previousPeriods:Seq[TaxYearResults]) = previousPeriods.filter(isBefore2015)
 
@@ -33,17 +37,11 @@ trait PeriodCalculator {
 
   def previousInputs(implicit previousPeriods:Seq[TaxYearResults]): InputAmounts = previousResults.map(_.input.amounts.getOrElse(InputAmounts())).getOrElse(InputAmounts())
 
-  def preTriggerFields(implicit previousPeriods:Seq[TaxYearResults]): Option[ExtendedSummaryFields] = {
-    previousPeriods.find(!_.input.amounts.getOrElse(InputAmounts()).triggered.getOrElse(false)).map(_.summaryResult.asInstanceOf[ExtendedSummaryFields])
-  }
+  def preTriggerFields(implicit previousPeriods:Seq[TaxYearResults]): Option[ExtendedSummaryFields] = previousPeriods.find(taxResultNotTriggered).map(_.summaryResult.asInstanceOf[ExtendedSummaryFields])
 
-  def preTriggerAmounts(implicit previousPeriods:Seq[TaxYearResults]): Option[InputAmounts] = {
-    previousPeriods.find(!_.input.amounts.getOrElse(InputAmounts()).triggered.getOrElse(false)).flatMap(_.input.amounts)
-  }
+  def preTriggerAmounts(implicit previousPeriods:Seq[TaxYearResults]): Option[InputAmounts] = previousPeriods.find(taxResultNotTriggered).flatMap(_.input.amounts)
 
-  def period1Triggered(implicit previousPeriods:Seq[TaxYearResults]): Option[ExtendedSummaryFields] = {
-    previousPeriods.find(_.input.amounts.getOrElse(InputAmounts()).triggered.getOrElse(false)).map(_.summaryResult.asInstanceOf[ExtendedSummaryFields])
-  }
+  def period1Triggered(implicit previousPeriods:Seq[TaxYearResults]): Option[ExtendedSummaryFields] = previousPeriods.find(taxResultTriggered).map(_.summaryResult.asInstanceOf[ExtendedSummaryFields])
 
   def isPeriod1Triggered(implicit previousPeriods:Seq[TaxYearResults]): Boolean = {
     previousPeriods.find(_.input.amounts.getOrElse(InputAmounts()).triggered.getOrElse(false)) != None
