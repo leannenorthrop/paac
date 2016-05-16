@@ -56,11 +56,29 @@ case class BasicCalculator(annualAllowanceInPounds: Long) extends calculators.Ca
     if (contribution.taxPeriodStart.year < 2011 && calc.definedBenefit >= calc.annualAllowance) {
       (calc.annualAllowance + unusedAllowances - calc.definedBenefit.min(calc.annualAllowance)).max(0)
     } else if (calc.exceedingAllowance > 0) {
-      val allowances = previousPeriods.map(_.summaryResult.availableAAWithCCF).headOption
-      allowances.map {
-        (leftOver) =>
-        (leftOver - calc.exceedingAllowance).max(0)
-      }.getOrElse(0L)
+      val aacf = previousPeriods.map(_.summaryResult).headOption.getOrElse(SummaryResult()).availableAAWithCCF
+      if (calc.exceedingAllowance >= aacf){
+        0
+      } else {
+        val allowances = List(calc.annualAllowance) ++ previousPeriods.map(_.summaryResult).slice(0,2).map(_.unusedAllowance)
+        val oldestYearAvailableAllowance = previousPeriods.map(_.summaryResult).slice(0,3).headOption.getOrElse(SummaryResult()).unusedAllowance
+        val pair = if (calc.exceedingAllowance > oldestYearAvailableAllowance) {
+          allowances.foldLeft((calc.exceedingAllowance,0L)) {
+            (pair,allowance)=>
+            val ex = (pair._1 - allowance).max(0L)
+            val al = if (pair._1 == 0) pair._2 + allowance else if (ex == 0) allowance - pair._1 else 0L
+            (ex,al)
+          }
+        } else{
+          allowances.foldLeft((calc.exceedingAllowance,0L)) {
+            (pair,allowance)=>
+            val ex = (pair._1 - allowance).max(0L)
+            val al = if (pair._1 == 0) pair._2 + allowance else 0L
+            (ex,al)
+          }
+        }
+        pair._2
+      }
     } else {      
       (calc.annualAllowance + unusedAllowances - calc.definedBenefit).max(0)
     }
