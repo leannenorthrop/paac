@@ -20,8 +20,6 @@ import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json._
 
-import java.util.GregorianCalendar
-
 sealed trait CalculationParam
 sealed trait PensionCalculatorValue {
   def isEmpty(): Boolean
@@ -39,20 +37,27 @@ case class InputAmounts(definedBenefit: Option[Long] = None,
   }
 }
 
-/** TaxPeriod really aught to be named SimpleDate.
-    Follows java.util.Calendar so that month is 0 based,
-    but year and day operate as expected.*/
-case class TaxPeriod(year: Int, month: Int, day: Int) {
-  def toCalendar() : GregorianCalendar = new GregorianCalendar(year, month, day)
+case class PensionPeriod(year: Int, month: Int, day: Int) {
+  def <(that: PensionPeriod): Boolean = if (year == that.year && month == that.month && day == that.day) false else 
+                                    year < that.year || (year == that.year && month < that.month) || (year == that.year && month == that.month && day < that.day) 
+  def >(that: PensionPeriod): Boolean = if (year == that.year && month == that.month && day == that.day) false else 
+                                    year > that.year || (year == that.year && month > that.month) || (year == that.year && month == that.month && day > that.day) 
+  def <=(that: PensionPeriod): Boolean = if (year == that.year && month == that.month && day == that.day) true else this < that
+  def >=(that: PensionPeriod): Boolean = if (year == that.year && month == that.month && day == that.day) true else this > that
+  def roll(amount:Int): PensionPeriod = {
+    val calendar = new java.util.GregorianCalendar(year, month, day)
+    calendar.add(java.util.Calendar.DAY_OF_MONTH, amount)
+    PensionPeriod(calendar.get(java.util.Calendar.YEAR), calendar.get(java.util.Calendar.MONTH), calendar.get(java.util.Calendar.DAY_OF_MONTH))
+  }
 }
 
-case class Contribution(taxPeriodStart: TaxPeriod, taxPeriodEnd: TaxPeriod, amounts: Option[InputAmounts]) extends CalculationParam {
+case class Contribution(taxPeriodStart: PensionPeriod, taxPeriodEnd: PensionPeriod, amounts: Option[InputAmounts]) extends CalculationParam {
   def taxYearLabel() : String = {
-    if (taxPeriodStart.year == 2015 && taxPeriodStart.month == 6 ||
-        taxPeriodEnd.year == 2016 && taxPeriodEnd.month == 3) {
+    if (taxPeriodStart.year == 2015 && taxPeriodStart.month == 7 ||
+        taxPeriodEnd.year == 2016 && taxPeriodEnd.month == 4) {
       s"2015/16 P2"  
-    } else if (taxPeriodStart.year == 2015 && taxPeriodStart.month == 3 ||
-               taxPeriodEnd.year == 2015 && taxPeriodEnd.month == 6) {
+    } else if (taxPeriodStart.year == 2015 && taxPeriodStart.month == 4 ||
+               taxPeriodEnd.year == 2015 && taxPeriodEnd.month == 7) {
       s"2015/16 P1"  
     } else {
       s"${taxPeriodStart.year}/${taxPeriodEnd.year.toString().drop(2)}"
@@ -74,22 +79,16 @@ case class Contribution(taxPeriodStart: TaxPeriod, taxPeriodEnd: TaxPeriod, amou
     amounts == None || (amounts.isDefined && amounts.get.isEmpty)
   }
 
-  def isPeriod(s:TaxPeriod, e:TaxPeriod):Boolean = {
-    val PERIOD_START_AFTER = s.toCalendar
-    val PERIOD_END_BEFORE = e.toCalendar
-    PERIOD_START_AFTER.add(java.util.Calendar.DAY_OF_MONTH, -1)
-    PERIOD_END_BEFORE.add(java.util.Calendar.DAY_OF_MONTH, 1)
-    val start = taxPeriodStart.toCalendar
-    val end = taxPeriodEnd.toCalendar
-    (start.after(PERIOD_START_AFTER) && start.before(PERIOD_END_BEFORE)) && (end.after(PERIOD_START_AFTER) && end.before(PERIOD_END_BEFORE))
+  def isPeriod(s:PensionPeriod, e:PensionPeriod):Boolean = {
+    (taxPeriodStart >= s) && (taxPeriodStart <= e) && (taxPeriodEnd >= s) && (taxPeriodEnd <= e)
   }
 
   def isPeriod1(): Boolean = {
-    isPeriod(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END) 
+    isPeriod(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END) 
   }
 
   def isPeriod2(): Boolean = {
-    isPeriod(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END) 
+    isPeriod(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END) 
   }
 
   def +(that:Contribution): Contribution = {
@@ -130,33 +129,33 @@ case class Contribution(taxPeriodStart: TaxPeriod, taxPeriodEnd: TaxPeriod, amou
   }
 }
 
-object TaxPeriod {
+object PensionPeriod {
   // Unlike front-end backend must have fixed supported start and end years
   // as calculation rules are very dependant on a varying set of rules for each year
   val EARLIEST_YEAR_SUPPORTED:Int = 2006
   val LATEST_YEAR_SUPPORTED:Int = 2016
 
-  val MIN_MONTH_VALUE:Int = 0
+  val MIN_MONTH_VALUE:Int = 1
   val MIN_DAY_VALUE:Int = 1
-  val MAX_MONTH_VALUE:Int = 11
+  val MAX_MONTH_VALUE:Int = 12
   val MAX_DAY_VALUE:Int = 31
 
-  val PERIOD_1_2015_START = TaxPeriod(2015, 3, 6)
-  val PERIOD_1_2015_END = TaxPeriod(2015, 6, 8)
-  val PERIOD_2_2015_START = TaxPeriod(2015, 6, 9)
-  val PERIOD_2_2015_END = TaxPeriod(2016, 3, 5)  
+  val PERIOD_1_2015_START = PensionPeriod(2015, 4, 6)
+  val PERIOD_1_2015_END = PensionPeriod(2015, 7, 8)
+  val PERIOD_2_2015_START = PensionPeriod(2015, 7, 9)
+  val PERIOD_2_2015_END = PensionPeriod(2016, 4, 5)  
 
-  implicit val taxPeriodWrites: Writes[TaxPeriod] = (
+  implicit val taxPeriodWrites: Writes[PensionPeriod] = (
     (JsPath \ "year").write[Int] and
     (JsPath \ "month").write[Int] and
     (JsPath \ "day").write[Int]
-  )(unlift(TaxPeriod.unapply))
+  )(unlift(PensionPeriod.unapply))
 
-  implicit val taxPeriodReads: Reads[TaxPeriod] = (
+  implicit val taxPeriodReads: Reads[PensionPeriod] = (
     (JsPath \ "year").read[Int](min(EARLIEST_YEAR_SUPPORTED)) and
     (JsPath \ "month").read[Int](min(MIN_MONTH_VALUE) keepAnd max(MAX_MONTH_VALUE)) and
     (JsPath \ "day").read[Int](min(MIN_DAY_VALUE) keepAnd max(MAX_DAY_VALUE))
-  )(TaxPeriod.apply _)
+  )(PensionPeriod.apply _)
 }
 
 object InputAmounts {
@@ -189,24 +188,24 @@ object InputAmounts {
 
 object Contribution {
   implicit val contributionWrites: Writes[Contribution] = (
-    (JsPath \ "taxPeriodStart").write[TaxPeriod] and
-    (JsPath \ "taxPeriodEnd").write[TaxPeriod] and
+    (JsPath \ "taxPeriodStart").write[PensionPeriod] and
+    (JsPath \ "taxPeriodEnd").write[PensionPeriod] and
     (JsPath \ "amounts").write[Option[InputAmounts]]
   )(unlift(Contribution.unapply))
 
   implicit val contributionReads: Reads[Contribution] = (
-    (JsPath \ "taxPeriodStart").read[TaxPeriod] and
-    (JsPath \ "taxPeriodEnd").read[TaxPeriod] and
+    (JsPath \ "taxPeriodStart").read[PensionPeriod] and
+    (JsPath \ "taxPeriodEnd").read[PensionPeriod] and
     (JsPath \ "amounts").readNullable[InputAmounts]
-  )(Contribution.apply(_:TaxPeriod, _:TaxPeriod, _:Option[InputAmounts]))
+  )(Contribution.apply(_:PensionPeriod, _:PensionPeriod, _:Option[InputAmounts]))
 
   def apply(year: Int, definedBenefit: Long) : Contribution = {
     // month is 0 based
-    Contribution(TaxPeriod(year, 3, 6), TaxPeriod(year+1, 3, 5), Some(InputAmounts(definedBenefit)))
+    Contribution(PensionPeriod(year, 4, 6), PensionPeriod(year+1, 4, 5), Some(InputAmounts(definedBenefit)))
   }
 
   def apply(year: Int, amounts: Option[InputAmounts]) : Contribution = {
     // month is 0 based
-    Contribution(TaxPeriod(year, 3, 6), TaxPeriod(year+1, 3, 5), amounts)
+    Contribution(PensionPeriod(year, 4, 6), PensionPeriod(year+1, 4, 5), amounts)
   }
 }

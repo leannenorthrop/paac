@@ -34,8 +34,8 @@ class Year2015Period1CalculatorSpec extends UnitSpec with GeneratorDrivenPropert
         val taxMonth = c.get(java.util.Calendar.MONTH)
         val taxDay = c.get(java.util.Calendar.DAY_OF_MONTH)
 
-        val contribution = Contribution(TaxPeriod(taxYear, taxMonth, taxDay),
-                                        TaxPeriod(taxYear, taxMonth, taxDay),
+        val contribution = Contribution(PensionPeriod(taxYear, taxMonth+1, taxDay),
+                                        PensionPeriod(taxYear, taxMonth+1, taxDay),
                                         Some(InputAmounts(5000L)))
 
         // do it
@@ -51,8 +51,8 @@ class Year2015Period1CalculatorSpec extends UnitSpec with GeneratorDrivenPropert
       val validContributions = for {taxYear <- Gen.choose(2015, 2015)
                                     taxMonth <- Gen.oneOf(0, 1, 2, 7, 8, 9, 10, 11)
                                     taxDay <- Gen.choose(1, 30)
-                                    } yield Contribution(TaxPeriod(taxYear, taxMonth, taxDay),
-                                                         TaxPeriod(taxYear, taxMonth, taxDay+1),
+                                    } yield Contribution(PensionPeriod(taxYear, taxMonth+1, taxDay),
+                                                         PensionPeriod(taxYear, taxMonth+1, taxDay+1),
                                                          Some(InputAmounts(5000L)))
 
       // test excluded months
@@ -63,17 +63,17 @@ class Year2015Period1CalculatorSpec extends UnitSpec with GeneratorDrivenPropert
       }
 
       // test bounds
-      Year2015Period1Calculator.isSupported(Contribution(TaxPeriod(2015, 3, 5),
-                                                  TaxPeriod(2015, 3, 5),
+      Year2015Period1Calculator.isSupported(Contribution(PensionPeriod(2015, 4, 5),
+                                                  PensionPeriod(2015, 4, 5),
                                                   Some(InputAmounts(5000L)))) shouldBe false
-      Year2015Period1Calculator.isSupported(Contribution(TaxPeriod(2015, 3, 6),
-                                                  TaxPeriod(2015, 3, 6),
+      Year2015Period1Calculator.isSupported(Contribution(PensionPeriod(2015, 4, 6),
+                                                  PensionPeriod(2015, 4, 6),
                                                   Some(InputAmounts(5000L)))) shouldBe true
-      Year2015Period1Calculator.isSupported(Contribution(TaxPeriod(2015, 6, 8),
-                                                  TaxPeriod(2015, 6, 8),
+      Year2015Period1Calculator.isSupported(Contribution(PensionPeriod(2015, 7, 8),
+                                                  PensionPeriod(2015, 7, 8),
                                                   Some(InputAmounts(5000L)))) shouldBe true
-      Year2015Period1Calculator.isSupported(Contribution(TaxPeriod(2015, 6, 9),
-                                                  TaxPeriod(2015, 6, 9),
+      Year2015Period1Calculator.isSupported(Contribution(PensionPeriod(2015, 7, 9),
+                                                  PensionPeriod(2015, 7, 9),
                                                   Some(InputAmounts(5000L)))) shouldBe false
     }
 
@@ -98,8 +98,8 @@ class Year2015Period1CalculatorSpec extends UnitSpec with GeneratorDrivenPropert
         val taxMonth = c.get(java.util.Calendar.MONTH)
         val taxDay = c.get(java.util.Calendar.DAY_OF_MONTH)
 
-        val contribution = Contribution(TaxPeriod(taxYear, taxMonth, taxDay),
-                                        TaxPeriod(taxYear, taxMonth, taxDay),
+        val contribution = Contribution(PensionPeriod(taxYear, taxMonth+1, taxDay),
+                                        PensionPeriod(taxYear, taxMonth+1, taxDay),
                                         Some(InputAmounts(5000L)))
 
         // do it
@@ -113,16 +113,16 @@ class Year2015Period1CalculatorSpec extends UnitSpec with GeneratorDrivenPropert
     "when no previous allowance available" can {
       "return expected summary results when no previous entries supplied and 0 defined benefit is given" in {
         // do it
-        val results = Year2015Period1Calculator.summary(Seq[TaxYearResults](), Contribution(TaxPeriod(2015, 3, 7),
-                                                                              TaxPeriod(2015, 3, 9),
+        val results = Year2015Period1Calculator.summary(Seq[TaxYearResults](), Contribution(PensionPeriod(2015, 4, 7),
+                                                                              PensionPeriod(2015, 4, 9),
                                                                               Some(InputAmounts(0L))))
         // check it
         results shouldBe Some(ExtendedSummaryFields(0,0,8000000,4000000,8000000,4000000,0))
       }
 
       "return annual allowance of 8000000 pence for all valid amounts" in {
-        val validContributions = for (amount <- Gen.choose(0, Integer.MAX_VALUE)) yield Contribution(TaxPeriod(2015, 3, 7),
-                                                                                                     TaxPeriod(2015, 3, 9),
+        val validContributions = for (amount <- Gen.choose(0, Integer.MAX_VALUE)) yield Contribution(PensionPeriod(2015, 4, 7),
+                                                                                                     PensionPeriod(2015, 4, 9),
                                                                                                      Some(InputAmounts(amount)))
 
         forAll(validContributions) { (contribution: Contribution) =>
@@ -134,15 +134,15 @@ class Year2015Period1CalculatorSpec extends UnitSpec with GeneratorDrivenPropert
       }
 
       "return correct amount of 0 Exceeding Annual Allowance for value of 8000000" in {
-        val results = Year2015Period1Calculator.summary(Seq[TaxYearResults](), Contribution(TaxPeriod(2015, 3, 7),
-                                                                                           TaxPeriod(2015, 3, 9),
+        val results = Year2015Period1Calculator.summary(Seq[TaxYearResults](), Contribution(PensionPeriod(2015, 4, 7),
+                                                                                           PensionPeriod(2015, 4, 9),
                                                                                            Some(InputAmounts(8000000L))))
         results.get.exceedingAAAmount shouldBe 0
       }
 
       "return correct amount of 0 Exceeding Annual Allowance for values over 8000000" in {
-        val validContributions = for (amount <- Gen.choose(8000001, Integer.MAX_VALUE)) yield Contribution(TaxPeriod(2015, 3, 7),
-                                                                                                           TaxPeriod(2015, 3, 9),
+        val validContributions = for (amount <- Gen.choose(8000001, Integer.MAX_VALUE)) yield Contribution(PensionPeriod(2015, 4, 7),
+                                                                                                           PensionPeriod(2015, 4, 9),
                                                                                                            Some(InputAmounts(amount)))
 
         forAll(validContributions) { (contribution: Contribution) =>
@@ -156,8 +156,8 @@ class Year2015Period1CalculatorSpec extends UnitSpec with GeneratorDrivenPropert
       }
 
       "return correct amount of 0 chargable amount for values under 8000000" in {
-        val validContributions = for (amount <- Gen.choose(0, 3999999)) yield Contribution(TaxPeriod(2015, 3, 7),
-                                                                                           TaxPeriod(2015, 3, 9),
+        val validContributions = for (amount <- Gen.choose(0, 3999999)) yield Contribution(PensionPeriod(2015, 4, 7),
+                                                                                           PensionPeriod(2015, 4, 9),
                                                                                            Some(InputAmounts(amount)))
 
         forAll(validContributions) { (contribution: Contribution) =>
@@ -169,15 +169,15 @@ class Year2015Period1CalculatorSpec extends UnitSpec with GeneratorDrivenPropert
       }
 
       "return correct amount of 0 chargable amount for value of 8000000" in {
-        val results = Year2015Period1Calculator.summary(Seq[TaxYearResults](), Contribution(TaxPeriod(2015, 3, 7),
-                                                                                           TaxPeriod(2015, 3, 9),
+        val results = Year2015Period1Calculator.summary(Seq[TaxYearResults](), Contribution(PensionPeriod(2015, 4, 7),
+                                                                                           PensionPeriod(2015, 4, 9),
                                                                                            Some(InputAmounts(8000000L))))
         results.get.chargableAmount shouldBe 0 
       }
 
       "return correct amount of non-0 chargable amount for values over 8000000" in {
-        val validContributions = for (amount <- Gen.choose(4000001, Integer.MAX_VALUE)) yield Contribution(TaxPeriod(2015, 3, 7),
-                                                                                                           TaxPeriod(2015, 3, 9),
+        val validContributions = for (amount <- Gen.choose(4000001, Integer.MAX_VALUE)) yield Contribution(PensionPeriod(2015, 4, 7),
+                                                                                                           PensionPeriod(2015, 4, 9),
                                                                                                            Some(InputAmounts(amount)))
 
         forAll(validContributions) { (contribution: Contribution) =>
@@ -191,8 +191,8 @@ class Year2015Period1CalculatorSpec extends UnitSpec with GeneratorDrivenPropert
       }
 
       "return correct amount of non-0 unused allowance for values under 8000000" in {
-        val validContributions = for (amount <- Gen.choose(0, 7999999)) yield Contribution(TaxPeriod(2015, 3, 7),
-                                                                                           TaxPeriod(2015, 3, 9),
+        val validContributions = for (amount <- Gen.choose(0, 7999999)) yield Contribution(PensionPeriod(2015, 4, 7),
+                                                                                           PensionPeriod(2015, 4, 9),
                                                                                            Some(InputAmounts(amount)))
 
         forAll(validContributions) { (contribution: Contribution) =>
@@ -210,15 +210,15 @@ class Year2015Period1CalculatorSpec extends UnitSpec with GeneratorDrivenPropert
       }
 
       "return correct amount of 0 unused allowance for value of 8000000" in {
-        val results = Year2015Period1Calculator.summary(Seq[TaxYearResults](), Contribution(TaxPeriod(2015, 3, 7),
-                                                                                           TaxPeriod(2015, 3, 9),
+        val results = Year2015Period1Calculator.summary(Seq[TaxYearResults](), Contribution(PensionPeriod(2015, 4, 7),
+                                                                                           PensionPeriod(2015, 4, 9),
                                                                                            Some(InputAmounts(8000000L))))
         results.get.unusedAllowance shouldBe 0 
       }
 
       "return correct amount of 0 unused allowance for values over 8000000" in {
-        val validContributions = for (amount <- Gen.choose(8000001, Integer.MAX_VALUE)) yield Contribution(TaxPeriod(2015, 3, 7),
-                                                                                                           TaxPeriod(2015, 3, 9),
+        val validContributions = for (amount <- Gen.choose(8000001, Integer.MAX_VALUE)) yield Contribution(PensionPeriod(2015, 4, 7),
+                                                                                                           PensionPeriod(2015, 4, 9),
                                                                                                            Some(InputAmounts(amount)))
 
         forAll(validContributions) { (contribution: Contribution) =>

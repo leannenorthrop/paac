@@ -18,16 +18,15 @@ package calculators.results
 
 import config.PaacConfiguration
 import models._
-import java.util._
 
 object Pre2014Calculator extends BasicAllowanceCalculator with calculators.AllowanceCalculator {
   protected def getAnnualAllowanceInPounds: Long = 50000L
 
   def isSupported(contribution:Contribution): Boolean = {
-    val start = contribution.taxPeriodStart.toCalendar
-    val end = contribution.taxPeriodEnd.toCalendar
-    val periodStartAfter = new GregorianCalendar(2006, 3, 5)
-    val periodEndBefore = new GregorianCalendar(2014, 3, 6)
-    start.after(periodStartAfter) && start.before(periodEndBefore) && end.after(periodStartAfter) && end.before(periodEndBefore)
+    val start = contribution.taxPeriodStart
+    val end = contribution.taxPeriodEnd 
+    val periodStartAfter = PensionPeriod(PensionPeriod.EARLIEST_YEAR_SUPPORTED, 4, 5)
+    val periodEndBefore = PensionPeriod(2014, 4, 6)
+    start > periodStartAfter && start < periodEndBefore && end > periodStartAfter && end < periodEndBefore
   }
 }
