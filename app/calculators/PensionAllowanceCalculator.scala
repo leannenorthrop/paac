@@ -37,8 +37,8 @@ trait PensionAllowanceCalculator {
       def getPeriodContributions(): (List[Contribution], List[Contribution]) = {
         val contributions = inputsByTaxYear(2015).groupBy(_.isPeriod1)
 
-        (contributions.get(true).map(_.toList).getOrElse(List(Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(0,0))))),
-         contributions.get(false).map(_.toList).getOrElse(List(Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(0,0))))))
+        (contributions.get(true).map(_.toList).getOrElse(List(Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(0,0))))),
+         contributions.get(false).map(_.toList).getOrElse(List(Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(0,0))))))
       }
 
       val (p1Contributions, p2Contributions) = getPeriodContributions()

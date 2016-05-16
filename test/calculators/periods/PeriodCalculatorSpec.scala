@@ -21,7 +21,7 @@ import models._
 
 class PeriodCalculatorSpec extends UnitSpec {
   trait TestFixture {
-    implicit var contribution = Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, Some(true))))
+    implicit var contribution = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, Some(true))))
     implicit var previousPeriods = List[TaxYearResults]()
 
     object PeriodCalculator extends PeriodCalculator {
@@ -41,27 +41,27 @@ class PeriodCalculatorSpec extends UnitSpec {
     }
 
     "return false if not triggered" in new TestFixture {
-      contribution = Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, Some(false))))
+      contribution = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, Some(false))))
       PeriodCalculator.isTriggered shouldBe false
-      contribution = Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, None)))
+      contribution = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, None)))
       PeriodCalculator.isTriggered shouldBe false
-      contribution = Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, None)
+      contribution = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, None)
       PeriodCalculator.isTriggered shouldBe false
     }
   }
 
   "taxResultNotTriggered" should {
     "return true when not triggered" in new TestFixture {
-      val c = Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, Some(false))))
+      val c = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, Some(false))))
       val tr = TaxYearResults(c,SummaryResult())
       PeriodCalculator.taxResultNotTriggered(tr) shouldBe true
-      val c2 = Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, None)
+      val c2 = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, None)
       val tr2 = TaxYearResults(c2,SummaryResult())
       PeriodCalculator.taxResultNotTriggered(tr2) shouldBe true
     }
 
     "return false when triggered" in new TestFixture {
-      val c = Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, Some(true))))
+      val c = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, Some(true))))
       val tr = TaxYearResults(c,SummaryResult())
       PeriodCalculator.taxResultNotTriggered(tr) shouldBe false
     }
@@ -69,13 +69,13 @@ class PeriodCalculatorSpec extends UnitSpec {
 
   "taxResultTriggered" should {
     "return false when not triggered" in new TestFixture {
-      val c = Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, Some(false))))
+      val c = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, Some(false))))
       val tr = TaxYearResults(c,SummaryResult())
       PeriodCalculator.taxResultTriggered(tr) shouldBe false
     }
 
     "return true when triggered" in new TestFixture {
-      val c = Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, Some(true))))
+      val c = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, Some(true))))
       val tr = TaxYearResults(c,SummaryResult())
       PeriodCalculator.taxResultTriggered(tr) shouldBe true
     }
@@ -88,17 +88,17 @@ class PeriodCalculatorSpec extends UnitSpec {
       PeriodCalculator.isBefore2015(result) shouldBe true
     }
     "return true if start period is equal to 2015 but not period 1 or period 2" in new TestFixture {
-      contribution = Contribution(TaxPeriod(2015,1,1), TaxPeriod(2015,2,2), Some(InputAmounts(Some(1L), Some(2L), None, None)))
+      contribution = Contribution(PensionPeriod(2015,1,1), PensionPeriod(2015,2,2), Some(InputAmounts(Some(1L), Some(2L), None, None)))
       val result = TaxYearResults(contribution, SummaryResult())
       PeriodCalculator.isBefore2015(result) shouldBe true
     }
     "return false if start period is equal to period 1" in new TestFixture {
-      contribution = Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, None)))
+      contribution = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, None)))
       val result = TaxYearResults(contribution, SummaryResult())
       PeriodCalculator.isBefore2015(result) shouldBe false
     }
     "return false if start period is equal to period 2" in new TestFixture {
-      contribution = Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, None)))
+      contribution = Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, None)))
       val result = TaxYearResults(contribution, SummaryResult())
       PeriodCalculator.isBefore2015(result) shouldBe false
     }
@@ -122,13 +122,13 @@ class PeriodCalculatorSpec extends UnitSpec {
       PeriodCalculator.period1 shouldBe ExtendedSummaryFields()
     }
     "return empty results if no previous period 1 periods" in new TestFixture {
-      val p2 = Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, None)))
+      val p2 = Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, None)))
       previousPeriods = List(Contribution(2012,2),Contribution(2016,3),p2).map(TaxYearResults(_,SummaryResult()))
       PeriodCalculator.period1 shouldBe ExtendedSummaryFields()
     }
     "return period1 results if no previous period 1 periods" in new TestFixture {
-      val p2 = Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, None)))
-      val p1 = Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(1324L), Some(2L), None, None)))
+      val p2 = Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, None)))
+      val p1 = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(1324L), Some(2L), None, None)))
       previousPeriods = List(Contribution(2012,2),Contribution(2016,3),p2,p1).map((c)=>TaxYearResults(c,ExtendedSummaryFields(c.amounts.get.definedBenefit.get)))
       PeriodCalculator.period1 shouldBe ExtendedSummaryFields(1324L)
     }
@@ -139,8 +139,8 @@ class PeriodCalculatorSpec extends UnitSpec {
       PeriodCalculator.previous shouldBe ExtendedSummaryFields()
     }
     "return results if previous periods" in new TestFixture {
-      val p2 = Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, None)))
-      val p1 = Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(1324L), Some(2L), None, None)))
+      val p2 = Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, None)))
+      val p1 = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(1324L), Some(2L), None, None)))
       previousPeriods = List(Contribution(2012,2),Contribution(2016,3),p2,p1).map((c)=>TaxYearResults(c,ExtendedSummaryFields(c.amounts.get.definedBenefit.get)))
       PeriodCalculator.previous shouldBe ExtendedSummaryFields(2L)
     }
@@ -151,8 +151,8 @@ class PeriodCalculatorSpec extends UnitSpec {
       PeriodCalculator.previousResults shouldBe None
     }
     "return results if previous periods" in new TestFixture {
-      val p2 = Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, None)))
-      val p1 = Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(1324L), Some(2L), None, None)))
+      val p2 = Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, None)))
+      val p1 = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(1324L), Some(2L), None, None)))
       previousPeriods = List(Contribution(2012,2),Contribution(2016,3),p2,p1).map((c)=>TaxYearResults(c,ExtendedSummaryFields(c.amounts.get.definedBenefit.get)))
       PeriodCalculator.previousResults shouldBe Some(TaxYearResults(Contribution(2012,2),ExtendedSummaryFields(2L)))
     }
@@ -163,12 +163,12 @@ class PeriodCalculatorSpec extends UnitSpec {
       PeriodCalculator.previousInputs shouldBe InputAmounts()
     }    
     "return empty results if previous periods with no amounts" in new TestFixture {
-      previousPeriods = List(Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, None)).map((c)=>TaxYearResults(c,ExtendedSummaryFields()))
+      previousPeriods = List(Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, None)).map((c)=>TaxYearResults(c,ExtendedSummaryFields()))
       PeriodCalculator.previousInputs shouldBe InputAmounts()
     }
     "return results if previous periods" in new TestFixture {
-      val p2 = Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, None)))
-      val p1 = Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(1324L), Some(2L), None, None)))
+      val p2 = Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, None)))
+      val p1 = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(1324L), Some(2L), None, None)))
       previousPeriods = List(Contribution(2012,2),Contribution(2016,3),p2,p1).map((c)=>TaxYearResults(c,ExtendedSummaryFields(c.amounts.get.definedBenefit.get)))
       PeriodCalculator.previousInputs shouldBe InputAmounts(2L)
     }

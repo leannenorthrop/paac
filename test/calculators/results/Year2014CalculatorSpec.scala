@@ -44,8 +44,8 @@ class Year2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks
         val taxMonth = c.get(java.util.Calendar.MONTH)
         val taxDay = c.get(java.util.Calendar.DAY_OF_MONTH)
 
-        val contribution = Contribution(TaxPeriod(taxYear, taxMonth, taxDay),
-                                        TaxPeriod(taxYear, taxMonth, taxDay),
+        val contribution = Contribution(PensionPeriod(taxYear, taxMonth+1, taxDay),
+                                        PensionPeriod(taxYear, taxMonth+1, taxDay),
                                         Some(InputAmounts(5000L)))
 
         // do it
@@ -57,28 +57,28 @@ class Year2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks
 
       // Bounds checks
       // start date before supported range
-      Year2014Calculator.isSupported(Contribution(TaxPeriod(2014, 3, 5),
-                                        TaxPeriod(2014, 3, 5),
+      Year2014Calculator.isSupported(Contribution(PensionPeriod(2014, 4, 5),
+                                        PensionPeriod(2014, 4, 5),
                                         Some(InputAmounts(5000L)))) shouldBe false
       // start date after supported range
-      Year2014Calculator.isSupported(Contribution(TaxPeriod(2015, 3, 6),
-                                        TaxPeriod(2015, 3, 5),
+      Year2014Calculator.isSupported(Contribution(PensionPeriod(2015, 4, 6),
+                                        PensionPeriod(2015, 4, 5),
                                         Some(InputAmounts(5000L)))) shouldBe false
       // end date before supported range
-      Year2014Calculator.isSupported(Contribution(TaxPeriod(2014, 3, 5),
-                                        TaxPeriod(2014, 3, 5),
+      Year2014Calculator.isSupported(Contribution(PensionPeriod(2014, 4, 5),
+                                        PensionPeriod(2014, 4, 5),
                                         Some(InputAmounts(5000L)))) shouldBe false
       // end date after supported range
-      Year2014Calculator.isSupported(Contribution(TaxPeriod(2015, 3, 6),
-                                        TaxPeriod(2014, 3, 6),
+      Year2014Calculator.isSupported(Contribution(PensionPeriod(2015, 4, 6),
+                                        PensionPeriod(2014, 4, 6),
                                         Some(InputAmounts(5000L)))) shouldBe false
       // start and end date before supported range
-      Year2014Calculator.isSupported(Contribution(TaxPeriod(2014, 3, 5),
-                                        TaxPeriod(2014, 3, 5),
+      Year2014Calculator.isSupported(Contribution(PensionPeriod(2014, 4, 5),
+                                        PensionPeriod(2014, 4, 5),
                                         Some(InputAmounts(5000L)))) shouldBe false
       // start and end date after supported range
-      Year2014Calculator.isSupported(Contribution(TaxPeriod(2015, 3, 6),
-                                        TaxPeriod(2015, 3, 6),
+      Year2014Calculator.isSupported(Contribution(PensionPeriod(2015, 4, 6),
+                                        PensionPeriod(2015, 4, 6),
                                         Some(InputAmounts(5000L)))) shouldBe false
     }
 

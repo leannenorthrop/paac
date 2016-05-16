@@ -72,14 +72,14 @@ class PensionAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
 
       "create period 1 contribution of 0 when period 2 supplied" in {
         // set up
-        val period2 = Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(5000L)))
+        val period2 = Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(5000L)))
 
         // test
         val results = Test.test(Seq(Contribution(2014, 500000L),period2))
 
         // check
         results.size shouldBe 9
-        results.find(_.taxYearLabel == "2015/16 P1").get shouldBe Contribution(TaxPeriod(2015,3,6),TaxPeriod(2015,6,8),Some(InputAmounts(Some(0L),Some(0L))))
+        results.find(_.taxYearLabel == "2015/16 P1").get shouldBe Contribution(PensionPeriod(2015,4,6),PensionPeriod(2015,7,8),Some(InputAmounts(Some(0L),Some(0L))))
       }
 
       "return contributions in year order if given values out of order" in {
@@ -106,8 +106,8 @@ class PensionAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
 
       "return corrected sorted contributions" in {
         // set up
-        val c1 = Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, Some(false))))
-        val c2 = Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, Some(true))))
+        val c1 = Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, Some(false))))
+        val c2 = Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, Some(true))))
         val contributions = Seq(c2, c1)
 
         // test

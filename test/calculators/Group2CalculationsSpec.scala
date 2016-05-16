@@ -77,9 +77,9 @@ class Group2CalculationsUnitSpec extends UnitSpec with Group2TestBase {
                        :2015P1A | -1              | 18000           | true         | 0                   | 0                | 80000                      | 40000        | 40000                    | 2000
                        :2015P2A | -1              | 1000            | true         | 0                   | 0                | 40000                      | 39000        | 39000                    | 0
                        :""".stripMargin(':')
-        val contributionP1PreTrigger = Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod(2015, 4, 23), Some(InputAmounts(None, Some(1500000L), None, Some(false))))
-        val contributionP1PostTrigger = Contribution(TaxPeriod(2015, 4, 24), TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(None, Some(1800000L), None, Some(true))))
-        val contributionP2PostTrigger = Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(None, Some(100000L), None, Some(true))))
+        val contributionP1PreTrigger = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod(2015, 4, 23), Some(InputAmounts(None, Some(1500000L), None, Some(false))))
+        val contributionP1PostTrigger = Contribution(PensionPeriod(2015, 4, 24), PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(None, Some(1800000L), None, Some(true))))
+        val contributionP2PostTrigger = Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(None, Some(100000L), None, Some(true))))
         val contributions = group2Contributions(table).slice(0, 3) ++ List(contributionP1PreTrigger, contributionP1PostTrigger, contributionP2PostTrigger)
         val results = PensionAllowanceCalculator.calculateAllowances(contributions)
         Utilities.assertResults(table, results, false)
@@ -95,9 +95,9 @@ class Group2CalculationsUnitSpec extends UnitSpec with Group2TestBase {
                        :2015P2B | -1              | 18000           | false        | 0                   | 0                | 40000                      | 22000        | 22000                    | 0
                        :2015P2A | -1              | 1000            | true         | 0                   | 0                | 22000                      | 21000        | 21000                    | 0
                        :""".stripMargin(':')
-        val contributionP1PreTrigger = Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(None, Some(1500000L), None, Some(false))))
-        val contributionP2PreTrigger = Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod(2015, 10, 24), Some(InputAmounts(None, Some(1800000L), None, Some(false))))
-        val contributionP2PostTrigger = Contribution(TaxPeriod(2015, 10, 25), TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(None, Some(100000L), None, Some(true))))
+        val contributionP1PreTrigger = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(None, Some(1500000L), None, Some(false))))
+        val contributionP2PreTrigger = Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod(2015, 10, 24), Some(InputAmounts(None, Some(1800000L), None, Some(false))))
+        val contributionP2PostTrigger = Contribution(PensionPeriod(2015, 10, 25), PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(None, Some(100000L), None, Some(true))))
         val contributions = group2Contributions(table).slice(0, 3) ++ List(contributionP1PreTrigger, contributionP2PreTrigger, contributionP2PostTrigger)
         val results = PensionAllowanceCalculator.calculateAllowances(contributions)
         Utilities.assertResults(table, results, false)

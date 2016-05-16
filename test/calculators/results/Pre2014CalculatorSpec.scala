@@ -36,17 +36,17 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
   "BasicCalculator" should {
     "return None when no amounts given" in {
       val calculator = calculators.results.BasicCalculator(100)
-      calculator.summary(Seq[TaxYearResults](), Contribution(TaxPeriod(2014,3,5), TaxPeriod(2015,3,6), None)) shouldBe None
+      calculator.summary(Seq[TaxYearResults](), Contribution(PensionPeriod(2014,4,5), PensionPeriod(2015,4,6), None)) shouldBe None
     }
 
     "return 0 for defined benefit if no amounts given" in {
       val calculator = calculators.results.BasicCalculator(100)
-      calculator.definedBenefit(Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, None)) shouldBe 0L
+      calculator.definedBenefit(Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, None)) shouldBe 0L
     }
 
     "return 0 for defined contribution if no amounts given" in {
       val calculator = calculators.results.BasicCalculator(100)
-      calculator.definedContribution(Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, None)) shouldBe 0L
+      calculator.definedContribution(Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, None)) shouldBe 0L
     }
   }
 
@@ -77,18 +77,18 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
       isSupported shouldBe false
     }
 
-    "support calculations for tax years 2006 to 2014" in {
+    s"support calculations for tax years ${PensionPeriod.EARLIEST_YEAR_SUPPORTED} to 2014" in {
       (0 until 2922).foreach {
         (day)=>
-        // first supported tax year starts on 6th April 2006
-        val c = new java.util.GregorianCalendar(2006, 3, 6)
+        // first supported tax year starts on 6th April PensionPeriod.EARLIEST_YEAR_SUPPORTED
+        val c = new java.util.GregorianCalendar(PensionPeriod.EARLIEST_YEAR_SUPPORTED, 3, 6)
         c.add(java.util.Calendar.DAY_OF_MONTH,day)
         val taxYear = c.get(java.util.Calendar.YEAR)
         val taxMonth = c.get(java.util.Calendar.MONTH)
         val taxDay = c.get(java.util.Calendar.DAY_OF_MONTH)
 
-        val contribution = Contribution(TaxPeriod(taxYear, taxMonth, taxDay),
-                                        TaxPeriod(taxYear, taxMonth, taxDay),
+        val contribution = Contribution(PensionPeriod(taxYear, taxMonth+1, taxDay),
+                                        PensionPeriod(taxYear, taxMonth+1, taxDay),
                                         Some(InputAmounts(5000L)))
 
         // do it
@@ -100,44 +100,44 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
 
       // Bounds checks
       // start date before supported range
-      Pre2014Calculator.isSupported(Contribution(TaxPeriod(2006, 3, 5),
-                                        TaxPeriod(2006, 3, 5),
+      Pre2014Calculator.isSupported(Contribution(PensionPeriod(PensionPeriod.EARLIEST_YEAR_SUPPORTED, 4, 5),
+                                        PensionPeriod(PensionPeriod.EARLIEST_YEAR_SUPPORTED, 4, 5),
                                         Some(InputAmounts(5000L)))) shouldBe false
       // start date after supported range
-      Pre2014Calculator.isSupported(Contribution(TaxPeriod(2014, 3, 6),
-                                        TaxPeriod(2014, 3, 5),
+      Pre2014Calculator.isSupported(Contribution(PensionPeriod(2014, 4, 6),
+                                        PensionPeriod(2014, 4, 5),
                                         Some(InputAmounts(5000L)))) shouldBe false
       // end date before supported range
-      Pre2014Calculator.isSupported(Contribution(TaxPeriod(2006, 3, 6),
-                                        TaxPeriod(2006, 3, 5),
+      Pre2014Calculator.isSupported(Contribution(PensionPeriod(PensionPeriod.EARLIEST_YEAR_SUPPORTED, 4, 6),
+                                        PensionPeriod(PensionPeriod.EARLIEST_YEAR_SUPPORTED, 4, 5),
                                         Some(InputAmounts(5000L)))) shouldBe false
       // end date after supported range
-      Pre2014Calculator.isSupported(Contribution(TaxPeriod(2014, 3, 5),
-                                        TaxPeriod(2014, 3, 6),
+      Pre2014Calculator.isSupported(Contribution(PensionPeriod(2014, 4, 5),
+                                        PensionPeriod(2014, 4, 6),
                                         Some(InputAmounts(5000L)))) shouldBe false 
       // start and end date before supported range
-      Pre2014Calculator.isSupported(Contribution(TaxPeriod(2006, 3, 5),
-                                        TaxPeriod(2006, 3, 5),
+      Pre2014Calculator.isSupported(Contribution(PensionPeriod(PensionPeriod.EARLIEST_YEAR_SUPPORTED, 4, 5),
+                                        PensionPeriod(PensionPeriod.EARLIEST_YEAR_SUPPORTED, 4, 5),
                                         Some(InputAmounts(5000L)))) shouldBe false
       // start and end date after supported range
-      Pre2014Calculator.isSupported(Contribution(TaxPeriod(2014, 3, 6),
-                                        TaxPeriod(2014, 3, 6),
+      Pre2014Calculator.isSupported(Contribution(PensionPeriod(2014, 4, 6),
+                                        PensionPeriod(2014, 4, 6),
                                         Some(InputAmounts(5000L)))) shouldBe false
     }
 
-    "return none for contributions prior to 2006" in {
+    s"return none for contributions prior to $PensionPeriod.EARLIEST_YEAR_SUPPORTED" in {
       val invalidContributions = for (taxYear <- Gen.choose(Integer.MIN_VALUE, 2005)) yield Contribution(taxYear, 5000)
 
       forAll(invalidContributions) { (contribution: Contribution) =>
-        whenever (contribution.taxPeriodStart.year < 2006) {
+        whenever (contribution.taxPeriodStart.year < PensionPeriod.EARLIEST_YEAR_SUPPORTED) {
           val results = Pre2014Calculator.summary(Seq[TaxYearResults](), contribution)
           results shouldBe None
         }
       }
     }
 
-    "return some calculation results for contributions between 2006 and 2013/14 inclusively" in {
-      val validContributions = for (taxYear <- Gen.choose(2006, 2013);
+    s"return some calculation results for contributions between $PensionPeriod.EARLIEST_YEAR_SUPPORTED and 2013/14 inclusively" in {
+      val validContributions = for (taxYear <- Gen.choose(PensionPeriod.EARLIEST_YEAR_SUPPORTED, 2013);
                                     amount <- Gen.choose(0, Integer.MAX_VALUE))
                               yield Contribution(taxYear, amount)
 
@@ -151,7 +151,7 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
 
     "return none for contributions with no amounts provided" in {
       // set up
-      val contribution = Contribution(TaxPeriod(2010,3,5),TaxPeriod(2011,3,6), None)
+      val contribution = Contribution(PensionPeriod(2010,4,5),PensionPeriod(2011,4,6), None)
 
       // test
       val results = Pre2014Calculator.summary(Seq[TaxYearResults](), contribution)
@@ -162,7 +162,7 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
 
     "return none for contributions with no definedBenefit amount provided" in {
       // set up
-      val contribution = Contribution(TaxPeriod(2010,3,5),TaxPeriod(2011,3,6), Some(InputAmounts(None,None)))
+      val contribution = Contribution(PensionPeriod(2010,4,5),PensionPeriod(2011,4,6), Some(InputAmounts(None,None)))
 
       // test
       val results = Pre2014Calculator.summary(Seq[TaxYearResults](), contribution)
@@ -235,13 +235,13 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
       result.unusedAllowance shouldBe 4400000
     }
 
-    "return correct calculation results for contributions between 2006 and 2013/14 inclusively with no previous contributions" in {
-      val validContributions = for (taxYear <- Gen.choose(2008, 2013);
+    s"return correct calculation results for contributions between PensionPeriod.EARLIEST_YEAR_SUPPORTED and 2013/14 inclusively with no previous contributions" in {
+      val validContributions = for (taxYear <- Gen.choose(PensionPeriod.EARLIEST_YEAR_SUPPORTED, 2013);
                                     amount <- Gen.choose(0, Integer.MAX_VALUE))
                                yield Contribution(taxYear, amount)
 
       forAll(validContributions) { (contribution: Contribution) =>
-        whenever (contribution.taxPeriodStart.year < 2014 && contribution.taxPeriodStart.year > 2005) {
+        whenever (contribution.taxPeriodStart.year < 2014 && contribution.taxPeriodStart.year > PensionPeriod.EARLIEST_YEAR_SUPPORTED) {
           // set up
           val ty = contribution.taxPeriodStart.year
           val previous = List.tabulate(ty-2008)(n => TaxYearResults(contribution, SummaryResult(availableAllowance=5000000,unusedAllowance=5000000)))
@@ -273,7 +273,7 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
                                    unusedAllowance = 4500000,
                                    availableAAWithCF = 5000000,
                                    availableAAWithCCF = 4500000)
-      val result = Pre2014Calculator.summary(Seq[TaxYearResults](TaxYearResults(Contribution(2008,0),starting)), contribution1).get
+      val result = Pre2014Calculator.summary(Seq[TaxYearResults](TaxYearResults(Contribution(PensionPeriod.EARLIEST_YEAR_SUPPORTED,0),starting)), contribution1).get
 
       // check it
       result.chargableAmount shouldBe -1
@@ -285,7 +285,7 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
     }
 
     "return none if defined benefit contribution amounts are negative" in {
-      val invalidContributions = for (amount <- Gen.choose(Integer.MIN_VALUE, -1)) yield Contribution(2008, amount)
+      val invalidContributions = for (amount <- Gen.choose(Integer.MIN_VALUE, -1)) yield Contribution(PensionPeriod.EARLIEST_YEAR_SUPPORTED, amount)
 
       forAll(invalidContributions) { (contribution: Contribution) =>
         whenever (contribution.amounts.get.definedBenefit.get < 0) {
@@ -296,7 +296,7 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
 
     "return some if defined benefit is none but defined contribution is some in 2014" in {
       // set up
-      val contribution = Contribution(TaxPeriod(2010,3,5),TaxPeriod(2011,3,6), Some(InputAmounts(None,Some(123L))))
+      val contribution = Contribution(PensionPeriod(2010,4,5),PensionPeriod(2011,4,6), Some(InputAmounts(None,Some(123L))))
 
       // test
       val results = Pre2014Calculator.summary(Seq[TaxYearResults](), contribution)

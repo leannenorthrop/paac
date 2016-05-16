@@ -30,7 +30,7 @@ class Group2P2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks
     implicit val amountsCalculator = BasicCalculator(annualAllowance)
     implicit var previousPeriods = List[TaxYearResults]()
     implicit var contribution = Contribution(2015, 0)
-    val period2Contribution = Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, None)
+    val period2Contribution = Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, None)
   }
 
   "isMPAAApplicable" should {

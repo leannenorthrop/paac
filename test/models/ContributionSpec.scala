@@ -30,10 +30,10 @@ class ContributionSpec extends ModelSpec {
     val year : Int = 2016
     val month : Int = 7
     val day : Int = 18
-    val taxPeriod = TaxPeriod(year, month, day)
+    val taxPeriod = PensionPeriod(year, month, day)
   }
 
-  "TaxPeriod" can {
+  "PensionPeriod" can {
     "have a full year value as int" in new TaxPeriodFixture {
       taxPeriod.year shouldBe year
     }
@@ -64,7 +64,7 @@ class ContributionSpec extends ModelSpec {
       val json = Json.parse("""{"year": 2016, "month": 7, "day" : 18}""")
 
       // do it
-      val inputAmountsOption : Option[TaxPeriod] = json.validate[TaxPeriod].fold(invalid = { _ => None }, valid = { period => Some(period) })
+      val inputAmountsOption : Option[PensionPeriod] = json.validate[PensionPeriod].fold(invalid = { _ => None }, valid = { period => Some(period) })
 
       inputAmountsOption shouldBe Some(taxPeriod)
     }
@@ -74,7 +74,7 @@ class ContributionSpec extends ModelSpec {
       val json = Json.parse("""{"year": 1999, "month": 7, "day" : 19}""")
 
       // do it
-      val option : Option[Seq[(play.api.libs.json.JsPath, Seq[play.api.data.validation.ValidationError])]] = json.validate[TaxPeriod].fold(invalid = { errors => Some(errors) }, valid = { _ => None })
+      val option : Option[Seq[(play.api.libs.json.JsPath, Seq[play.api.data.validation.ValidationError])]] = json.validate[PensionPeriod].fold(invalid = { errors => Some(errors) }, valid = { _ => None })
       val firstValidationErrorPath = option.head(0)._1
       val firstValidationError = option.head(0)._2(0)
 
@@ -84,19 +84,129 @@ class ContributionSpec extends ModelSpec {
       firstValidationError.args(0) shouldBe 2006
     }
 
-    "convert to GregorianCalendar" in {
-      // set up
-      val year = 2014
-      val month = 3
-      val day = 2
+    "<" should {
+      "return true if the given period day is after the period" in {
+        // setup
+        val thisPeriod = PensionPeriod(2015, 1, 1)
+        val thatPeriod = PensionPeriod(2015, 1, 2)
 
-      // do it
-      val calendar = TaxPeriod(year, month, day).toCalendar
+        // test
+        val result = thisPeriod < thatPeriod
 
-      // check 
-      calendar.get(java.util.Calendar.YEAR) shouldBe year
-      calendar.get(java.util.Calendar.MONTH) shouldBe month
-      calendar.get(java.util.Calendar.DAY_OF_MONTH) shouldBe day
+        // check
+        result shouldBe true
+      }
+
+      "return true if the given period month is after the period" in {
+        // setup
+        val thisPeriod = PensionPeriod(2015, 1, 1)
+        val thatPeriod = PensionPeriod(2015, 2, 1)
+
+        // test
+        val result = thisPeriod < thatPeriod
+
+        // check
+        result shouldBe true
+      }
+
+      "return true if the given period year is after the period" in {
+        // setup
+        val thisPeriod = PensionPeriod(2015, 1, 1)
+        val thatPeriod = PensionPeriod(2016, 1, 1)
+
+        // test
+        val result = thisPeriod < thatPeriod
+
+        // check
+        result shouldBe true
+      }
+
+      "return true if the given period is after the period" in {
+        // setup
+        val thisPeriod = PensionPeriod(2015, 1, 1)
+        val thatPeriod = PensionPeriod(2015, 1, 31)
+
+        // test
+        val result = thisPeriod < thatPeriod
+
+        // check
+        result shouldBe true
+      }
+
+      "return false if the given period year is same as the period" in {
+        // setup
+        val thisPeriod = PensionPeriod(2015, 1, 1)
+        val thatPeriod = PensionPeriod(2015, 1, 1)
+
+        // test
+        val result = thisPeriod < thatPeriod
+
+        // check
+        result shouldBe false
+      }
+    }
+
+    ">" should {
+      "return true if the given period day is after the period" in {
+        // setup
+        val thisPeriod = PensionPeriod(2015, 1, 1)
+        val thatPeriod = PensionPeriod(2015, 1, 2)
+
+        // test
+        val result = thatPeriod > thisPeriod
+
+        // check
+        result shouldBe true
+      }
+
+      "return true if the given period month is after the period" in {
+        // setup
+        val thisPeriod = PensionPeriod(2015, 1, 1)
+        val thatPeriod = PensionPeriod(2015, 2, 1)
+
+        // test
+        val result = thatPeriod > thisPeriod
+
+        // check
+        result shouldBe true
+      }
+
+      "return true if the given period year is after the period" in {
+        // setup
+        val thisPeriod = PensionPeriod(2015, 1, 1)
+        val thatPeriod = PensionPeriod(2016, 1, 1)
+
+        // test
+        val result = thatPeriod > thisPeriod
+
+        // check
+        result shouldBe true
+      }
+
+      "return false if the given period year is same as the period" in {
+        // setup
+        val thisPeriod = PensionPeriod(2015, 1, 1)
+        val thatPeriod = PensionPeriod(2015, 1, 1)
+
+        // test
+        val result = thatPeriod > thisPeriod
+
+        // check
+        result shouldBe false
+      }
+    }
+    "PensionPeriod(2015,2,24) >= PensionPeriod(2015,7,9)" should {
+      "return false" in {
+        // setup
+        val thisPeriod = PensionPeriod(2015,2,24)
+        val thatPeriod = PensionPeriod(2015,7,9)
+
+        // test
+        val result = thisPeriod >= thatPeriod
+
+        // check
+        result shouldBe false
+      }
     }
   }
 
@@ -254,8 +364,8 @@ class ContributionSpec extends ModelSpec {
   trait ContributionFixture {
     val taxYear : Int = 2014
     val taxYearEnd : Int = 2015
-    val taxPeriodStart = new TaxPeriod(taxYear, 3, 1) // 1st of April
-    val taxPeriodEnd = new TaxPeriod(taxYearEnd, 2, 31) // 31st of March
+    val taxPeriodStart = new PensionPeriod(taxYear, 4, 1) // 1st of April
+    val taxPeriodEnd = new PensionPeriod(taxYearEnd, 3, 31) // 31st of March
     val definedBenefit = 2000
     val moneyPurchase = 0
     val income = 123
@@ -263,7 +373,7 @@ class ContributionSpec extends ModelSpec {
   }
 
   def getExpectedContributionJson():String = {
-    """{"taxPeriodStart":{"year":2014,"month":3,"day":1},"taxPeriodEnd":{"year":2015,"month":2,"day":31},"amounts":{"definedBenefit":2000,"moneyPurchase":0,"income":123,"triggered":null}}"""
+    """{"taxPeriodStart":{"year":2014,"month":4,"day":1},"taxPeriodEnd":{"year":2015,"month":3,"day":31},"amounts":{"definedBenefit":2000,"moneyPurchase":0,"income":123,"triggered":null}}"""
   }
 
   "A Contribution" can {
@@ -281,7 +391,7 @@ class ContributionSpec extends ModelSpec {
 
       "have a 2015 Period 1 tax year label" in {
         // set up
-        val c = Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(0,0)))
+        val c = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(0,0)))
 
         // do it 
         val label = c.taxYearLabel
@@ -292,7 +402,7 @@ class ContributionSpec extends ModelSpec {
 
       "have a 2015 Period 2 tax year label" in {
         // set up
-        val c = Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(0,0)))
+        val c = Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(0,0)))
 
         // do it 
         val label = c.taxYearLabel
@@ -303,7 +413,7 @@ class ContributionSpec extends ModelSpec {
 
       "have a non standard 2015 Period 1 tax year label" in {
         // set up
-        val c = Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod(2015, 4, 12), Some(InputAmounts(0,0)))
+        val c = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod(2015, 4, 12), Some(InputAmounts(0,0)))
 
         // do it 
         val label = c.taxYearLabel
@@ -314,7 +424,7 @@ class ContributionSpec extends ModelSpec {
 
       "have a non standard 2015 Period 2 tax year label" in {
         // set up
-        val c = Contribution(TaxPeriod(2015, 9, 12), TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(0,0)))
+        val c = Contribution(PensionPeriod(2015, 9, 12), PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(0,0)))
 
         // do it 
         val label = c.taxYearLabel
@@ -338,7 +448,7 @@ class ContributionSpec extends ModelSpec {
 
       "have a 2015 Period 1 label" in {
         // set up
-        val c = Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(0,0)))
+        val c = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(0,0)))
 
         // do it 
         val label = c.label
@@ -349,7 +459,7 @@ class ContributionSpec extends ModelSpec {
 
       "have a 2015 Period 2 label" in {
         // set up
-        val c = Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(0,0)))
+        val c = Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(0,0)))
 
         // do it 
         val label = c.label
@@ -360,7 +470,7 @@ class ContributionSpec extends ModelSpec {
 
       "have a 2015 Period 1 triggered label" in {
         // set up
-        val c = Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(0), Some(0), None, Some(true))))
+        val c = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(0), Some(0), None, Some(true))))
 
         // do it 
         val label = c.label
@@ -371,7 +481,7 @@ class ContributionSpec extends ModelSpec {
 
       "have a 2015 Period 2 triggered label" in {
         // set up
-        val c = Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(0), Some(0), None, Some(true))))
+        val c = Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(0), Some(0), None, Some(true))))
 
         // do it 
         val label = c.label
@@ -392,10 +502,10 @@ class ContributionSpec extends ModelSpec {
 
         // check
         c.taxPeriodStart.year shouldBe 2008
-        c.taxPeriodStart.month shouldBe 3
+        c.taxPeriodStart.month shouldBe 4
         c.taxPeriodStart.day shouldBe 6
         c.taxPeriodEnd.year shouldBe 2009
-        c.taxPeriodEnd.month shouldBe 3
+        c.taxPeriodEnd.month shouldBe 4
         c.taxPeriodEnd.day shouldBe 5
       }
 
@@ -425,7 +535,7 @@ class ContributionSpec extends ModelSpec {
 
       "have a triggered value" in {
         // set up
-        val contribution = Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(0), Some(0), None, Some(true))))
+        val contribution = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(0), Some(0), None, Some(true))))
 
         // do it
         val isTriggered = contribution.isTriggered
@@ -436,7 +546,7 @@ class ContributionSpec extends ModelSpec {
 
       "have a non-triggered value" in {
         // set up
-        val contribution = Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(0), Some(0), None, Some(false))))
+        val contribution = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(0), Some(0), None, Some(false))))
 
         // do it
         val isTriggered = contribution.isTriggered
@@ -447,7 +557,7 @@ class ContributionSpec extends ModelSpec {
 
       "have a non-triggered value if set to none" in {
         // set up
-        val contribution = Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(0), Some(0), None, None)))
+        val contribution = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(0), Some(0), None, None)))
 
         // do it
         val isTriggered = contribution.isTriggered
@@ -458,7 +568,7 @@ class ContributionSpec extends ModelSpec {
 
       "have a non-triggered value by default" in {
         // set up
-        val contribution = Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(0,0)))
+        val contribution = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(0,0)))
 
         // do it
         val isTriggered = contribution.isTriggered
@@ -470,8 +580,8 @@ class ContributionSpec extends ModelSpec {
 
     "isEmpty" can {
       "return true if both definedBenefit and money purchase are none or amounts is none" in new ContributionFixture {
-        Contribution(TaxPeriod(2008, 2, 11), TaxPeriod(2008, 8, 12), None).isEmpty shouldBe true
-        Contribution(TaxPeriod(2008, 2, 11), TaxPeriod(2008, 8, 12), Some(InputAmounts(None,None))).isEmpty shouldBe true
+        Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), None).isEmpty shouldBe true
+        Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(None,None))).isEmpty shouldBe true
       }
 
       "return false if both definedBenefit and money purchase are none" in new ContributionFixture {
@@ -479,14 +589,14 @@ class ContributionSpec extends ModelSpec {
       }
 
       "return false if either definedBenefit or money purchase are some value" in new ContributionFixture {
-        Contribution(TaxPeriod(2008, 2, 11), TaxPeriod(2008, 8, 12), Some(InputAmounts(8980,897797))).isEmpty shouldBe false
-        Contribution(TaxPeriod(2008, 2, 11), TaxPeriod(2008, 8, 12), Some(InputAmounts(8980))).isEmpty shouldBe false
+        Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(8980,897797))).isEmpty shouldBe false
+        Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(8980))).isEmpty shouldBe false
       }
     }
 
     "isPeriod1" can {
       "return true if is period 1" in {
-        Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(0,0))).isPeriod1 shouldBe true
+        Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(0,0))).isPeriod1 shouldBe true
       }
       "return false if is period 1" in {
         Contribution(2014, 123L).isPeriod1 shouldBe false
@@ -495,7 +605,7 @@ class ContributionSpec extends ModelSpec {
 
     "isPeriod2" can {
       "return true if is period 2" in {
-        Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(0,0))).isPeriod2 shouldBe true
+        Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(0,0))).isPeriod2 shouldBe true
       }
       "return false if is period 2" in {
         Contribution(2014, 123L).isPeriod2 shouldBe false
@@ -504,30 +614,30 @@ class ContributionSpec extends ModelSpec {
 
     "isGroup1" can {
       "return true for group 1 contributions" in {
-        Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(4322L))).isGroup1 shouldBe true
-        Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(4322L))).isGroup1 shouldBe true
-        Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(4322L),None,None,None))).isGroup1 shouldBe true
-        Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(4322L),None,None,Some(false)))).isGroup1 shouldBe true
+        Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(4322L))).isGroup1 shouldBe true
+        Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(4322L))).isGroup1 shouldBe true
+        Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(4322L),None,None,None))).isGroup1 shouldBe true
+        Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(4322L),None,None,Some(false)))).isGroup1 shouldBe true
       }
 
       "return false for non group 1 contributions" in {
-        Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(None, Some(4322L)))).isGroup1 shouldBe false
-        Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(None, Some(4322L)))).isGroup1 shouldBe false
-        Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(4322L),None,None,Some(true)))).isGroup1 shouldBe false
+        Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(None, Some(4322L)))).isGroup1 shouldBe false
+        Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(None, Some(4322L)))).isGroup1 shouldBe false
+        Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(4322L),None,None,Some(true)))).isGroup1 shouldBe false
         Contribution(2012,243L).isGroup1 shouldBe false
       }
     }
 
     "isGroup2" can {
       "return true if defined contribution is not None and is period 1 or 2" in {
-        Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(None,Some(474789L),None))).isGroup2 shouldBe true
-        Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(None,Some(474789L),None))).isGroup2 shouldBe true
-        Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(12,474789))).isGroup2 shouldBe true
-        Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(339,474789))).isGroup2 shouldBe true
+        Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(None,Some(474789L),None))).isGroup2 shouldBe true
+        Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(None,Some(474789L),None))).isGroup2 shouldBe true
+        Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(12,474789))).isGroup2 shouldBe true
+        Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(339,474789))).isGroup2 shouldBe true
       }
       "return false if only defined benefit" in {
-        Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(12))).isGroup2 shouldBe false
-        Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(339))).isGroup2 shouldBe false
+        Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(12))).isGroup2 shouldBe false
+        Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(339))).isGroup2 shouldBe false
       }
       "return false if not period 1 or 2" in {
         Contribution(2014, 324L).isGroup2 shouldBe false
@@ -537,20 +647,20 @@ class ContributionSpec extends ModelSpec {
 
     "isGroup3" can {
       "return false if only defined benefit and not triggered" in {
-        Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(12), None, None, None))).isGroup3 shouldBe false
-        Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(12), None, None, None))).isGroup3 shouldBe false
+        Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(12), None, None, None))).isGroup3 shouldBe false
+        Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(12), None, None, None))).isGroup3 shouldBe false
       }
       "return false if only defined contribution/money purchase and not triggered" in {
-        Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(None, Some(12), None, None))).isGroup3 shouldBe false
-        Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(None, Some(12), None, None))).isGroup3 shouldBe false
+        Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(None, Some(12), None, None))).isGroup3 shouldBe false
+        Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(None, Some(12), None, None))).isGroup3 shouldBe false
       }
       "return false if not triggered" in {
-        Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(23), Some(12), None, None))).isGroup3 shouldBe false
-        Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(23), Some(12), None, None))).isGroup3 shouldBe false
+        Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(23), Some(12), None, None))).isGroup3 shouldBe false
+        Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(23), Some(12), None, None))).isGroup3 shouldBe false
       }
       "return true if triggered and both definedBenefit and moneyPurchase" in {
-        Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(23), Some(12), None, Some(true)))).isGroup3 shouldBe false
-        Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(23), Some(12), None, Some(true)))).isGroup3 shouldBe true
+        Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(23), Some(12), None, Some(true)))).isGroup3 shouldBe false
+        Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(23), Some(12), None, Some(true)))).isGroup3 shouldBe true
       }
     }
 
@@ -564,12 +674,12 @@ class ContributionSpec extends ModelSpec {
         val c3 = c1 + c2
 
         // check
-        c3 shouldBe Contribution(TaxPeriod(2014,3,6),TaxPeriod(2015,3,5),Some(InputAmounts(579L,0L)))
+        c3 shouldBe Contribution(PensionPeriod(2014,4,6),PensionPeriod(2015,4,5),Some(InputAmounts(579L,0L)))
       }
       "not fail if amounts not defined" in {
         // set up
-        val c1 = Contribution(TaxPeriod(2014,3,6),TaxPeriod(2015,3,5),None)
-        val c2 = Contribution(TaxPeriod(2014,3,6),TaxPeriod(2015,3,5),None)
+        val c1 = Contribution(PensionPeriod(2014,4,6),PensionPeriod(2015,4,5),None)
+        val c2 = Contribution(PensionPeriod(2014,4,6),PensionPeriod(2015,4,5),None)
 
         // test
         val c3 = c1 + c2
@@ -597,7 +707,7 @@ class ContributionSpec extends ModelSpec {
 
       "marshall None amounts to JSON" in {
         // do it
-        val json = Json.toJson(Contribution(TaxPeriod(2010,3,5),TaxPeriod(2010,3,6),None))
+        val json = Json.toJson(Contribution(PensionPeriod(2010,4,5),PensionPeriod(2010,4,6),None))
 
         // check
         val jsonTaxYear = json \ "taxPeriodStart" \ "year"
@@ -623,7 +733,7 @@ class ContributionSpec extends ModelSpec {
         // do it
         val contributionOption : Option[Contribution] = json.validate[Contribution].fold(invalid = { _ => None }, valid = { contribution => Some(contribution)})
 
-        contributionOption shouldBe Some(Contribution(TaxPeriod(2008, 2, 11), TaxPeriod(2008, 8, 12), Some(InputAmounts(12345, 67890))))
+        contributionOption shouldBe Some(Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(12345, 67890))))
       }
 
       "unmashall from JSON ensuring tax year must not be less than 2006" in {
@@ -650,7 +760,7 @@ class ContributionSpec extends ModelSpec {
         // do it
         val contributionOption : Option[Contribution] = json.validate[Contribution].fold(invalid = { _ => None }, valid = { contribution => Some(contribution)})
 
-        contributionOption shouldBe Some(Contribution(TaxPeriod(2008, 2, 11), TaxPeriod(2008, 8, 12), None))
+        contributionOption shouldBe Some(Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), None))
       }
 
       "unmarshall from JSON allows null definedBenefit" in {
@@ -660,7 +770,7 @@ class ContributionSpec extends ModelSpec {
         // do it
         val contributionOption : Option[Contribution] = json.validate[Contribution].fold(invalid = { _ => None }, valid = { contribution => Some(contribution)})
 
-        contributionOption shouldBe Some(Contribution(TaxPeriod(2008, 2, 11), TaxPeriod(2008, 8, 12), Some(InputAmounts(None, Some(67890L)))))
+        contributionOption shouldBe Some(Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(None, Some(67890L)))))
       }
 
       "unmarshall from JSON allows null moneyPurchase" in {
@@ -670,7 +780,7 @@ class ContributionSpec extends ModelSpec {
         // do it
         val contributionOption : Option[Contribution] = json.validate[Contribution].fold(invalid = { _ => None }, valid = { contribution => Some(contribution)})
 
-        contributionOption shouldBe Some(Contribution(TaxPeriod(2008, 2, 11), TaxPeriod(2008, 8, 12), Some(InputAmounts(Some(9898080L),None))))
+        contributionOption shouldBe Some(Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(Some(9898080L),None))))
       }
 
       "unmarshall from JSON allows null income" in {
@@ -680,49 +790,49 @@ class ContributionSpec extends ModelSpec {
         // do it
         val contributionOption : Option[Contribution] = json.validate[Contribution].fold(invalid = { _ => None }, valid = { contribution => Some(contribution)})
 
-        contributionOption shouldBe Some(Contribution(TaxPeriod(2008, 2, 11), TaxPeriod(2008, 8, 12), Some(InputAmounts(Some(9898080L),None, None))))
+        contributionOption shouldBe Some(Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(Some(9898080L),None, None))))
       }
 
       "be added to another contribution" in {
         // set up
-        val c1 = Contribution(TaxPeriod(2008, 2, 11), TaxPeriod(2008, 8, 12), Some(InputAmounts(None, Some(123L))))
-        val c2 = Contribution(TaxPeriod(2008, 2, 11), TaxPeriod(2008, 8, 12), Some(InputAmounts(Some(456L), Some(0L))))
+        val c1 = Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(None, Some(123L))))
+        val c2 = Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(Some(456L), Some(0L))))
 
         // test
         val c3 = c1 + c2
 
         // check
-        c3 shouldBe Contribution(TaxPeriod(2008, 2, 11), TaxPeriod(2008, 8, 12), Some(InputAmounts(Some(456L), Some(123L))))
+        c3 shouldBe Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(Some(456L), Some(123L))))
       }
 
       "be added to another contribution summing defined benefit" in {
         // set up
-        val c1 = Contribution(TaxPeriod(2008, 2, 11), TaxPeriod(2008, 8, 12), Some(InputAmounts(Some(123L), None)))
-        val c2 = Contribution(TaxPeriod(2008, 2, 11), TaxPeriod(2008, 8, 12), Some(InputAmounts(Some(456L), None)))
+        val c1 = Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(Some(123L), None)))
+        val c2 = Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(Some(456L), None)))
 
         // test
         val c3 = c1 + c2
 
         // check
-        c3 shouldBe Contribution(TaxPeriod(2008, 2, 11), TaxPeriod(2008, 8, 12), Some(InputAmounts(579L, 0L)))
+        c3 shouldBe Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(579L, 0L)))
       }
 
       "be added to another contribution summing defined contribution" in {
         // set up
-        val c1 = Contribution(TaxPeriod(2008, 2, 11), TaxPeriod(2008, 8, 12), Some(InputAmounts(None, Some(123L))))
-        val c2 = Contribution(TaxPeriod(2008, 2, 11), TaxPeriod(2008, 8, 12), Some(InputAmounts(None, Some(456L))))
+        val c1 = Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(None, Some(123L))))
+        val c2 = Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(None, Some(456L))))
 
         // test
         val c3 = c1 + c2
 
         // check
-        c3 shouldBe Contribution(TaxPeriod(2008, 2, 11), TaxPeriod(2008, 8, 12), Some(InputAmounts(0L, 579L)))
+        c3 shouldBe Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(0L, 579L)))
       }
 
       "is not added to another contribution when amounts is None" in {
         // set up
-        val c1 = Contribution(TaxPeriod(2008, 2, 11), TaxPeriod(2008, 8, 12), None);
-        val c2 = Contribution(TaxPeriod(2008, 2, 11), TaxPeriod(2008, 8, 12), Some(InputAmounts(None, Some(456L))))
+        val c1 = Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), None);
+        val c2 = Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(None, Some(456L))))
 
         // test
         val c3 = c1 + c2

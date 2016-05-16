@@ -61,12 +61,12 @@ object Utilities {
     map.keys.toList.map {
       (key)=>
       key match {
-        case "2015P1" => Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(map(key)*100L))) 
-        case "2015P2" => Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(map(key)*100L))) 
-        case "2015P1B" => Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(map(key)*100L), None, None, Some(false)))) 
-        case "2015P1A" => Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(map(key)*100L), None, None, Some(true)))) 
-        case "2015P2B" => Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(map(key)*100L), None, None, Some(false)))) 
-        case "2015P2A" => Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(map(key)*100L), None, None, Some(true)))) 
+        case "2015P1" => Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(map(key)*100L))) 
+        case "2015P2" => Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(map(key)*100L))) 
+        case "2015P1B" => Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(map(key)*100L), None, None, Some(false)))) 
+        case "2015P1A" => Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(map(key)*100L), None, None, Some(true)))) 
+        case "2015P2B" => Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(map(key)*100L), None, None, Some(false)))) 
+        case "2015P2A" => Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(map(key)*100L), None, None, Some(true)))) 
         case _ => Contribution(key.toInt, map(key)*100L)
       }
     }
@@ -86,12 +86,12 @@ object Utilities {
         Some(map(key)._2*100L)
       }
       key match {
-        case "2015P1" => Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(maybeDB, maybeDC, None, None)))
-        case "2015P2" => Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(maybeDB, maybeDC, None, None)))
-        case "2015P1B" => Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(maybeDB, maybeDC, None, Some(false))))
-        case "2015P1A" => Contribution(TaxPeriod.PERIOD_1_2015_START, TaxPeriod.PERIOD_1_2015_END, Some(InputAmounts(maybeDB, maybeDC, None, Some(true))))
-        case "2015P2B" => Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(maybeDB, maybeDC, None, Some(false))))
-        case "2015P2A" => Contribution(TaxPeriod.PERIOD_2_2015_START, TaxPeriod.PERIOD_2_2015_END, Some(InputAmounts(maybeDB, maybeDC, None, Some(true))))
+        case "2015P1" => Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(maybeDB, maybeDC, None, None)))
+        case "2015P2" => Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(maybeDB, maybeDC, None, None)))
+        case "2015P1B" => Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(maybeDB, maybeDC, None, Some(false))))
+        case "2015P1A" => Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(maybeDB, maybeDC, None, Some(true))))
+        case "2015P2B" => Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(maybeDB, maybeDC, None, Some(false))))
+        case "2015P2A" => Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(maybeDB, maybeDC, None, Some(true))))
         case _ => Contribution(key.toInt, Some(InputAmounts(maybeDB, maybeDC, None, Some(false))))
       }
     }

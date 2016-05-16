@@ -49,8 +49,8 @@ class CalculatorControllerSpec extends ControllerSpec with BeforeAndAfterAll {
   }
 
   val ENDPOINT_PATH = "/paac/calculate/"
-  val VALID_CONTRIBUTION_JSON_BODY : List[Contribution] = List[Contribution](Contribution(taxPeriodStart=TaxPeriod(2009, 0, 1), taxPeriodEnd=TaxPeriod(2009, 3, 31), amounts=Some(InputAmounts(90000L,0L))))
-  val INVALID_CONTRIBUTION_JSON_BODY : List[Contribution] = List[Contribution](Contribution(taxPeriodStart=TaxPeriod(2009, 0, 1), taxPeriodEnd=TaxPeriod(2009, 3, 31), amounts=Some(InputAmounts(-2000L,0L))))
+  val VALID_CONTRIBUTION_JSON_BODY : List[Contribution] = List[Contribution](Contribution(taxPeriodStart=PensionPeriod(2009, 1, 1), taxPeriodEnd=PensionPeriod(2009, 4, 31), amounts=Some(InputAmounts(90000L,0L))))
+  val INVALID_CONTRIBUTION_JSON_BODY : List[Contribution] = List[Contribution](Contribution(taxPeriodStart=PensionPeriod(2009, 1, 1), taxPeriodEnd=PensionPeriod(2009, 4, 31), amounts=Some(InputAmounts(-2000L,0L))))
 
   def execute(body : List[Contribution]) : Future[Result] = controllers.CalculatorController.calculate()(getRequestWithJsonBody(ENDPOINT_PATH, Json.toJson(body)))
 

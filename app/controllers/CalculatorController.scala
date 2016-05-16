@@ -44,9 +44,9 @@ trait CalculatorController {
                                               "validationErrors" -> JsError.toFlatJson(errors))))
       },
       inputs => {
-        if (inputs.exists((contribution)=>(contribution.taxPeriodStart.year < TaxPeriod.EARLIEST_YEAR_SUPPORTED || contribution.taxPeriodStart.year > TaxPeriod.LATEST_YEAR_SUPPORTED)))
+        if (inputs.exists((contribution)=>(contribution.taxPeriodStart.year < PensionPeriod.EARLIEST_YEAR_SUPPORTED || contribution.taxPeriodStart.year > PensionPeriod.LATEST_YEAR_SUPPORTED)))
           Future.successful(BadRequest(Json.obj("status" -> JsNumber(BAD_REQUEST),
-                                                "message" -> JsString(s"Unsupported tax year supplied, only tax years between ${TaxPeriod.EARLIEST_YEAR_SUPPORTED} and ${TaxPeriod.LATEST_YEAR_SUPPORTED} inclusive, are supported."))))
+                                                "message" -> JsString(s"Unsupported tax year supplied, only tax years between ${PensionPeriod.EARLIEST_YEAR_SUPPORTED} and ${PensionPeriod.LATEST_YEAR_SUPPORTED} inclusive, are supported."))))
         else
           Future.successful(Ok(Json.obj("status" -> JsNumber(OK), 
                                         "message" -> JsString("Valid pension calculation request received."),
