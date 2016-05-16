@@ -30,15 +30,16 @@ case class Group1P1Calculator(implicit amountsCalculator: BasicCalculator,
 
   override def unusedAllowance(): Long = amountsCalculator.unusedAllowance.min(4000000L)
 
-  override def aaCF(): Long = amountsCalculator.annualAllowance + previous3YearsUnusedAllowance
+  override def aaCF(): Long = annualAllowance + previousResults.map(_.summaryResult.availableAAWithCCF).getOrElse(0L)
 
   override def definedBenefit(): Long = amountsCalculator.definedBenefit
 
   override def aaCCF(): Long = {
-    if (definedBenefit >= amountsCalculator.annualAllowance) {
-      (annualAllowance + previous3YearsUnusedAllowance - definedBenefit).max(0)
+    val aaccf = previousResults.map(_.summaryResult.availableAAWithCCF).getOrElse(0L)
+    if (definedBenefit >= annualAllowance) {
+      (annualAllowance + aaccf - definedBenefit).max(0)
     } else {
-      (unusedAllowance + previous3YearsUnusedAllowance).max(0)
+      (unusedAllowance + aaccf).max(0)
     }
   }
 }
