@@ -26,13 +26,13 @@ of the format where amounts are in pence:
 ```
 [
 {
-"taxPeriodStart": {"year": 2013, "month": 3, "day": 6},
- "taxPeriodEnd": {"year": 2014, "month": 3, "day": 5},
+"taxPeriodStart": {"year": 2013, "month": 4, "day": 6},
+ "taxPeriodEnd": {"year": 2014, "month": 4, "day": 5},
  "amounts":{"definedBenefit":300000,"moneyPurchase":0}
 },
 {
-"taxPeriodStart": {"year": 2014, "month": 3, "day": 6},
- "taxPeriodEnd": {"year": 2015, "month": 3, "day": 5},
+"taxPeriodStart": {"year": 2014, "month": 4, "day": 6},
+ "taxPeriodEnd": {"year": 2015, "month": 4, "day": 5},
  "amounts":{"definedBenefit":1200000,"moneyPurchase":0}
 }
 ]
@@ -42,13 +42,13 @@ of the format where amounts are in pence:
 ```
 [
 {
-"taxPeriodStart": {"year": 2015, "month": 3, "day": 6},
- "taxPeriodEnd": {"year": 2015, "month": 6, "day": 8},
+"taxPeriodStart": {"year": 2015, "month": 4, "day": 6},
+ "taxPeriodEnd": {"year": 2015, "month": 7, "day": 8},
  "amounts":{"definedBenefit":3000,"moneyPurchase":11000,"income":0,"triggered":true}
 },
 {
-"taxPeriodStart": {"year": 2015, "month": 6, "day": 9},
- "taxPeriodEnd": {"year": 2016, "month": 3, "day": 5},
+"taxPeriodStart": {"year": 2015, "month": 7, "day": 9},
+ "taxPeriodEnd": {"year": 2016, "month": 4, "day": 5},
  "amounts":{"definedBenefit":0,"moneyPurchase":12000,"income":0,"triggered":true}
 }
 ]
@@ -58,13 +58,13 @@ of the format where amounts are in pence:
 ```
 [
 {
-"taxPeriodStart": {"year": 2015, "month": 3, "day": 6},
- "taxPeriodEnd": {"year": 2015, "month": 6, "day": 8},
+"taxPeriodStart": {"year": 2015, "month": 4, "day": 6},
+ "taxPeriodEnd": {"year": 2015, "month": 7, "day": 8},
  "amounts":{"definedBenefit":3000,"moneyPurchase":11000,"income":0,"triggered":false}
 },
 {
-"taxPeriodStart": {"year": 2015, "month": 6, "day": 9},
- "taxPeriodEnd": {"year": 2016, "month": 3, "day": 5},
+"taxPeriodStart": {"year": 2015, "month": 7, "day": 9},
+ "taxPeriodEnd": {"year": 2016, "month": 4, "day": 5},
  "amounts":{"definedBenefit":0,"moneyPurchase":12000,"income":0,"triggered":true}
 }
 ]
@@ -75,18 +75,18 @@ of the format where amounts are in pence:
 ```
 [
 {
-"taxPeriodStart": {"year": 2015, "month": 3, "day": 6},
- "taxPeriodEnd": {"year": 2015, "month": 3, "day": 31},
+"taxPeriodStart": {"year": 2015, "month": 4, "day": 6},
+ "taxPeriodEnd": {"year": 2015, "month": 4, "day": 31},
  "amounts":{"definedBenefit":3000,"moneyPurchase":11000,"income":0,"triggered":false}
 },
 {
-"taxPeriodStart": {"year": 2015, "month": 4, "day": 1},
- "taxPeriodEnd": {"year": 2015, "month": 6, "day": 8},
+"taxPeriodStart": {"year": 2015, "month": 5, "day": 1},
+ "taxPeriodEnd": {"year": 2015, "month": 7, "day": 8},
  "amounts":{"definedBenefit":0,"moneyPurchase":13450,"income":0,"triggered":true}
 },
 {
-"taxPeriodStart": {"year": 2015, "month": 6, "day": 9},
- "taxPeriodEnd": {"year": 2016, "month": 3, "day": 5},
+"taxPeriodStart": {"year": 2015, "month": 7, "day": 9},
+ "taxPeriodEnd": {"year": 2016, "month": 4, "day": 5},
  "amounts":{"definedBenefit":0,"moneyPurchase":12000,"income":0,"triggered":true}
 }
 ]
@@ -96,12 +96,11 @@ of the format where amounts are in pence:
 ### CURL Example
 
 ```
-curl -H "Content-Type: application/json" -d '[{"taxPeriodStart":{"year":2014,"month":3,"day":6},"taxPeriodEnd":{"year":2015,"month":3,"day":5}, "amounts":{"definedBenefit":3000,"moneyPurchase":0}},{"taxPeriodStart":{"year":2013,"month":3,"day":6},"taxPeriodEnd":{"year":2014,"month":3,"day":5}, "amounts":{"definedBenefit":8000,"moneyPurchase":0}}]' -X POST -vvvv http://127.0.0.1:9443/paac/calculate
+curl -H "Content-Type: application/json" -d '[{"taxPeriodStart":{"year":2014,"month":4,"day":6},"taxPeriodEnd":{"year":2015,"month":4,"day":5}, "amounts":{"definedBenefit":3000,"moneyPurchase":0}},{"taxPeriodStart":{"year":2013,"month":4,"day":6},"taxPeriodEnd":{"year":2014,"month":4,"day":5}, "amounts":{"definedBenefit":8000,"moneyPurchase":0}}]' -X POST -vvvv http://127.0.0.1:9443/paac/calculate
 ```
 
 ### Peculiarities
-The only peculiarity in this data format is that the month is 0 based with 0 being January, 1 being Feburary and so on
-to match Java's [GregorianCalendar](https://docs.oracle.com/javase/7/docs/api/index.html?java/util/GregorianCalendar.html) class.
+*Month is now no longer zero based!*
 
 Please note that 2015 pension input period is unique in that it comprises of two periods (pre and post alignment). They are specified by
 using the correct start end dates in the input JSON e.g.
@@ -109,13 +108,13 @@ using the correct start end dates in the input JSON e.g.
 ```
 [
 { /* 2015 Period 1 */
-"taxPeriodStart": {"year": 2015, "month": 3, "day": 6},
- "taxPeriodEnd": {"year": 2015, "month": 6, "day": 8},
+"taxPeriodStart": {"year": 2015, "month": 4, "day": 6},
+ "taxPeriodEnd": {"year": 2015, "month": 7, "day": 8},
  "amounts":{"definedBenefit":3000,"moneyPurchase":0}
 },
 { /* 2015 Period 2 */
-"taxPeriodStart": {"year": 2015, "month": 6, "day": 9},
- "taxPeriodEnd": {"year": 2016, "month": 3, "day": 5},
+"taxPeriodStart": {"year": 2015, "month": 7, "day": 9},
+ "taxPeriodEnd": {"year": 2016, "month": 4, "day": 5},
  "amounts":{"definedBenefit":12000,"moneyPurchase":0}
 }
 ]
@@ -142,3 +141,8 @@ directory.
 
 Run using `sbt it:test`
 
+## Unit Testing
+
+Run using `sbt test`
+
+Calculation tests are driven by text files containing a table of input and expected output values. If you find a new test case simply create a new file in the one of the `group1`, `group2`, or `group3` folders under `test\assets\calculators` with the appropriate format and it will be executed on the next `sbt test` run.

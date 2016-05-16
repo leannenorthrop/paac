@@ -61,8 +61,9 @@ case class BasicCalculator(annualAllowanceInPounds: Long) extends calculators.Ca
         0
       } else {
         val allowances = List(calc.annualAllowance) ++ previousPeriods.map(_.summaryResult).slice(0,2).map(_.unusedAllowance)
-        val oldestYearAvailableAllowance = previousPeriods.map(_.summaryResult).slice(0,3).headOption.getOrElse(SummaryResult()).unusedAllowance
+        val oldestYearAvailableAllowance = previousPeriods.map(_.summaryResult).slice(0,3).reverse.headOption.getOrElse(SummaryResult()).unusedAllowance
         val pair = if (calc.exceedingAllowance > oldestYearAvailableAllowance) {
+          println("!")
           allowances.foldLeft((calc.exceedingAllowance,0L)) {
             (pair,allowance)=>
             val ex = (pair._1 - allowance).max(0L)
@@ -70,6 +71,7 @@ case class BasicCalculator(annualAllowanceInPounds: Long) extends calculators.Ca
             (ex,al)
           }
         } else{
+          println("@")
           allowances.foldLeft((calc.exceedingAllowance,0L)) {
             (pair,allowance)=>
             val ex = (pair._1 - allowance).max(0L)
