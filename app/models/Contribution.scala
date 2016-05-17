@@ -44,11 +44,6 @@ case class PensionPeriod(year: Int, month: Int, day: Int) {
                                     year > that.year || (year == that.year && month > that.month) || (year == that.year && month == that.month && day > that.day) 
   def <=(that: PensionPeriod): Boolean = if (year == that.year && month == that.month && day == that.day) true else this < that
   def >=(that: PensionPeriod): Boolean = if (year == that.year && month == that.month && day == that.day) true else this > that
-  def roll(amount:Int): PensionPeriod = {
-    val calendar = new java.util.GregorianCalendar(year, month, day)
-    calendar.add(java.util.Calendar.DAY_OF_MONTH, amount)
-    PensionPeriod(calendar.get(java.util.Calendar.YEAR), calendar.get(java.util.Calendar.MONTH), calendar.get(java.util.Calendar.DAY_OF_MONTH))
-  }
 }
 
 case class Contribution(taxPeriodStart: PensionPeriod, taxPeriodEnd: PensionPeriod, amounts: Option[InputAmounts]) extends CalculationParam {

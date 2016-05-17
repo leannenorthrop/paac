@@ -22,13 +22,13 @@ import org.scalatest._
 import org.scalatest.prop._
 import calculators.results.BasicCalculator
 
-class Group1P1CalculatorSpec extends UnitSpec {
+class Group1P2CalculatorSpec extends UnitSpec {
   trait TestFixture {
-    val annualAllowance = 50000
+    val annualAllowance = 50000L
     implicit val amountsCalculator = BasicCalculator(annualAllowance)
   }
 
-  "Group1P1Calculator" should {
+  "Group1P2Calculator" should {
     "use basic calculator" in new TestFixture {
       // set up
       implicit val previousPeriods = List[TaxYearResults]()
@@ -36,10 +36,8 @@ class Group1P1CalculatorSpec extends UnitSpec {
       val expectedBasicSummary = amountsCalculator.summary.get
 
       // check
-      Group1P1Calculator().chargableAmount shouldBe expectedBasicSummary.chargableAmount 
-      Group1P1Calculator().exceedingAllowance shouldBe expectedBasicSummary.exceedingAAAmount
-      Group1P1Calculator().annualAllowance shouldBe expectedBasicSummary.availableAllowance
-      Group1P1Calculator().unusedAllowance shouldBe 4000000L
+      Group1P2Calculator().annualAllowance shouldBe annualAllowance * 100L
+      Group1P2Calculator().definedBenefit shouldBe amountsCalculator.definedBenefit
     }
   }
 }

@@ -34,7 +34,6 @@ case class Group3P2Calculator(implicit amountsCalculator: BasicCalculator,
     if (isPeriod1Triggered) {
       val allowances = (preTriggerFields.get.unusedAAA + period1.availableAAWithCCF)
       if (definedBenefit < allowances) {
-        //(allowances - me.definedBenefit).max(0)
         0L
       } else {
         (definedBenefit - allowances).max(0)
@@ -154,9 +153,13 @@ case class Group3P2Calculator(implicit amountsCalculator: BasicCalculator,
       }.getOrElse(0L)
       val unused = unusedAllowance
       if (unused == 0L) {
-        0L//group2P2Calculator.aaCCF
+        0L
       } else if (unused > 0) {
-        (unusedAllowance + previous2YearsUnusedAllowance)
+        if (definedBenefit == 0) {
+          unusedAllowance
+        } else {
+          (unusedAllowance + previous2YearsUnusedAllowance)
+        }
       } else {
         (previous3YearsUnusedAllowance - preTriggerSavings).max(0)
       }
