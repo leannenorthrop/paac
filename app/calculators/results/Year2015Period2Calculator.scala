@@ -16,7 +16,6 @@
 
 package calculators.results
 
-import config.PaacConfiguration
 import models._
 import calculators.periods._ 
 
