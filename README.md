@@ -38,13 +38,18 @@ of the format where amounts are in pence:
 ]
 ```
 
-## Trigger in Period 1 (Group 2)
+## Trigger in Period 1
 ```
 [
 {
 "taxPeriodStart": {"year": 2015, "month": 4, "day": 6},
+ "taxPeriodEnd": {"year": 2015, "month": 6, "day": 30},
+ "amounts":{"definedBenefit":3000,"moneyPurchase":0,"income":0,"triggered":false}
+},
+{
+"taxPeriodStart": {"year": 2015, "month": 7, "day": 1},
  "taxPeriodEnd": {"year": 2015, "month": 7, "day": 8},
- "amounts":{"definedBenefit":3000,"moneyPurchase":11000,"income":0,"triggered":true}
+ "amounts":{"definedBenefit":0,"moneyPurchase":11000,"income":0,"triggered":true}
 },
 {
 "taxPeriodStart": {"year": 2015, "month": 7, "day": 9},
@@ -54,7 +59,7 @@ of the format where amounts are in pence:
 ]
 ```
 
-## Trigger in Period 2 (Group 2)
+## Trigger in Period 2
 ```
 [
 {
@@ -64,34 +69,16 @@ of the format where amounts are in pence:
 },
 {
 "taxPeriodStart": {"year": 2015, "month": 7, "day": 9},
+ "taxPeriodEnd": {"year": 2016, "month": 10, "day": 31},
+ "amounts":{"definedBenefit":6000,"moneyPurchase":6000,"income":0,"triggered":false}
+},
+{
+"taxPeriodStart": {"year": 2015, "month": 11, "day": 1},
  "taxPeriodEnd": {"year": 2016, "month": 4, "day": 5},
  "amounts":{"definedBenefit":0,"moneyPurchase":12000,"income":0,"triggered":true}
 }
 ]
 ```
-
-## Trigger part-way through in Period 1 (Group 2)
-
-```
-[
-{
-"taxPeriodStart": {"year": 2015, "month": 4, "day": 6},
- "taxPeriodEnd": {"year": 2015, "month": 4, "day": 31},
- "amounts":{"definedBenefit":3000,"moneyPurchase":11000,"income":0,"triggered":false}
-},
-{
-"taxPeriodStart": {"year": 2015, "month": 5, "day": 1},
- "taxPeriodEnd": {"year": 2015, "month": 7, "day": 8},
- "amounts":{"definedBenefit":0,"moneyPurchase":13450,"income":0,"triggered":true}
-},
-{
-"taxPeriodStart": {"year": 2015, "month": 7, "day": 9},
- "taxPeriodEnd": {"year": 2016, "month": 4, "day": 5},
- "amounts":{"definedBenefit":0,"moneyPurchase":12000,"income":0,"triggered":true}
-}
-]
-```
-
 
 ### CURL Example
 
