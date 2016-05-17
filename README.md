@@ -43,8 +43,13 @@ of the format where amounts are in pence:
 [
 {
 "taxPeriodStart": {"year": 2015, "month": 4, "day": 6},
+ "taxPeriodEnd": {"year": 2015, "month": 6, "day": 30},
+ "amounts":{"definedBenefit":3000,"moneyPurchase":0,"income":0,"triggered":false}
+},
+{
+"taxPeriodStart": {"year": 2015, "month": 7, "day": 1},
  "taxPeriodEnd": {"year": 2015, "month": 7, "day": 8},
- "amounts":{"definedBenefit":3000,"moneyPurchase":11000,"income":0,"triggered":true}
+ "amounts":{"definedBenefit":0,"moneyPurchase":11000,"income":0,"triggered":true}
 },
 {
 "taxPeriodStart": {"year": 2015, "month": 7, "day": 9},
