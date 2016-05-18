@@ -55,7 +55,8 @@ case class BasicCalculator(annualAllowanceInPounds: Long) extends calculators.Ca
       // Prior to 2011 nothing was liable for tax charge and carry forwards are allowed
       //println("*** " + actualUnused.slice(0,3).mkString(","))
       val unusedAllowanceList = actualUnused.slice(0,3).map(_._2)
-      unusedAllowanceList.foldLeft(0L)(_+_)
+      val aacf = unusedAllowanceList.foldLeft(0L)(_+_)
+      aacf
     } else {
       val execeeding = calc.exceedingAllowance
       if (execeeding > 0) {
@@ -93,8 +94,7 @@ case class BasicCalculator(annualAllowanceInPounds: Long) extends calculators.Ca
     def useAllowances(execeeding: Long, thisYear: Int, thisYearAllowance: Long, lst: List[FlatValues]): List[(Int,Long)] = {
       val previousYearsAllowances = lst.slice(0,3).map((t)=>(t._1,t._5))
       val allowances = (thisYear, thisYearAllowance) :: previousYearsAllowances
-      //println(" - " + allowances.mkString(","))
-      val l = allowances.reverse.foldLeft((execeeding+thisYearAllowance,List[(Int,Long)]())) {
+      val l = List((thisYear, 0L)) ++ allowances.reverse.foldLeft((execeeding,List[(Int,Long)]())) {
         (pair,allowanceTuple)=>
         val currentExceeding = pair._1
         if (currentExceeding <= 0) {
@@ -102,13 +102,17 @@ case class BasicCalculator(annualAllowanceInPounds: Long) extends calculators.Ca
         } else {
           val ex = currentExceeding - allowanceTuple._2
           if (ex < 0) {
-            (ex, (allowanceTuple._1,ex.abs) :: pair._2)
+            if (allowanceTuple._1 < 2011) {
+              (ex, (allowanceTuple._1,allowanceTuple._2) :: pair._2)
+            } else{
+              (ex, (allowanceTuple._1,ex.abs) :: pair._2)
+            }
           } else {
             (ex, (allowanceTuple._1,0L) :: pair._2)
           }
         }
-      }._2
-      //println(" * " + thisYear + " " + l.mkString(","))
+      }._2.drop(1)
+
       l
     }
     def calculate(values:List[FlatValues]): List[FlatValues] = {

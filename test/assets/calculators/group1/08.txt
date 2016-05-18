@@ -1,0 +1,8 @@
+return correct allowances and carry forward values for 2013/14 (With 59K PIA) and Previous-Three Years
+year   | Defined Benefit | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward
+2008   | 0                | 0                   | -1               | 50000                      | 50000        | 50000
+2009   | 0                | 0                   | -1               | 100000                     | 50000        | 100000
+2010   | 0                | 0                   | -1               | 150000                     | 50000        | 150000
+2011   | 0                | 0                   | 0                | 200000                     | 50000        | 150000
+2012   | 0                | 0                   | 0                | 200000                     | 50000        | 150000
+2013   | 59000            | 9000                | 0                | 200000                     | 0            | 100000

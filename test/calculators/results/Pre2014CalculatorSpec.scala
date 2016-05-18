@@ -72,63 +72,6 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
         results(4) shouldBe ((2008, 1000000L))
       }
 
-      "return list of tuples containing unused allowance when some defined benefit is less than allowance" in {
-        // set up
-        val tr1 = TaxYearResults(Contribution(2008, 0L), SummaryResult(unusedAllowance=5000000L,availableAllowance=5000000L,exceedingAAAmount=0L))
-        val tr2 = TaxYearResults(Contribution(2009, 0L), SummaryResult(unusedAllowance=5000000L,availableAllowance=5000000L,exceedingAAAmount=0L))
-        val tr3 = TaxYearResults(Contribution(2010, 0L), SummaryResult(unusedAllowance=5000000L,availableAllowance=5000000L,exceedingAAAmount=0L))
-        val tr4 = TaxYearResults(Contribution(2011, 19000000L), SummaryResult(unusedAllowance=0L,availableAllowance=5000000L,exceedingAAAmount=14000000L))
-        val tr5 = TaxYearResults(Contribution(2012, 0L), SummaryResult(unusedAllowance=5000000L,availableAllowance=5000000L,exceedingAAAmount=0L))
-        val tr6 = TaxYearResults(Contribution(2013, 0L), SummaryResult(unusedAllowance=5000000L,availableAllowance=5000000L,exceedingAAAmount=0L))
-        val tr7 = TaxYearResults(Contribution(2014, 0L), SummaryResult(unusedAllowance=4000000L,availableAllowance=4000000L,exceedingAAAmount=0L))
-        val previous = Seq(tr7, tr6, tr5, tr4, tr3, tr2, tr1)
-        val contribution = Contribution(2015, 0L)
-        val calculator = calculators.results.BasicCalculator(40000L)
-
-        // test
-        val results = calculator.actualUnused(previous, contribution)
-
-        // check
-        info(results.mkString(", "))
-        results.length shouldBe 8
-        results(0) shouldBe ((2015, 4000000L))
-        results(1) shouldBe ((2014, 4000000L))
-        results(2) shouldBe ((2013, 5000000L))
-        results(3) shouldBe ((2012, 5000000L))
-        results(4) shouldBe ((2011, 1000000L))
-        results(5) shouldBe ((2010, 0L))
-        results(6) shouldBe ((2009, 0L))
-        results(7) shouldBe ((2008, 0L))
-      }
-
-      "return list of tuples containing unused allowance when 2 defined benefits are more than allowance" in {
-        // set up
-        val tr1 = TaxYearResults(Contribution(2008, 0L), SummaryResult(unusedAllowance=5000000L,availableAllowance=5000000L,exceedingAAAmount=0L))
-        val tr2 = TaxYearResults(Contribution(2009, 0L), SummaryResult(unusedAllowance=5000000L,availableAllowance=5000000L,exceedingAAAmount=0L))
-        val tr3 = TaxYearResults(Contribution(2010, 0L), SummaryResult(unusedAllowance=5000000L,availableAllowance=5000000L,exceedingAAAmount=0L))
-        val tr4 = TaxYearResults(Contribution(2011, 19000000L), SummaryResult(unusedAllowance=0L,availableAllowance=5000000L,exceedingAAAmount=14000000L))
-        val tr5 = TaxYearResults(Contribution(2012, 0L), SummaryResult(unusedAllowance=5000000L,availableAllowance=5000000L,exceedingAAAmount=0L))
-        val tr6 = TaxYearResults(Contribution(2013, 0L), SummaryResult(unusedAllowance=5000000L,availableAllowance=5000000L,exceedingAAAmount=0L))
-        val tr7 = TaxYearResults(Contribution(2014, 19000000L), SummaryResult(unusedAllowance=0L,availableAllowance=4000000L,exceedingAAAmount=15000000L))
-        val previous = Seq(tr7, tr6, tr5, tr4, tr3, tr2, tr1)
-        val contribution = Contribution(2015, 0L)
-        val calculator = calculators.results.BasicCalculator(40000L)
-
-        // test
-        val results = calculator.actualUnused(previous, contribution)
-
-        // check
-        info(results.mkString(", "))
-        results.length shouldBe 8
-        results(0) shouldBe ((2015, 4000000L))
-        results(1) shouldBe ((2014, 0L))
-        results(2) shouldBe ((2013, 0L))
-        results(3) shouldBe ((2012, 0L))
-        results(4) shouldBe ((2011, 0L))
-        results(5) shouldBe ((2010, 0L))
-        results(6) shouldBe ((2009, 0L))
-        results(7) shouldBe ((2008, 0L))
-      }
     }
 
     "annualAllowanceCCF" should {
