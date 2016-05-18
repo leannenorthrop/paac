@@ -16,7 +16,6 @@
 
 package calculators.results
 
-import config.PaacConfiguration
 import models._
 
 object Pre2014Calculator extends BasicAllowanceCalculator with calculators.AllowanceCalculator {

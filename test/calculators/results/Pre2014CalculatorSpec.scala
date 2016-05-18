@@ -48,6 +48,64 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
       val calculator = calculators.results.BasicCalculator(100)
       calculator.definedContribution(Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, None)) shouldBe 0L
     }
+
+    "actualUnused" should {
+      "return list of tuples containing unused allowance when all defined benefit is less than allowance" in {
+        // set up
+        val tr1 = TaxYearResults(Contribution(2008, 4000000L), SummaryResult(unusedAllowance=1000000L,availableAllowance=5000000L))
+        val tr2 = TaxYearResults(Contribution(2009, 3000000L), SummaryResult(unusedAllowance=2000000L,availableAllowance=5000000L))
+        val tr3 = TaxYearResults(Contribution(2010, 2000000L), SummaryResult(unusedAllowance=3000000L,availableAllowance=5000000L))
+        val tr4 = TaxYearResults(Contribution(2011, 1000000L), SummaryResult(unusedAllowance=4000000L,availableAllowance=5000000L))
+        val previous = Seq(tr4, tr3, tr2, tr1)
+        val contribution = Contribution(2012, 5000000L)
+        val calculator = calculators.results.BasicCalculator(50000L)
+
+        // test
+        val results = calculator.actualUnused(previous, contribution)
+
+        // check
+        results.length shouldBe 5
+        results(0) shouldBe ((2012, 0L))
+        results(1) shouldBe ((2011, 4000000L))
+        results(2) shouldBe ((2010, 3000000L))
+        results(3) shouldBe ((2009, 2000000L))
+        results(4) shouldBe ((2008, 1000000L))
+      }
+
+    }
+
+    "annualAllowanceCCF" should {
+      "return correct 2010 annual allowance cumulative carry forward values when contributions are zero" in {
+        // setup
+        val tr1 = TaxYearResults(Contribution(2008, 0L), SummaryResult(unusedAllowance=5000000L,availableAllowance=5000000L,exceedingAAAmount=0L))
+        val tr2 = TaxYearResults(Contribution(2009, 0L), SummaryResult(unusedAllowance=5000000L,availableAllowance=5000000L,exceedingAAAmount=0L))
+        val previous = Seq(tr1, tr2)
+        val contribution = Contribution(2010, 0L)
+        val calculator = calculators.results.BasicCalculator(50000L)
+
+        // test
+        val results = calculator.annualAllowanceCCF(previous, contribution)
+
+        // check
+        results shouldBe 15000000L
+      }
+
+      "return correct 2011 annual allowance cumulative carry forward values when contributions are zero" in {
+        // setup
+        val tr1 = TaxYearResults(Contribution(2008, 0L), SummaryResult(unusedAllowance=5000000L,availableAllowance=5000000L,exceedingAAAmount=0L))
+        val tr2 = TaxYearResults(Contribution(2009, 0L), SummaryResult(unusedAllowance=5000000L,availableAllowance=5000000L,exceedingAAAmount=0L))
+        val tr3 = TaxYearResults(Contribution(2010, 0L), SummaryResult(unusedAllowance=5000000L,availableAllowance=5000000L,exceedingAAAmount=0L))
+        val previous = Seq(tr1, tr2)
+        val contribution = Contribution(2011, 0L)
+        val calculator = calculators.results.BasicCalculator(50000L)
+
+        // test
+        val results = calculator.annualAllowanceCCF(previous, contribution)
+
+        // check
+        results shouldBe 15000000L
+      }
+    }
   }
 
   "Pre2014Calculator" should {
@@ -273,7 +331,9 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
                                    unusedAllowance = 4500000,
                                    availableAAWithCF = 5000000,
                                    availableAAWithCCF = 4500000)
-      val result = Pre2014Calculator.summary(Seq[TaxYearResults](TaxYearResults(Contribution(PensionPeriod.EARLIEST_YEAR_SUPPORTED,0),starting)), contribution1).get
+      val previous = Seq[TaxYearResults](TaxYearResults(Contribution(PensionPeriod.EARLIEST_YEAR_SUPPORTED,500000L),starting))
+      val result = Pre2014Calculator.summary(previous, contribution1).get
+      info(BasicCalculator(50000L).actualUnused(previous, contribution1).mkString(","))
 
       // check it
       result.chargableAmount shouldBe -1
