@@ -51,14 +51,13 @@ case class BasicCalculator(annualAllowanceInPounds: Long) extends calculators.Ca
 
   // cumulative carry forwards is 2 previous years plus current year's annual allowance - used allowance
   def annualAllowanceCCF(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Long = {
+    val execeeding = calc.exceedingAllowance
     if (contribution.taxPeriodStart.year < 2011) {
       // Prior to 2011 nothing was liable for tax charge and carry forwards are allowed
-      //println("*** " + actualUnused.slice(0,3).mkString(","))
       val unusedAllowanceList = actualUnused.slice(0,3).map(_._2)
       val aacf = unusedAllowanceList.foldLeft(0L)(_+_)
       aacf
     } else {
-      val execeeding = calc.exceedingAllowance
       if (execeeding > 0) {
         val previousResults = previousPeriods.map(_.summaryResult).headOption.getOrElse(SummaryResult())
         if (execeeding >= previousResults.availableAAWithCCF){
@@ -80,57 +79,64 @@ case class BasicCalculator(annualAllowanceInPounds: Long) extends calculators.Ca
     }
   }
 
-  def actualUnused(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): List[(Int,Long)] = {
-    type FlatValues = (Int, Long, Long, Long, Long)
-    def extractFlatValues(): List[FlatValues] = {
-      (List((contribution.taxPeriodStart.year, definedBenefit, annualAllowance, exceedingAllowance, unusedAllowance)) ++ 
-      previousPeriods.map {
-        (result) =>
-        val amounts = result.input.amounts.getOrElse(InputAmounts())
-        val summary = result.summaryResult
-        (result.input.taxPeriodStart.year, amounts.definedBenefit.getOrElse(0L), summary.availableAllowance, summary.exceedingAAAmount, summary.unusedAllowance)
-      }.toList).reverse
-    }
-    def useAllowances(execeeding: Long, thisYear: Int, thisYearAllowance: Long, lst: List[FlatValues]): List[(Int,Long)] = {
-      val previousYearsAllowances = lst.slice(0,3).map((t)=>(t._1,t._5))
-      val allowances = (thisYear, thisYearAllowance) :: previousYearsAllowances
-      val l = List((thisYear, 0L)) ++ allowances.reverse.foldLeft((execeeding,List[(Int,Long)]())) {
-        (pair,allowanceTuple)=>
-        val currentExceeding = pair._1
-        if (currentExceeding <= 0) {
-          (0, allowanceTuple :: pair._2)
-        } else {
-          val ex = currentExceeding - allowanceTuple._2
-          if (ex < 0) {
-            if (allowanceTuple._1 < 2011) {
-              (ex, (allowanceTuple._1,allowanceTuple._2) :: pair._2)
-            } else{
-              (ex, (allowanceTuple._1,ex.abs) :: pair._2)
-            }
-          } else {
-            (ex, (allowanceTuple._1,0L) :: pair._2)
-          }
-        }
-      }._2.drop(1)
+  type FlatValues = (Int, Long, Long, Long, Long)
+  def extractFlatValues(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): List[FlatValues] = {
+    (List((contribution.taxPeriodStart.year, definedBenefit, annualAllowance, exceedingAllowance, unusedAllowance)) ++ 
+    previousPeriods.map {
+      (result) =>
+      val amounts = result.input.amounts.getOrElse(InputAmounts())
+      val summary = result.summaryResult
+      (result.input.taxPeriodStart.year, amounts.definedBenefit.getOrElse(0L), summary.availableAllowance, summary.exceedingAAAmount, summary.unusedAllowance)
+    }.toList).reverse
+  }
 
-      l
-    }
-    def calculate(values:List[FlatValues]): List[FlatValues] = {
-      values.foldLeft(List[FlatValues]()) {
-        (lst,tuple)=>
-        val execeeding = tuple._4
-        if (execeeding <= 0) {
-          tuple :: lst
+  def useAllowances(execeeding: Long, thisYear: Int, thisYearAllowance: Long, thisYearUnused: Long, lst: List[FlatValues]): List[(Int,Long)] = {
+    val previousYearsAllowances = lst.slice(0,3).map((t)=>(t._1,t._5))
+    val allowances = (thisYear, thisYearAllowance) :: previousYearsAllowances
+    var i = 0
+    val l = allowances.reverse.foldLeft((execeeding,List[(Int,Long)]())) {
+      (pair,allowanceTuple)=>
+      i = i + 1
+      val currentExceeding = pair._1
+      if (allowanceTuple._1 == thisYear) {
+        (0, (allowanceTuple._1, thisYearUnused) :: pair._2)
+      } else if (currentExceeding <= 0) {
+        (0, allowanceTuple :: pair._2)
+      } else {
+        val ex = currentExceeding - allowanceTuple._2
+        if (ex < 0) {
+          if (thisYear < 2011 && allowanceTuple._1 < 2011) {
+            (ex, (allowanceTuple._1,allowanceTuple._2) :: pair._2)
+          } else {
+            (ex, (allowanceTuple._1,ex.abs) :: pair._2)
+          }
         } else {
-          val newUnusedAllowances = useAllowances(execeeding, tuple._1, tuple._3, lst)
-          val (before,after) = (tuple :: lst).splitAt(4)
-          val newBefore = newUnusedAllowances.zip(before).map((t)=>(t._2._1, t._2._2, t._2._3, t._2._4, t._1._2))
-          newBefore ++ after
+          (ex, (allowanceTuple._1,0L) :: pair._2)
         }
       }
-    }
-    calculate(extractFlatValues()).map((tuple)=>(tuple._1, tuple._5))
+    }._2
+    l
   }
+
+  def calculate(values:List[FlatValues]): List[FlatValues] = {
+    values.foldLeft(List[FlatValues]()) {
+      (lst,tuple)=>
+      val execeeding = tuple._4
+      if (execeeding < 0) {
+        tuple :: lst
+      } else {
+        val newUnusedAllowances = useAllowances(execeeding, tuple._1, tuple._3, tuple._5, lst)
+        val (before,after) = (tuple :: lst).splitAt(4)
+        val newBefore = newUnusedAllowances.zip(before).map((t)=>(t._2._1, t._2._2, t._2._3, t._2._4, t._1._2))
+        newBefore ++ after
+      }
+    }
+  }
+
+  def actualUnused(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): List[(Int,Long)] = {
+    //println(calculate(extractFlatValues()))
+    calculate(extractFlatValues).map((tuple)=>(tuple._1, tuple._5))
+  }  
 
   def summary(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Option[Summary] = {
     contribution.amounts.map {
