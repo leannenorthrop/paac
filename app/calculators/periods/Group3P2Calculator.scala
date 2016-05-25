@@ -115,12 +115,14 @@ case class Group3P2Calculator(implicit amountsCalculator: BasicCalculator,
       val preTriggerSavings = amounts.moneyPurchase.getOrElse(0L) + amounts.definedBenefit.getOrElse(0L)
   
       val allowances = period1.unusedAllowance + previous3YearsUnusedAllowance
+
       val unusedAllowance = if (allowances < preTriggerSavings) {
         period1.unusedAAA - definedBenefit
       } else {
         val something = (definedContribution + definedBenefit) + amounts.moneyPurchase.getOrElse(0L)
+
         if (something > 4000000L) {
-          0L
+          period1.unusedAllowance
         } else {
           period1.unusedAllowance - definedBenefit
         }
@@ -147,12 +149,14 @@ case class Group3P2Calculator(implicit amountsCalculator: BasicCalculator,
 
   override def aaCCF(): Long = {
     if (isTriggered) {
-      val preTriggerSavings = previousPeriods.headOption.map {
-        (result) =>
-        result.input.amounts.map((amounts)=>amounts.definedBenefit.getOrElse(0L)+amounts.moneyPurchase.getOrElse(0L)).getOrElse(0L)
+      val preTriggerSavings = preTriggerAmounts.map {
+        (amounts) =>
+        amounts.definedBenefit.getOrElse(0L)+amounts.moneyPurchase.getOrElse(0L)
       }.getOrElse(0L)
+
       val unused = unusedAllowance
-      if (unused == 0L) {
+
+/*      if (unused == 0L) {
         0L
       } else if (unused > 0) {
         if (definedBenefit == 0) {
@@ -162,6 +166,20 @@ case class Group3P2Calculator(implicit amountsCalculator: BasicCalculator,
         }
       } else {
         (previous3YearsUnusedAllowance - preTriggerSavings).max(0)
+      }
+    }*/
+
+    if (unused > 0) {
+          (unusedAllowance + previous2YearsUnusedAllowance)
+      } else {
+        val x = 8000000 - preTriggerSavings
+        val y = if( x < 0)
+          (previous3YearsUnusedAllowance-previous2YearsUnusedAllowance) + x
+        else 0
+
+        if(y < 0)
+          (previous2YearsUnusedAllowance - y).max(0)
+        else previous2YearsUnusedAllowance
       }
     } else {
       group2P2Calculator.aaCCF
