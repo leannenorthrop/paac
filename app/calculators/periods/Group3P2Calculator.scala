@@ -122,7 +122,8 @@ case class Group3P2Calculator(implicit amountsCalculator: BasicCalculator,
         val something = (definedContribution + definedBenefit) + amounts.moneyPurchase.getOrElse(0L)
 
         if (something > 4000000L) {
-          period1.unusedAllowance
+          //period1.unusedAllowance
+          0L
         } else {
           period1.unusedAllowance - definedBenefit
         }
@@ -156,7 +157,7 @@ case class Group3P2Calculator(implicit amountsCalculator: BasicCalculator,
 
       val unused = unusedAllowance
 
-/*      if (unused == 0L) {
+      if (unused == 0L) {
         0L
       } else if (unused > 0) {
         if (definedBenefit == 0) {
@@ -166,20 +167,6 @@ case class Group3P2Calculator(implicit amountsCalculator: BasicCalculator,
         }
       } else {
         (previous3YearsUnusedAllowance - preTriggerSavings).max(0)
-      }
-    }*/
-
-    if (unused > 0) {
-          (unusedAllowance + previous2YearsUnusedAllowance)
-      } else {
-        val x = 8000000 - preTriggerSavings
-        val y = if( x < 0)
-          (previous3YearsUnusedAllowance-previous2YearsUnusedAllowance) + x
-        else 0
-
-        if(y < 0)
-          (previous2YearsUnusedAllowance - y).max(0)
-        else previous2YearsUnusedAllowance
       }
     } else {
       group2P2Calculator.aaCCF

@@ -37,23 +37,7 @@ case class Group1P2Calculator(implicit amountsCalculator: BasicCalculator,
 
   override def aaCCF(): Long = {
 
-    val unused = unusedAllowance
-
-    if (unused > 0) {
-      (unusedAllowance + previous2YearsUnusedAllowance)
-    } else {
-      val x = period1.unusedAllowance - definedBenefit
-      val y = if( x < 0)
-        (previous3YearsUnusedAllowance-previous2YearsUnusedAllowance) + x
-      else 0
-
-      if(y < 0)
-        (previous2YearsUnusedAllowance - y).max(0)
-      else previous2YearsUnusedAllowance
-    }
-
-
-/*    if (definedBenefit == 0) {
+    if (definedBenefit == 0) {
       val year2014 = pre2015Results.map(_.summaryResult).headOption.getOrElse(SummaryResult()).availableAAWithCCF
       val aaccf = previousResults.map(_.summaryResult.availableAAWithCCF).getOrElse(0L)
       if (year2014 == 0) {
@@ -68,7 +52,7 @@ case class Group1P2Calculator(implicit amountsCalculator: BasicCalculator,
       ((previous2YearsUnusedAllowance + period1.unusedAllowance) - definedBenefit).max(0)
     } else {
       (aaCF - definedBenefit).max(0)
-    }*/
+    }
   }
 
   override def chargableAmount(): Long = {
