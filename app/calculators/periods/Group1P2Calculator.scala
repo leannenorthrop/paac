@@ -36,23 +36,23 @@ case class Group1P2Calculator(implicit amountsCalculator: BasicCalculator,
   override def aaCF(): Long = previousResults.map(_.summaryResult.availableAAWithCCF).getOrElse(0L)
 
   override def aaCCF(): Long = {
+    val execeeding = exceedingAllowance
 
-    if (definedBenefit == 0) {
-      val year2014 = pre2015Results.map(_.summaryResult).headOption.getOrElse(SummaryResult()).availableAAWithCCF
-      val aaccf = previousResults.map(_.summaryResult.availableAAWithCCF).getOrElse(0L)
-      if (year2014 == 0) {
-        aaccf
+    if (execeeding > 0) {
+      val previousResults = previousPeriods.map(_.summaryResult).headOption.getOrElse(SummaryResult())
+
+      val period1AACCF = previousResults.availableAAWithCCF
+      if (execeeding >= period1AACCF) {
+        0L
       } else {
-        val oldestYearAvailableAllowance = previousPeriods.map(_.summaryResult).slice(0,4).reverse.headOption.getOrElse(SummaryResult()).unusedAllowance
-        (aaccf - oldestYearAvailableAllowance).max(0)
+        val unusedAllowanceList = actualUnused.slice(0, 3).map(_._2)
+        unusedAllowanceList.foldLeft(0L)(_ + _)
       }
-    } else if (definedBenefit > period1.unusedAllowance && previous.exceedingAAAmount == 0 && noCharge) {
-      previous2YearsUnusedAllowance 
-    } else if (definedBenefit < period1.unusedAllowance && previous.exceedingAAAmount == 0) {
-      ((previous2YearsUnusedAllowance + period1.unusedAllowance) - definedBenefit).max(0)
     } else {
-      (aaCF - definedBenefit).max(0)
+      val unusedAllowanceList = actualUnused.slice(0, 3).map(_._2)
+      unusedAllowanceList.foldLeft(0L)(_ + _)
     }
+
   }
 
   override def chargableAmount(): Long = {

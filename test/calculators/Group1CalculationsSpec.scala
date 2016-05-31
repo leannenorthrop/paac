@@ -39,7 +39,7 @@ class Group1CalculationsSpec extends FunSpec {
           val definedBenefit = table.split("\n").drop(2).toList.map(_.split('|').toList(1).trim.toLong)
           val inputs = Map(years.zip(definedBenefit): _*)
           val results = PensionAllowanceCalculator.calculateAllowances(Utilities.generateContributions(inputs))
-          if (true) info(Utilities.toString(results))
+          if (false) info(Utilities.toString(results))
           Utilities.assertResults(table, results, false)
         }
       }
