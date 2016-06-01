@@ -30,6 +30,8 @@ case class Group2P1Calculator(implicit amountsCalculator: BasicCalculator,
   val MAX_CF = 4000000L
   val group1Calculator = Group1P1Calculator()
 
+  def basicCalculator(): BasicCalculator = amountsCalculator
+  
   override def isMPAAApplicable(): Boolean = definedContribution > MPA
 
   override def definedBenefit(): Long = {

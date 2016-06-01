@@ -29,7 +29,9 @@ trait PeriodCalculator {
 
   def pre2015Results(implicit previousPeriods:Seq[TaxYearResults]) = previousPeriods.filter(isBefore2015)
 
-  def period1(implicit previousPeriods:Seq[TaxYearResults]) = previousPeriods.find(_.input.isPeriod1).map(_.summaryResult.asInstanceOf[ExtendedSummaryFields]).getOrElse(ExtendedSummaryFields())
+  def period1(implicit previousPeriods:Seq[TaxYearResults]) = previousPeriods.find(_.input.isPeriod1).map(_.summaryResult.asInstanceOf[ExtendedSummaryFields]).getOrElse(ExtendedSummaryFields())  
+
+  def isPeriod1(implicit previousPeriods:Seq[TaxYearResults]) = previousPeriods.find(_.input.isPeriod1).isDefined
 
   def previous(implicit previousPeriods:Seq[TaxYearResults]): Summary = previousResults.map(_.summaryResult).getOrElse(ExtendedSummaryFields())
 
@@ -47,9 +49,33 @@ trait PeriodCalculator {
     previousPeriods.find(_.input.amounts.getOrElse(InputAmounts()).triggered.getOrElse(false)) != None
   }
 
-  def previous3YearsUnusedAllowance()(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Long = pre2015Results.slice(0,3).foldLeft(0L)(_+_.summaryResult.unusedAllowance)
+  def basicCalculator(): calculators.results.BasicCalculator
 
-  def previous2YearsUnusedAllowance()(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Long = pre2015Results.slice(0,2).foldLeft(0L)(_+_.summaryResult.unusedAllowance)
+  def previous3YearsUnusedAllowance()(implicit previousPeriods:Seq[TaxYearResults], c: Contribution): Long = {
+    // we only want previous values so create dummy contribution which does not affect the calculation
+    val contribution = Contribution(c.taxPeriodStart, c.taxPeriodEnd, Some(InputAmounts(0L,0L)))
+
+    val l = if (!isPeriod1) {
+      basicCalculator().actualUnused(previousPeriods, contribution).drop(1).slice(0,3)
+    } else {
+      basicCalculator().actualUnused(previousPeriods.drop(1), contribution).drop(1).slice(0,3)
+    }
+    
+    l.foldLeft(0L)(_+_._2)
+  }
+
+  def previous2YearsUnusedAllowance()(implicit previousPeriods:Seq[TaxYearResults], c: Contribution): Long = {
+    // we only want previous values so create dummy contribution which does not affect the calculation
+    val contribution = Contribution(c.taxPeriodStart, c.taxPeriodEnd, Some(InputAmounts(0L,0L)))
+
+    val l = if (!isPeriod1) {
+      basicCalculator().actualUnused(previousPeriods.drop(1), contribution).drop(1).slice(0,2)
+    } else {
+      basicCalculator().actualUnused(previousPeriods.drop(1), contribution).drop(2).slice(0,2)
+    }
+    
+    l.foldLeft(0L)(_+_._2)
+  }
 
   def definedContribution(implicit contribution:Contribution): Long = contribution.amounts.getOrElse(InputAmounts()).moneyPurchase.getOrElse(0L)
   

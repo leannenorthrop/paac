@@ -26,6 +26,8 @@ case class Group3P2Calculator(implicit amountsCalculator: BasicCalculator,
   val MPA = 10000 * 100L
   val AAA = 30000 * 100L
 
+  def basicCalculator(): BasicCalculator = amountsCalculator
+
   override def isMPAAApplicable(): Boolean = definedContribution > MPA
 
   override def definedBenefit(): Long = contribution.amounts.map(_.definedBenefit.getOrElse(0L)).getOrElse(0L)

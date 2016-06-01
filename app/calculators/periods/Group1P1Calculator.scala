@@ -22,6 +22,8 @@ import calculators.results.BasicCalculator
 case class Group1P1Calculator(implicit amountsCalculator: BasicCalculator,
                                        previousPeriods:Seq[TaxYearResults], 
                                        contribution: Contribution) extends PeriodCalculator {
+  def basicCalculator(): BasicCalculator = amountsCalculator
+  
   override def chargableAmount(): Long = amountsCalculator.chargableAmount
 
   override def exceedingAllowance(): Long = amountsCalculator.exceedingAllowance
@@ -52,6 +54,5 @@ case class Group1P1Calculator(implicit amountsCalculator: BasicCalculator,
       val unusedAllowanceList = actualUnused.slice(0, 4).map(_._2)
       unusedAllowanceList.foldLeft(0L)(_ + _)
     }
-
   }
 }

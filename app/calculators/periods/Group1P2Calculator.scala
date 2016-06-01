@@ -22,7 +22,8 @@ import calculators.results.BasicCalculator
 case class Group1P2Calculator(implicit amountsCalculator: BasicCalculator, 
                                        previousPeriods:Seq[TaxYearResults], 
                                        contribution: Contribution) extends PeriodCalculator {
-
+  def basicCalculator(): BasicCalculator = amountsCalculator
+  
   def noCharge(): Boolean = previousPeriods.slice(0,3).exists(_.summaryResult.unusedAllowance == 0 && chargableAmount == 0)
 
   override def definedBenefit(): Long = amountsCalculator.definedBenefit

@@ -32,6 +32,7 @@ class PeriodCalculatorSpec extends UnitSpec {
       def unusedAllowance(): Long = 0L
       def aaCF(): Long = 0L
       def aaCCF(): Long = 0L
+      def basicCalculator(): calculators.results.BasicCalculator = calculators.results.BasicCalculator(5000000L)
     }
   }
 
