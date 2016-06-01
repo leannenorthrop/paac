@@ -100,7 +100,6 @@ trait PeriodCalculator {
             (result.input.taxPeriodStart.year, amounts.definedBenefit.getOrElse(0L), summary.availableAllowance, summary.exceedingAAAmount, summary.unusedAllowance)
           }
       }.toList).reverse
-
     list
   }
 
@@ -135,15 +134,12 @@ trait PeriodCalculator {
   }
 
   def calculate(values:List[FlatValues]): List[FlatValues] = {
-
+    val mostRecentYear = values.reverse.head._1
+    val isPrint = false
     values.foldLeft(List[FlatValues]()) {
       (lst,tuple)=>
-        val mostRecentYear = values.reverse.head._1
-        if (tuple._1 == 20151 && mostRecentYear == 20152) {
-          lst
-        } else {
+        val newLst = {
           val execeeding = tuple._4
-
           if (execeeding < 0) {
             if (tuple._1 == 20151 && mostRecentYear == 20152) {
               lst
@@ -151,16 +147,17 @@ trait PeriodCalculator {
               tuple :: lst
             }
           } else {
-            val newUnusedAllowances = if (tuple._1 == 20151 && mostRecentYear == 20152) {
+            val l = if (tuple._1 == 20152 && mostRecentYear == 20152) {
               useAllowances(execeeding, tuple._1, tuple._3, tuple._5, lst.drop(1))
             } else {
               useAllowances(execeeding, tuple._1, tuple._3, tuple._5, lst)
             }
             val (before,after) = (tuple :: lst).splitAt(4)
-            val newBefore = newUnusedAllowances.zip(before).map((t)=>(t._2._1, t._2._2, t._2._3, t._2._4, t._1._2))
-            newBefore ++ after
+            val newBefore = l.zip(before).map((t)=>(t._2._1, t._2._2, t._2._3, t._2._4, t._1._2))
+            (newBefore ++ after)
           }
         }
+        newLst
     }
   }
 
