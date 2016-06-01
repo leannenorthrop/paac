@@ -134,7 +134,6 @@ case class BasicCalculator(annualAllowanceInPounds: Long) extends calculators.Ca
   }
 
   def actualUnused(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): List[(Int,Long)] = {
-    //println(calculate(extractFlatValues()))
     calculate(extractFlatValues).map((tuple)=>(tuple._1, tuple._5))
   }  
 

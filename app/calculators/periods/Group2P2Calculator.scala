@@ -27,6 +27,8 @@ case class Group2P2Calculator(implicit amountsCalculator: BasicCalculator,
   val P1MPA = 20000 * 100L
   val AAA = 30000 * 100L
 
+  def basicCalculator(): BasicCalculator = amountsCalculator
+  
   def period1or2 = previous.asInstanceOf[ExtendedSummaryFields]
 
   override def isMPAAApplicable(): Boolean = definedContribution > MPA

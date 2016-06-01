@@ -22,6 +22,8 @@ import calculators.results.BasicCalculator
 case class Group1P1Calculator(implicit amountsCalculator: BasicCalculator,
                                        previousPeriods:Seq[TaxYearResults], 
                                        contribution: Contribution) extends PeriodCalculator {
+  def basicCalculator(): BasicCalculator = amountsCalculator
+  
   override def chargableAmount(): Long = amountsCalculator.chargableAmount
 
   override def exceedingAllowance(): Long = amountsCalculator.exceedingAllowance
@@ -35,11 +37,22 @@ case class Group1P1Calculator(implicit amountsCalculator: BasicCalculator,
   override def definedBenefit(): Long = amountsCalculator.definedBenefit
 
   override def aaCCF(): Long = {
-    val aaccf = previousResults.map(_.summaryResult.availableAAWithCCF).getOrElse(0L)
-    if (definedBenefit >= annualAllowance) {
-      (annualAllowance + aaccf - definedBenefit).max(0)
+    val execeeding = exceedingAllowance
+
+    if (execeeding > 0) {
+      val previousResults = previousPeriods.map(_.summaryResult).headOption.getOrElse(SummaryResult())
+      val prePeriod1AACCF = previousResults.availableAAWithCCF
+
+      if (execeeding >= prePeriod1AACCF) {
+        0L
+      } else {
+        val unusedAllowanceList = actualUnused.slice(0, 4).map(_._2)
+        unusedAllowanceList.foldLeft(0L)(_ + _)
+      }
+
     } else {
-      (unusedAllowance + aaccf).max(0)
+      val unusedAllowanceList = actualUnused.slice(0, 4).map(_._2)
+      unusedAllowanceList.foldLeft(0L)(_ + _)
     }
   }
 }
