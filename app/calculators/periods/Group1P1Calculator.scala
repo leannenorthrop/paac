@@ -24,17 +24,17 @@ case class Group1P1Calculator(implicit amountsCalculator: BasicCalculator,
                                        contribution: Contribution) extends PeriodCalculator {
   def basicCalculator(): BasicCalculator = amountsCalculator
   
-  override def chargableAmount(): Long = amountsCalculator.chargableAmount
+  override def chargableAmount(): Long = basicCalculator().chargableAmount
 
-  override def exceedingAllowance(): Long = amountsCalculator.exceedingAllowance
+  override def exceedingAllowance(): Long = basicCalculator().exceedingAllowance
 
-  override def annualAllowance(): Long = amountsCalculator.annualAllowance
+  override def annualAllowance(): Long = basicCalculator().annualAllowance
 
-  override def unusedAllowance(): Long = amountsCalculator.unusedAllowance.min(4000000L)
+  override def unusedAllowance(): Long = basicCalculator().unusedAllowance.min(4000000L)
 
   override def aaCF(): Long = annualAllowance + previousResults.map(_.summaryResult.availableAAWithCCF).getOrElse(0L)
 
-  override def definedBenefit(): Long = amountsCalculator.definedBenefit
+  override def definedBenefit(): Long = basicCalculator().definedBenefit
 
   override def aaCCF(): Long = {
     val execeeding = exceedingAllowance

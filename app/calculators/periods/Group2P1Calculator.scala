@@ -50,7 +50,7 @@ case class Group2P1Calculator(implicit amountsCalculator: BasicCalculator,
 
   override def dbist(): Long = {
     if (isTriggered) {
-      val allowances = (preTriggerFields.get.unusedAAA + year2014CCF)
+      val allowances = (preTriggerFields.getOrElse(ExtendedSummaryFields()).unusedAAA + year2014CCF)
       if (definedBenefit < allowances) {
         0L
       } else {
@@ -78,12 +78,7 @@ case class Group2P1Calculator(implicit amountsCalculator: BasicCalculator,
       0L
     } else {
       if (isMPAAApplicable) {
-        val v = MPA - definedContribution
-        if (v > P2MPA) {
-          P2MPA
-        } else {
-          v
-        }
+        (MPA - definedContribution).max(0)
       } else {
         0L
       }
@@ -184,11 +179,7 @@ case class Group2P1Calculator(implicit amountsCalculator: BasicCalculator,
     if (!isTriggered) {
       group1Calculator.aaCF
     } else {
-      if (previousResults.getOrElse(TaxYearResults()).input.isPeriod1) {
-        previousResults.map(_.summaryResult.availableAAWithCF).getOrElse(0L)
-      } else {
-        annualAllowance + previousResults.map(_.summaryResult.availableAAWithCCF).getOrElse(0L)
-      }
+      previousResults.map(_.summaryResult.availableAAWithCF).getOrElse(0L)
     }
   }
 
@@ -196,28 +187,15 @@ case class Group2P1Calculator(implicit amountsCalculator: BasicCalculator,
     if (!isTriggered) {
       group1Calculator.aaCCF
     } else {
-      if (previousResults.getOrElse(TaxYearResults()).input.isPeriod1) {
-        val annualAllowance = AA
-        if (isMPAAApplicable) {
-          val amounts = preTriggerAmounts.getOrElse(InputAmounts())
-          val preSavings = amounts.definedBenefit.getOrElse(0L) + amounts.moneyPurchase.getOrElse(0L)
-          ((AAA + previous3YearsUnusedAllowance - preSavings).min(P2AAA)).max(0)
-        } else if (definedBenefit >= annualAllowance) {
-          (annualAllowance + previous3YearsUnusedAllowance - (definedBenefit+definedContribution)).max(0)
-        } else {
-          (unusedAllowance.min(MAX_CF) + previous3YearsUnusedAllowance).max(0)
-        }
+      val annualAllowance = AA
+      if (isMPAAApplicable) {
+        val amounts = preTriggerAmounts.getOrElse(InputAmounts())
+        val preSavings = amounts.definedBenefit.getOrElse(0L) + amounts.moneyPurchase.getOrElse(0L)
+        ((AAA + previous3YearsUnusedAllowance - preSavings).min(P2AAA)).max(0)
+      } else if (definedBenefit >= annualAllowance) {
+        (annualAllowance + previous3YearsUnusedAllowance - (definedBenefit+definedContribution)).max(0)
       } else {
-        val annualAllowance = AA
-        if (isMPAAApplicable) {
-          val amounts = preTriggerAmounts.getOrElse(InputAmounts())
-          val preSavings = amounts.definedBenefit.getOrElse(0L) + amounts.moneyPurchase.getOrElse(0L)
-          ((AAA + previous3YearsUnusedAllowance - preSavings).min(P2AAA)).max(0)
-        } else if (definedBenefit >= annualAllowance) {
-          (annualAllowance + previous3YearsUnusedAllowance - (definedBenefit+definedContribution)).max(0)
-        } else {
-          (unusedAllowance.min(MAX_CF) + previous3YearsUnusedAllowance).max(0)
-        }
+        (unusedAllowance.min(MAX_CF) + previous3YearsUnusedAllowance).max(0)
       }
     }
   }
@@ -246,16 +224,7 @@ case class Group2P1Calculator(implicit amountsCalculator: BasicCalculator,
     if (!isTriggered) {
       0L
     } else if (alternativeChargableAmount > defaultChargableAmount) {
-      if (definedBenefit > AAA) {
-        0L
-      } else {
-        val v = AAA - definedBenefit
-        if (v > P2AAA) {
-          P2AAA
-        } else {
-          AAA - definedBenefit
-        }
-      }
+      (AAA - definedBenefit).min(P2AAA)
     } else {
       0L
     }

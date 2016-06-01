@@ -39,5 +39,16 @@ class Group1P2CalculatorSpec extends UnitSpec {
       Group1P2Calculator().annualAllowance shouldBe annualAllowance * 100L
       Group1P2Calculator().definedBenefit shouldBe amountsCalculator.definedBenefit
     }
+
+    "aaCCF" should {
+      "when given no previous results (not realistic usage) it should return 0" in new TestFixture {
+        // set up
+        implicit val previousPeriods = List[TaxYearResults]()
+        implicit val contribution = Contribution(2015, 123L)
+
+        // check
+        Group1P2Calculator().aaCCF shouldBe 0L
+      }
+    }
   }
 }
