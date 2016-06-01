@@ -43,7 +43,17 @@ class Group3P2CalculatorSpec extends UnitSpec {
   }
 
   "defaultChargableAmount" should {
+    "return 0 when not triggered" in new TestFixture {
+      // set up
+      implicit val previousPeriods = List[TaxYearResults]()
+      implicit val contribution = Contribution(2015, 9100000L)
 
+      // test
+      val result = Group3P2Calculator().defaultChargableAmount
+
+      // check
+      result shouldBe 0L
+    }
   }
 
   "exceedingAllowance" should {
@@ -111,6 +121,73 @@ class Group3P2CalculatorSpec extends UnitSpec {
 
       // check
       result shouldBe 123L
+    }
+
+    "return 0 if triggered and no previous" in new TestFixture {
+      // set up
+      implicit val previousPeriods = List[TaxYearResults]()
+      implicit val contribution = Contribution(2015, 0).copy(amounts=Some(InputAmounts(moneyPurchase=Some(123L), triggered=Some(true))))
+
+      // test
+      val result = Group3P2Calculator().preFlexiSavings
+
+      // check
+      result shouldBe 0L
+    }
+
+    "return dc if triggered and no previous" in new TestFixture {
+      // set up
+      val c = Contribution(2015,0).copy(amounts=Some(InputAmounts(definedBenefit=None,moneyPurchase=Some(123L))))
+      implicit val previousPeriods = List[TaxYearResults](TaxYearResults(c, SummaryResult()))
+      implicit val contribution = Contribution(2015, 0).copy(amounts=Some(InputAmounts(triggered=Some(true))))
+
+      // test
+      val result = Group3P2Calculator().preFlexiSavings
+
+      // check
+      result shouldBe 123L
+    }
+  }
+
+  "unusedAAA" should {
+    "return 0 when not triggered" in new TestFixture {
+      // set up
+      implicit val previousPeriods = List[TaxYearResults]()
+      implicit val contribution = Contribution(2015, 0)
+
+      // test
+      val result = Group3P2Calculator().unusedAAA
+
+      // check
+      result shouldBe 0L
+    }
+  }
+
+  "aaCCF" should {
+    "return 0 when not triggered and no previous" in new TestFixture {
+      // set up
+      implicit val previousPeriods = List[TaxYearResults]()
+      implicit val contribution = Contribution(2015, 123)
+
+      // test
+      val result = Group3P2Calculator().aaCCF
+
+      // check
+      result shouldBe 0L
+    }
+  }
+
+  "aaCF" should {
+    "return 0 if no previous periods supplied" in new TestFixture {
+      // set up
+      implicit val previousPeriods = List[TaxYearResults]()
+      implicit val contribution = Contribution(2015, 123)
+
+      // test
+      val result = Group3P2Calculator().aaCF
+
+      // check
+      result shouldBe 0L
     }
   }
 }

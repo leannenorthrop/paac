@@ -28,6 +28,11 @@ case class Group3P2Calculator(implicit amountsCalculator: BasicCalculator,
 
   def basicCalculator(): BasicCalculator = amountsCalculator
 
+  def preTriggerSavings(): Long = {
+    val amounts = preTriggerAmounts.getOrElse(InputAmounts())
+    amounts.moneyPurchase.getOrElse(0L) + amounts.definedBenefit.getOrElse(0L)
+  }
+
   override def isMPAAApplicable(): Boolean = definedContribution > MPA
 
   override def definedBenefit(): Long = contribution.amounts.map(_.definedBenefit.getOrElse(0L)).getOrElse(0L)
@@ -41,11 +46,7 @@ case class Group3P2Calculator(implicit amountsCalculator: BasicCalculator,
         (definedBenefit - allowances).max(0)
       }
     } else {
-      val db = preTriggerAmounts.map {
-        (amounts) =>
-        amounts.definedBenefit.getOrElse(0L)+amounts.moneyPurchase.getOrElse(0L)
-      }.getOrElse(0L)
-      (db - period1.availableAAWithCCF).max(0)
+      (preTriggerSavings - period1.availableAAWithCCF).max(0)
     }
   }
 
@@ -92,10 +93,6 @@ case class Group3P2Calculator(implicit amountsCalculator: BasicCalculator,
           ((definedContribution + definedBenefit) - period1.availableAAWithCCF).max(0)
         }
       }.getOrElse {
-        val preTriggerSavings = preTriggerAmounts.map {
-          (amounts) =>
-          amounts.definedBenefit.getOrElse(0L)+amounts.moneyPurchase.getOrElse(0L)
-        }.getOrElse(0L)
         if (isMPAAApplicable) {
           ((preTriggerSavings + definedContribution + definedBenefit) - period1.availableAAWithCCF).max(0)
         } else {
@@ -113,14 +110,12 @@ case class Group3P2Calculator(implicit amountsCalculator: BasicCalculator,
 
   override def unusedAllowance(): Long = {
     if (isTriggered) {
-      val amounts = preTriggerAmounts.getOrElse(InputAmounts())
-      val preTriggerSavings = amounts.moneyPurchase.getOrElse(0L) + amounts.definedBenefit.getOrElse(0L)
-  
       val allowances = period1.unusedAllowance + previous3YearsUnusedAllowance
 
       val unusedAllowance = if (allowances < preTriggerSavings) {
         period1.unusedAAA - definedBenefit
       } else {
+        val amounts = preTriggerAmounts.getOrElse(InputAmounts())
         val something = (definedContribution + definedBenefit) + amounts.moneyPurchase.getOrElse(0L)
 
         if (something > 4000000L) {
@@ -152,23 +147,15 @@ case class Group3P2Calculator(implicit amountsCalculator: BasicCalculator,
 
   override def aaCCF(): Long = {
     if (isTriggered) {
-      val preTriggerSavings = preTriggerAmounts.map {
-        (amounts) =>
-        amounts.definedBenefit.getOrElse(0L)+amounts.moneyPurchase.getOrElse(0L)
-      }.getOrElse(0L)
-
       val unused = unusedAllowance
-
-      if (unused == 0L) {
-        0L
-      } else if (unused > 0) {
+      if (unused > 0) {
         if (definedBenefit == 0) {
-          unusedAllowance
+          unused
         } else {
-          (unusedAllowance + previous2YearsUnusedAllowance)
+          (unused + previous2YearsUnusedAllowance)
         }
       } else {
-        (previous3YearsUnusedAllowance - preTriggerSavings).max(0)
+        0L
       }
     } else {
       group2P2Calculator.aaCCF
@@ -199,7 +186,7 @@ case class Group3P2Calculator(implicit amountsCalculator: BasicCalculator,
 
   override def preFlexiSavings() : Long = {
     if (isTriggered) {
-      preTriggerAmounts.get.definedBenefit.getOrElse(0L) + preTriggerAmounts.get.moneyPurchase.getOrElse(0L)
+      preTriggerSavings()
     } else {
       definedContribution + definedBenefit
     }
