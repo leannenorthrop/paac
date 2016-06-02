@@ -37,8 +37,25 @@ trait PensionAllowanceCalculator {
       def getPeriodContributions(): (List[Contribution], List[Contribution]) = {
         val contributions = inputsByTaxYear(2015).groupBy(_.isPeriod1)
 
-        (contributions.get(true).map(_.toList).getOrElse(List(Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(0,0))))),
-         contributions.get(false).map(_.toList).getOrElse(List(Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(0,0))))))
+        val p1 = contributions.get(true).map(_.toList).getOrElse(List(Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(0,0)))))
+        val p2 = contributions.get(false).map(_.toList).getOrElse(List(Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(0,0)))))
+
+        // whenever there is a triggered contribution then we must have 3 contributions over p1 and p2, one of which must be a pre-trigger contribution even if inputs are 0
+        if (p1.size == 1 && p1(0).isTriggered) {
+          val newPreTrigger = Contribution(PensionPeriod.PERIOD_1_2015_START, p1(0).taxPeriodStart, Some(InputAmounts(Some(0), Some(0), None, Some(false))))
+          val newP1 = List(newPreTrigger) ++ p1
+          (newP1, p2)
+        } else if (p2.size == 1 && p2(0).isTriggered) {
+          if (p1.size == 1 && p1(0).isTriggered) {
+            val newPreTrigger = Contribution(PensionPeriod.PERIOD_1_2015_START, p1(0).taxPeriodStart, Some(InputAmounts(Some(0), Some(0), None, Some(false))))
+            val newP1 = List(newPreTrigger) ++ p1
+            (newP1, p2)
+          } else {
+            (p1, p2)
+          }
+        } else {
+          (p1, p2)
+        }
       }
 
       val (p1Contributions, p2Contributions) = getPeriodContributions()
@@ -47,7 +64,7 @@ trait PensionAllowanceCalculator {
 
     // Ensure sequential tax years have values converted none amounts to 0 for calculation purposes
     val inputsByTaxYear = contributions.groupBy(_.taxPeriodStart.year)
-    val allContributions = ((2008).min(inputsByTaxYear.keys.min) to inputsByTaxYear.keys.max).foldLeft(List[Contribution]()) {
+    val allContributions = ((PensionPeriod.EARLIEST_YEAR_SUPPORTED).min(inputsByTaxYear.keys.min) to inputsByTaxYear.keys.max).foldLeft(List[Contribution]()) {
       (lst:List[Contribution], year:Int) =>
         if (year != 2015) {
           val contribution = inputsByTaxYear.get(year).getOrElse(List(Contribution(year,0))).head

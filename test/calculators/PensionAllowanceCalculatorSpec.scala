@@ -115,11 +115,42 @@ class PensionAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
 
         // check
         val r = results.reverse
+        info(r.mkString("\n"))
         r(0) shouldBe c2
         r(1) shouldBe c1
+      }
+
+      "will provide missing pre-trigger p1 contribution" in {
+        // set up
+        val c1 = Contribution(PensionPeriod(2015,6,1),PensionPeriod(2015,7,8),Some(InputAmounts(Some(0),Some(1000000),None,Some(true))))
+        val contributions = Seq(c1)
+
+        // test
+        val results = Test.test(contributions)
+
+        // check
+        val r = results.reverse
+        r(1) shouldBe c1
+        r(2) shouldBe Contribution(PensionPeriod(2015,4,6),PensionPeriod(2015,6,1),Some(InputAmounts(Some(0),Some(0),None,Some(false))))
+      }
+
+      "will provide missing pre-trigger p1 contribution if 2 contributions triggered" in {
+        // set up
+        val c0 = Contribution(PensionPeriod.PERIOD_1_2015_START,PensionPeriod.PERIOD_1_2015_END,Some(InputAmounts(Some(0),Some(1000000),None,Some(true))))
+        val c1 = Contribution(PensionPeriod.PERIOD_2_2015_START,PensionPeriod.PERIOD_2_2015_END,Some(InputAmounts(Some(0),Some(1000000),None,Some(true))))
+        val contributions = Seq(c1, c0)
+
+        // test
+        val results = Test.test(contributions)
+
+        // check
+        val r = results.reverse
+        r(0) shouldBe c1
+        r(1) shouldBe c0
+        r(2) shouldBe Contribution(PensionPeriod(2015,4,6),PensionPeriod(2015,4,6),Some(InputAmounts(Some(0),Some(0),None,Some(false))))
       }
     }
   }
 
-  // Calculation based tests are found in logic.CalculationsSpec
+  // Calculation based tests are found in logic.XXCalculationsSpec
 } 
