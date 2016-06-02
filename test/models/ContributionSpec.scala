@@ -81,7 +81,7 @@ class ContributionSpec extends ModelSpec {
       // check
       firstValidationErrorPath.toString shouldBe "/year"
       firstValidationError.message shouldBe "error.min"
-      firstValidationError.args(0) shouldBe 2006
+      firstValidationError.args(0) shouldBe 2008
     }
 
     "<" should {
@@ -748,7 +748,7 @@ class ContributionSpec extends ModelSpec {
         // check
         firstValidationErrorPath.toString shouldBe "/taxPeriodEnd/year"
         firstValidationError.message shouldBe "error.min"
-        firstValidationError.args(0) shouldBe 2006
+        firstValidationError.args(0) shouldBe 2008
       }
     }
 

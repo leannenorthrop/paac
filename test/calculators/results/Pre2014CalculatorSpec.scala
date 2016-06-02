@@ -136,7 +136,7 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
     }
 
     s"support calculations for tax years ${PensionPeriod.EARLIEST_YEAR_SUPPORTED} to 2014" in {
-      (0 until 2922).foreach {
+      (0 until 2190).foreach {
         (day)=>
         // first supported tax year starts on 6th April PensionPeriod.EARLIEST_YEAR_SUPPORTED
         val c = new java.util.GregorianCalendar(PensionPeriod.EARLIEST_YEAR_SUPPORTED, 3, 6)

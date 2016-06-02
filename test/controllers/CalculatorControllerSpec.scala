@@ -115,7 +115,7 @@ class CalculatorControllerSpec extends ControllerSpec with BeforeAndAfterAll {
       status(result) shouldBe 400
       val results = contentAsJson(result)
       (results \ "status") shouldBe JsNumber(400)
-      (results \ "message") shouldBe JsString("Unsupported tax year supplied, only tax years between 2006 and 2016 inclusive, are supported.")
+      (results \ "message") shouldBe JsString("Unsupported tax year supplied, only tax years between 2008 and 2016 inclusive, are supported.")
     }
 
   }
