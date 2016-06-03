@@ -44,7 +44,7 @@ trait CalculatorController {
                                               "validationErrors" -> JsError.toFlatJson(errors))))
       },
       inputs => {
-        if (inputs.exists((contribution)=>(contribution.taxPeriodStart.year < PensionPeriod.EARLIEST_YEAR_SUPPORTED || contribution.taxPeriodStart.year > PensionPeriod.LATEST_YEAR_SUPPORTED)))
+        if (inputs.exists((contribution)=>(contribution.taxPeriodStart.year < PensionPeriod.EARLIEST_YEAR_SUPPORTED || contribution.taxPeriodEnd.year > PensionPeriod.LATEST_YEAR_SUPPORTED)))
           Future.successful(BadRequest(Json.obj("status" -> JsNumber(BAD_REQUEST),
                                                 "message" -> JsString(s"Unsupported tax year supplied, only tax years between ${PensionPeriod.EARLIEST_YEAR_SUPPORTED} and ${PensionPeriod.LATEST_YEAR_SUPPORTED} inclusive, are supported."))))
         else
