@@ -1,0 +1,7 @@
+PAAC-384: Is correct cummulative carry forwards - comment 1. 
+year    | Defined Benefit | Money Purchase  | Is Triggered | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward | MPAA 
+2012    | 20000           | 20000           | false        | 0                   | 0                | 200000                     | 10000        | 110000                   | 0
+2013    | 20000           | 20000           | false        | 0                   | 0                | 160000                     | 10000        | 70000                    | 0
+2014    | 20000           | 20000           | false        | 0                   | 0                | 110000                     | 0            | 20000                    | 0
+2015P1  | 0               | 0               | false        | 0                   | 0                | 100000                     | 40000        | 60000                    | 0
+2015P2  | 29000           | 11000           | false        | 0                   | 0                | 60000                      | 0            | 10000                    | 0

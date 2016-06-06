@@ -149,11 +149,7 @@ case class Group3P2Calculator(implicit amountsCalculator: BasicCalculator,
     if (isTriggered) {
       val unused = unusedAllowance
       if (unused > 0) {
-        if (definedBenefit == 0) {
-          unused
-        } else {
-          (unused + previous2YearsUnusedAllowance)
-        }
+        (unused + previous2YearsUnusedAllowance)
       } else {
         0L
       }
