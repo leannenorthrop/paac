@@ -155,6 +155,8 @@ case class Group2P1Calculator(implicit amountsCalculator: BasicCalculator,
     } else if (isMPAAApplicable) {
       0L
     } else {
+      val definedContribution = previousInputs.moneyPurchase.getOrElse(0L)
+      val definedBenefit = previousInputs.definedBenefit.getOrElse(0L)
       if (definedBenefit + definedContribution > AA) {
         0L
       } else {
