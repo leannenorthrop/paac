@@ -46,12 +46,12 @@ class ControllerITSpec extends UnitSpec with BeforeAndAfterAll {
       status(result.get) shouldBe 400
       val results = contentAsJson(result.get)
       (results \ "status") shouldBe JsNumber(400)
-      (results \ "message") shouldBe JsString("Unsupported tax year supplied, only tax years between 2006 and 2016 inclusive, are supported.")
+      (results \ "message") shouldBe JsString("Unsupported tax year supplied, only tax years between 2008 and 2016 inclusive, are supported.")
     }
 
     "return list of summary allowances for each input" in {
-      val contribution0 = Contribution(2006, 3000)
-      val contribution1 = Contribution(2007, 4000)
+      //val contribution0 = Contribution(2006, 3000)
+      //val contribution1 = Contribution(2007, 4000)
       val contribution2 = Contribution(2008, 5000)
       val contribution3 = Contribution(2009, 6000)
       val contribution4 = Contribution(2010, 7000)
@@ -59,12 +59,14 @@ class ControllerITSpec extends UnitSpec with BeforeAndAfterAll {
       val contribution6 = Contribution(2012, 9000)
       val contribution7 = Contribution(2013, 10000)
       val contribution8 = Contribution(2014, 11000)
-      val contributions = Seq(contribution0, contribution1, contribution2, contribution3, contribution4, contribution5, contribution6, contribution7, contribution8)
+
+      //val contributions = Seq(contribution0, contribution1, contribution2, contribution3, contribution4, contribution5, contribution6, contribution7, contribution8)
+      val contributions = Seq(contribution2, contribution3, contribution4, contribution5, contribution6, contribution7, contribution8)
 
       val result : Option[Future[Result]] = route(FakeRequest(POST, "/paac/calculate").withBody(Json.toJson(contributions)))
 
       val results = (contentAsJson(result.get) \ "results").as[List[TaxYearResults]]
-      results.size shouldBe 9
+      results.size shouldBe 7
       status(result.get) shouldBe 200
     }
   }

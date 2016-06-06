@@ -63,19 +63,40 @@ of the format where amounts are in pence:
 ```
 [
 {
-"taxPeriodStart": {"year": 2015, "month": 4, "day": 6},
- "taxPeriodEnd": {"year": 2015, "month": 7, "day": 8},
- "amounts":{"definedBenefit":3000,"moneyPurchase":11000,"income":0,"triggered":false}
+"taxPeriodStart":{"year": 2015, "month": 4, "day": 6},
+"taxPeriodEnd":{"year": 2015, "month": 7, "day": 8},
+"amounts":{"definedBenefit":3000,"moneyPurchase":11000,"income":0,"triggered":false}
 },
 {
-"taxPeriodStart": {"year": 2015, "month": 7, "day": 9},
- "taxPeriodEnd": {"year": 2016, "month": 10, "day": 31},
- "amounts":{"definedBenefit":6000,"moneyPurchase":6000,"income":0,"triggered":false}
+"taxPeriodStart":{"year": 2015, "month": 7, "day": 9},
+"taxPeriodEnd":{"year": 2015, "month": 10, "day": 31},
+"amounts":{"definedBenefit":6000,"moneyPurchase":6000,"income":0,"triggered":false}
 },
 {
-"taxPeriodStart": {"year": 2015, "month": 11, "day": 1},
- "taxPeriodEnd": {"year": 2016, "month": 4, "day": 5},
- "amounts":{"definedBenefit":0,"moneyPurchase":12000,"income":0,"triggered":true}
+"taxPeriodStart":{"year": 2015, "month": 11, "day": 1},
+"taxPeriodEnd":{"year": 2016, "month": 4, "day": 5},
+"amounts":{"definedBenefit":0,"moneyPurchase":12000,"income":0,"triggered":true}
+}
+]
+```
+
+### Group 2 testing (Defined contribution/money purchase only example)
+```
+[
+{
+"taxPeriodStart":{"year": 2015, "month": 4, "day": 6},
+"taxPeriodEnd":{"year": 2015, "month": 7, "day": 8},
+"amounts":{"definedBenefit":null,"moneyPurchase":11000,"income":0,"triggered":false}
+},
+{
+"taxPeriodStart":{"year": 2015, "month": 7, "day": 9},
+"taxPeriodEnd":{"year": 2015, "month": 10, "day": 31},
+"amounts":{"definedBenefit":null,"moneyPurchase":6000,"income":0,"triggered":false}
+},
+{
+"taxPeriodStart":{"year": 2015, "month": 11, "day": 1},
+"taxPeriodEnd":{"year": 2016, "month": 4, "day": 5},
+"amounts":{"definedBenefit":0,"moneyPurchase":12000,"income":0,"triggered":true}
 }
 ]
 ```
@@ -87,7 +108,6 @@ curl -H "Content-Type: application/json" -d '[{"taxPeriodStart":{"year":2014,"mo
 ```
 
 ### Peculiarities
-*Month is now no longer zero based!*
 
 Please note that 2015 pension input period is unique in that it comprises of two periods (pre and post alignment). They are specified by
 using the correct start end dates in the input JSON e.g.
