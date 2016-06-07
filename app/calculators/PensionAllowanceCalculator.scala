@@ -46,10 +46,10 @@ trait PensionAllowanceCalculator {
           val newP1 = List(newPreTrigger) ++ p1
           (newP1, p2)
         } else if (p2.size == 1 && p2(0).isTriggered) {
-          if (p1.size == 1 && p1(0).isTriggered) {
-            val newPreTrigger = Contribution(PensionPeriod.PERIOD_1_2015_START, p1(0).taxPeriodStart, Some(InputAmounts(Some(0), Some(0), None, Some(false))))
-            val newP1 = List(newPreTrigger) ++ p1
-            (newP1, p2)
+          if (p1.size == 1 && !p1(0).isTriggered) {
+            val newPreTrigger = Contribution(PensionPeriod.PERIOD_2_2015_START, p2(0).taxPeriodStart, Some(InputAmounts(Some(0), Some(0), None, Some(false))))
+            val newP2 = List(newPreTrigger) ++ p2
+            (newP2, p1)
           } else {
             (p1, p2)
           }
@@ -74,7 +74,7 @@ trait PensionAllowanceCalculator {
     allContributions.sortWith(sortByYearAndPeriod _)
   }
 
-  def calculateAllowances(contributions : Seq[Contribution]) : Seq[TaxYearResults] = {
+  def calculateAllowances(contributions : Seq[Contribution], doCollate: Boolean = false) : Seq[TaxYearResults] = {
     // Calculate results
     val inputsByTaxYear = contributions.groupBy(_.taxYearLabel)
     val results = provideMissingYearContributions(contributions).foldLeft(List[TaxYearResults]()) {
@@ -87,7 +87,41 @@ trait PensionAllowanceCalculator {
       TaxYearResults(contribution, summary) :: lst
     }.dropWhile(_.input.taxYearLabel > inputsByTaxYear.keys.max).toList.reverse
     val v = results.dropWhile(_.input.taxYearLabel < inputsByTaxYear.keys.min).toList
-    v
+    if (doCollate) {
+      collate(v)
+    } else {
+      v
+    }
+  }
+
+  def collate(calculationResults: Seq[TaxYearResults]): Seq[TaxYearResults] = {
+    def r = calculationResults.toList
+    def fetchTriggered(l:List[TaxYearResults]):Option[TaxYearResults] = l.find(_.input.isTriggered)
+    def fetchNotTriggered(l:List[TaxYearResults]):Option[TaxYearResults] = l.find(!_.input.isTriggered)
+
+    val triggerAmountRow = r.find(_.input.isTriggered)
+    if (triggerAmountRow.isDefined) {
+      val year2015ResultsMap = r.groupBy(_.input.taxPeriodStart.year)(2015).groupBy(_.input.isPeriod1)
+      val period1Results = year2015ResultsMap.get(true).get
+      val period2Results = year2015ResultsMap.get(false).get
+      val non2015Results = r.filterNot((t)=>t.input.isPeriod1||t.input.isPeriod2)
+      val results: List[TaxYearResults] = if (period1Results.size == 2) {
+        val p1Triggered = fetchTriggered(period1Results).get
+        val p1NotTriggered = fetchNotTriggered(period1Results).get
+        val newP1 = p1Triggered.copy(input=p1NotTriggered.input)
+        non2015Results ++ List(newP1) ++ List(fetchTriggered(period2Results).get)
+      } else if (period2Results.size == 2) {
+        val p2Triggered = fetchTriggered(period2Results).get
+        val p2NotTriggered = fetchNotTriggered(period2Results).get
+        val newP2 = p2Triggered.copy(input=p2NotTriggered.input)
+        non2015Results ++ List(fetchNotTriggered(period1Results).get) ++ List(newP2)
+      } else {
+        r
+      }
+      results.toIndexedSeq
+    } else {
+      r.toIndexedSeq
+    }
   }
 }
 

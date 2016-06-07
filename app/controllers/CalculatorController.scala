@@ -50,7 +50,7 @@ trait CalculatorController {
         else
           Future.successful(Ok(Json.obj("status" -> JsNumber(OK), 
                                         "message" -> JsString("Valid pension calculation request received."),
-                                        "results" -> Json.toJson(calculateAllowances(inputs)))))
+                                        "results" -> Json.toJson(calculateAllowances(inputs,true)))))
       }
     )
   }
