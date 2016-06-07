@@ -33,9 +33,21 @@ case class Group3P2Calculator(implicit amountsCalculator: BasicCalculator,
     amounts.moneyPurchase.getOrElse(0L) + amounts.definedBenefit.getOrElse(0L)
   }
 
-  override def isMPAAApplicable(): Boolean = definedContribution > MPA
+  override def isMPAAApplicable(): Boolean = flexiAccessSavings > MPA
 
-  override def definedBenefit(): Long = contribution.amounts.map(_.definedBenefit.getOrElse(0L)).getOrElse(0L)
+  override def definedBenefit(): Long = if (!isPeriod1Triggered && isTriggered) {
+      previousInputs.definedBenefit.getOrElse(0L)
+    } else {
+      contribution.amounts.map(_.definedBenefit.getOrElse(0L)).getOrElse(0L)
+    }
+
+  override def definedContribution(implicit contribution:Contribution): Long = if (!isPeriod1Triggered && isTriggered) {
+      previousInputs.moneyPurchase.getOrElse(0L)
+    } else {
+      contribution.amounts.getOrElse(InputAmounts()).moneyPurchase.getOrElse(0L)
+    }
+    
+  def flexiAccessSavings(implicit contribution:Contribution): Long = contribution.amounts.getOrElse(InputAmounts()).moneyPurchase.getOrElse(0L)
 
   override def dbist(): Long = {
     if (isPeriod1Triggered) {
@@ -52,10 +64,10 @@ case class Group3P2Calculator(implicit amountsCalculator: BasicCalculator,
 
   override def mpist(): Long = {
     if (isPeriod1Triggered) {
-      (definedContribution - period1Triggered.get.unusedMPAA).max(0)
+      (flexiAccessSavings - period1Triggered.get.unusedMPAA).max(0)
     } else if (contribution.isTriggered) {
       if (isMPAAApplicable) {
-        (definedContribution - MPA).max(0)
+        (flexiAccessSavings - MPA).max(0)
       } else {
         0L
       }
@@ -88,15 +100,17 @@ case class Group3P2Calculator(implicit amountsCalculator: BasicCalculator,
             val aacf = previous.availableAAWithCF
             postFlexiSavings - previous.dcaCF
           */
-          ((definedContribution + definedBenefit) - (previous3YearsUnusedAllowance + fields.unusedAAA)).max(0)
+          ((flexiAccessSavings + definedBenefit) - (previous3YearsUnusedAllowance + fields.unusedAAA)).max(0)
         } else {
-          ((definedContribution + definedBenefit) - period1.availableAAWithCCF).max(0)
+          ((flexiAccessSavings + definedBenefit) - period1.availableAAWithCCF).max(0)
         }
       }.getOrElse {
         if (isMPAAApplicable) {
-          ((preTriggerSavings + definedContribution + definedBenefit) - period1.availableAAWithCCF).max(0)
+          //((preTriggerSavings + flexiAccessSavings + definedBenefit) - period1.availableAAWithCCF).max(0)
+          ((preTriggerSavings + flexiAccessSavings) - period1.availableAAWithCCF).max(0)
         } else {
-          ((definedContribution + definedBenefit) - period1.availableAAWithCCF).max(0)
+          //((flexiAccessSavings + definedBenefit) - period1.availableAAWithCCF).max(0)
+          ((flexiAccessSavings) - period1.availableAAWithCCF).max(0)
         }
       }
     } else {
@@ -116,7 +130,7 @@ case class Group3P2Calculator(implicit amountsCalculator: BasicCalculator,
         period1.unusedAAA - definedBenefit
       } else {
         val amounts = preTriggerAmounts.getOrElse(InputAmounts())
-        val something = (definedContribution + definedBenefit) + amounts.moneyPurchase.getOrElse(0L)
+        val something = (flexiAccessSavings + definedBenefit) + amounts.moneyPurchase.getOrElse(0L)
 
         if (something > 4000000L) {
           //period1.unusedAllowance
@@ -159,7 +173,7 @@ case class Group3P2Calculator(implicit amountsCalculator: BasicCalculator,
   }
 
   override def cumulativeMP(): Long = {
-    definedContribution + period1.cumulativeMP
+    flexiAccessSavings + period1.cumulativeMP
   }
 
   override def cumulativeDB(): Long = {
@@ -168,7 +182,7 @@ case class Group3P2Calculator(implicit amountsCalculator: BasicCalculator,
 
   override def exceedingMPAA(): Long = {
     if (isMPAAApplicable) {
-      definedContribution - MPA
+      flexiAccessSavings - MPA
     } else {
       0L
     }
@@ -190,7 +204,7 @@ case class Group3P2Calculator(implicit amountsCalculator: BasicCalculator,
 
   override def postFlexiSavings() : Long = {
     if (isTriggered) {
-      definedContribution + definedBenefit
+      flexiAccessSavings + definedBenefit
     } else {
       0L
     }
