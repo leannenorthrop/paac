@@ -29,7 +29,9 @@ trait PeriodCalculator {
 
   def pre2015Results(implicit previousPeriods:Seq[TaxYearResults]) = previousPeriods.filter(isBefore2015)
 
-  def period1(implicit previousPeriods:Seq[TaxYearResults]) = previousPeriods.find(_.input.isPeriod1).map(_.summaryResult.asInstanceOf[ExtendedSummaryFields]).getOrElse(ExtendedSummaryFields())  
+  def period1(implicit previousPeriods:Seq[TaxYearResults]): ExtendedSummaryFields = previousPeriods.find(_.input.isPeriod1).map(_.summaryResult.asInstanceOf[ExtendedSummaryFields]).getOrElse(ExtendedSummaryFields())  
+
+  def period1Amounts(implicit previousPeriods:Seq[TaxYearResults]): InputAmounts = previousPeriods.find(_.input.isPeriod1).map(_.input.amounts.getOrElse(InputAmounts())).getOrElse(InputAmounts())  
 
   def isPeriod1(implicit previousPeriods:Seq[TaxYearResults]) = previousPeriods.find(_.input.isPeriod1).isDefined
 
