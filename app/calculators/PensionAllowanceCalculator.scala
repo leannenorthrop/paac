@@ -101,7 +101,7 @@ trait PensionAllowanceCalculator {
 
     val triggerAmountRow = r.find(_.input.isTriggered)
     if (triggerAmountRow.isDefined) {
-      val year2015ResultsMap = r.groupBy(_.input.taxPeriodStart.year)(2015).groupBy(_.input.isPeriod1)
+      val year2015ResultsMap = r.groupBy((r)=>r.input.isPeriod1||r.input.isPeriod2)(true).groupBy(_.input.isPeriod1)
       val period1Results = year2015ResultsMap.get(true).get
       val period2Results = year2015ResultsMap.get(false).get
       val non2015Results = r.filterNot((t)=>t.input.isPeriod1||t.input.isPeriod2)
