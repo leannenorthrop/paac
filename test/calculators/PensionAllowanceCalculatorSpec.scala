@@ -231,6 +231,27 @@ class PensionAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
         collatedResults(3) shouldBe result3
         collatedResults(4) shouldBe TaxYearResults(input=result4.input,summaryResult=result5.summaryResult)
       }
+
+      "collapse period 2 trigger row result when trigger date is 5/4/2016" in {
+        // set up
+        val result0 = TaxYearResults(Contribution(PensionPeriod(2012,4,6),PensionPeriod(2013,4,5),Some(InputAmounts(Some(5000000),Some(0),None,Some(false)))),SummaryResult(0,0,5000000,0,20000000,10000000,0))
+        val result1 = TaxYearResults(Contribution(PensionPeriod(2013,4,6),PensionPeriod(2014,4,5),Some(InputAmounts(Some(5000000),Some(0),None,Some(false)))),SummaryResult(0,0,5000000,0,15000000,5000000,0))
+        val result2 = TaxYearResults(Contribution(PensionPeriod(2014,4,6),PensionPeriod(2015,4,5),Some(InputAmounts(Some(4000000),Some(0),None,Some(false)))),SummaryResult(0,0,4000000,0,9000000,0,0))
+        val result3 = TaxYearResults(Contribution(PensionPeriod(2015,4,6),PensionPeriod(2015,7,8),Some(InputAmounts(Some(10000000),Some(1500000),None,Some(false)))),ExtendedSummaryFields(3500000,3500000,8000000,0,8000000,0,0,0,0,4000000,1500000,0,0,1500000,11500000,0,0,0,0,13000000,0,false,-7000000,0))
+        val result4 = TaxYearResults(Contribution(PensionPeriod(2015,7,9),PensionPeriod(2016,4,5),Some(InputAmounts(Some(1500000),Some(1200000),None,Some(false)))),ExtendedSummaryFields(2700000,2700000,0,0,0,0,0,0,0,0,1200000,1200000,1200000,2700000,11500000,200000,0,0,0,0,0,true,0,0))
+        val result5 = TaxYearResults(Contribution(PensionPeriod(2016,4,5),PensionPeriod(2016,4,5),Some(InputAmounts(Some(0),Some(2500000),None,Some(true)))),ExtendedSummaryFields(5200000,0,0,0,0,0,0,0,0,2700000,1500000,4200000,5200000,4000000,13000000,1500000,0,0,0,2700000,4000000,true,0,0))
+
+        // test
+        val collatedResults = PensionAllowanceCalculator.collate(Seq(result0, result1, result2, result3, result4, result5))
+
+        // check
+        collatedResults.size shouldBe 5
+        collatedResults(0) shouldBe result0
+        collatedResults(1) shouldBe result1
+        collatedResults(2) shouldBe result2
+        collatedResults(3) shouldBe result3
+        collatedResults(4) shouldBe TaxYearResults(input=result4.input,summaryResult=result5.summaryResult)
+      }
     }
   }
 
