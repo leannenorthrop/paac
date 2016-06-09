@@ -34,6 +34,21 @@ case class Group2P1Calculator(implicit amountsCalculator: BasicCalculator,
   
   override def isMPAAApplicable(): Boolean = definedContribution > MPA
 
+  def sum(values: List[Option[Long]]): Long = values.map(_.getOrElse(0L)).foldLeft(0L)(_+_)
+
+  def preTriggerSavings(): Long = {
+    val amounts = preTriggerAmounts.getOrElse(InputAmounts())
+    sum(List(amounts.moneyPurchase,amounts.definedBenefit))
+  }
+
+  def postTriggerSavings(): Long = {
+    if (isTriggered) {
+      definedContribution
+    } else {
+      0L
+    }
+  }
+
   override def definedBenefit(): Long = {
     contribution.amounts.map {
       (amounts) =>
@@ -152,15 +167,19 @@ case class Group2P1Calculator(implicit amountsCalculator: BasicCalculator,
   override def unusedAllowance(): Long = {
     if (!isTriggered) {
       group1Calculator.unusedAllowance
-    } else if (isMPAAApplicable) {
-      0L
     } else {
-      val definedContribution = previousInputs.moneyPurchase.getOrElse(0L)
-      val definedBenefit = previousInputs.definedBenefit.getOrElse(0L)
-      if (definedBenefit + definedContribution > AA) {
+      if (isMPAAApplicable) {
         0L
       } else {
-        (AA - (definedBenefit + definedContribution)).min(MAX_CF)
+        val unusedAllowance = {
+          val savings = if (defaultChargableAmount >= alternativeChargableAmount) {
+            preTriggerSavings + postTriggerSavings
+          } else {
+            preTriggerSavings
+          }
+          if (savings > AA) 0L else (AA - savings).min(MAX_CF)
+        }
+        unusedAllowance.max(0)
       }
     }
   }
@@ -191,9 +210,11 @@ case class Group2P1Calculator(implicit amountsCalculator: BasicCalculator,
     } else {
       val annualAllowance = AA
       if (isMPAAApplicable) {
-        val amounts = preTriggerAmounts.getOrElse(InputAmounts())
-        val preSavings = amounts.definedBenefit.getOrElse(0L) + amounts.moneyPurchase.getOrElse(0L)
-        ((AAA + previous3YearsUnusedAllowance - preSavings).min(P2AAA)).max(0)
+        if (preTriggerSavings > AAA) {
+          ((AAA + previous3YearsUnusedAllowance - preTriggerSavings)).max(0)
+        } else {
+          ((AAA + previous3YearsUnusedAllowance - preTriggerSavings)).min(P2AAA)
+        }
       } else if (definedBenefit >= annualAllowance) {
         (annualAllowance + previous3YearsUnusedAllowance - (definedBenefit+definedContribution)).max(0)
       } else {
@@ -226,7 +247,7 @@ case class Group2P1Calculator(implicit amountsCalculator: BasicCalculator,
     if (!isTriggered) {
       0L
     } else if (alternativeChargableAmount > defaultChargableAmount) {
-      (AAA - definedBenefit).min(P2AAA)
+      (AAA - definedBenefit).min(P2AAA).max(0)
     } else {
       0L
     }

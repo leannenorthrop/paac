@@ -135,7 +135,7 @@ case class Group2P2Calculator(implicit amountsCalculator: BasicCalculator,
 
   override def exceedingAAA(): Long = 0L
 
-  override def unusedAAA(): Long = if (isTriggered) period1or2.unusedAAA else 0L
+  override def unusedAAA(): Long = if (isTriggered) period1or2.unusedAAA.max(0) else 0L
 
   override def unusedMPAA(): Long = 0L
 }
