@@ -1,0 +1,5 @@
+PAAC-381 Comment 1
+year    | Defined Benefit | Money Purchase  | Is Triggered | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward | MPAA 
+2015P1B | -1              | 80000           | false        | 0                   | 0                | 220000                     | 0            | 140000                   | 0
+2015P1A | -1              | 21000           | true         | 21000               | 1000             | 220000                     | 0            | 120000                   | 0
+2015P2A | -1              | 21000           | true         | 0                   | 21000            | 120000                     | 0            | 69000                    | 0

@@ -199,7 +199,7 @@ object Utilities {
       row.foreach {
         case (k:String,v:Array[Int])=>
         if (k != "year" && k != "Defined Benefit" && k != "Defined Contribution" && k != "Money Purchase" && k != "Is Triggered")
-          assertResult(if (v(0) != (-1)) v(0)*100 else v(0),s"${result.input.label} ${k} (converted to pence)")(valueFor(k).apply(result))
+          assertResult(if (v(0) != (-1)) v(0)*100 else v(0),s"${result.input.label} ${k} (Pound values Expected: ${v(0)} Got: ${valueFor(k)(result)/100})")(valueFor(k).apply(result))
       }
     }
   }
