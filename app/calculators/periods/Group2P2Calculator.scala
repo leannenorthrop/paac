@@ -112,9 +112,9 @@ case class Group2P2Calculator(implicit amountsCalculator: BasicCalculator,
   override def aaCCF(): Long = {
     if (isTriggered) {
       if (unusedAllowance > 0) {
-        (unusedAllowance + previous2YearsUnusedAllowance)
+        unusedAllowance + previous2YearsUnusedAllowance
       } else {
-        (previous3YearsUnusedAllowance - definedContribution).max(0)
+        previous2YearsUnusedAllowance + period1.unusedAllowance
       }
     } else {
       group1P2Calculator.aaCCF
