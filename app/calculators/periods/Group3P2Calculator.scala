@@ -55,7 +55,7 @@ case class Group3P2Calculator(implicit amountsCalculator: BasicCalculator,
     sum(List(amounts.moneyPurchase,amounts.definedBenefit))
   }
 
-  override def isMPAAApplicable(): Boolean = flexiAccessSavings > MPA
+  override def isMPAAApplicable(): Boolean = (flexiAccessSavings > MPA) || period1.isMPA
 
   override def definedBenefit(): Long = if (!isPeriod1Triggered && isTriggered) {
       previousInputs.definedBenefit.getOrElse(0L)
