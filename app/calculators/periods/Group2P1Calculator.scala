@@ -146,7 +146,7 @@ case class Group2P1Calculator(implicit amountsCalculator: BasicCalculator,
         if (definedBenefit + definedContribution > AA) {
           (definedBenefit + definedContribution) - AA
         } else {
-          (AA - (definedBenefit + definedContribution)).min(MAX_CF)
+          0L
         }
       } else {
         ((definedBenefit + definedContribution) - AA).max(0)

@@ -1,0 +1,5 @@
+MPA Applies in period 2 when applicable in period 1
+year     | Defined Benefit | Money Purchase  | Is Triggered | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward | MPAA 
+2015P1B  | 123             | 123             | false        | 0                   | 0                | 220000                     | 40000        | 180000                   | 0
+2015P1A  | 0               | 20001           | true         | 0                   | 1                | 220000                     | 0            | 30000                    | 0
+2015P2A  | 123             | 123             | true         | 0                   | 123              | 30000                      | 0            | 0                        | 0

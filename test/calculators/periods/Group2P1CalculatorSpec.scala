@@ -71,7 +71,7 @@ class Group2P1CalculatorSpec extends UnitSpec {
   }
 
   "exceedingAllowance" should {
-    "when triggered and mpa applicable return max cf" in new TestFixture {
+    "when triggered and mpa applicable return 0L" in new TestFixture {
       // set up
       implicit val previousPeriods = List[TaxYearResults]()
       implicit val contribution = Contribution(2015, 0L).copy(amounts=Some(InputAmounts(triggered=Some(true),moneyPurchase=Some(2100000))))
@@ -80,7 +80,7 @@ class Group2P1CalculatorSpec extends UnitSpec {
       val result = Group2P1Calculator().exceedingAllowance
 
       // check
-      result shouldBe 4000000L
+      result shouldBe 0L
     }
   }
 

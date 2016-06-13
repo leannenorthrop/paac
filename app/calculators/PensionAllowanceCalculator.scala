@@ -17,6 +17,7 @@
 package calculators
 
 import models._
+import play.api.Logger
 
 trait PensionAllowanceCalculator {
 
@@ -98,6 +99,8 @@ trait PensionAllowanceCalculator {
     def r = calculationResults.toList
     def fetchTriggered(l:List[TaxYearResults]):Option[TaxYearResults] = l.find(_.input.isTriggered)
     def fetchNotTriggered(l:List[TaxYearResults]):Option[TaxYearResults] = l.find(!_.input.isTriggered)
+
+    if (true) Logger.info("\n\n" + r.mkString("\n") + "\n")
 
     val triggerAmountRow = r.find(_.input.isTriggered)
     if (triggerAmountRow.isDefined) {
