@@ -246,7 +246,7 @@ case class Group2P1Calculator(implicit amountsCalculator: BasicCalculator,
   override def unusedAAA(): Long = {
     if (!isTriggered) {
       0L
-    } else if (alternativeChargableAmount > defaultChargableAmount) {
+    } else if (isMPAAApplicable) {
       (AAA - definedBenefit).min(P2AAA).max(0)
     } else {
       0L

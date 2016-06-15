@@ -26,6 +26,62 @@ class Group3P2CalculatorSpec extends UnitSpec {
   trait TestFixture {
     val annualAllowance = 50000
     implicit val amountsCalculator = BasicCalculator(annualAllowance)
+    def p1Contribution(mp:Long):Contribution = {
+      Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(definedBenefit=None,moneyPurchase=Some(mp))))
+    }    
+    def p2Contribution(mp:Long):Contribution = {
+      Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(definedBenefit=None,moneyPurchase=Some(mp))))
+    }
+  }
+
+  "isMPAAApplicable" should {
+    "return true if trigger amount > MPA" in new TestFixture {
+      // set up
+      implicit val previousPeriods = List[TaxYearResults]()
+      implicit val contribution = Contribution(2015, 1L).copy(amounts=Some(InputAmounts(definedBenefit=None,moneyPurchase=Some(5000000L))))
+
+      // test
+      val result = Group3P2Calculator().isMPAAApplicable
+
+      // check
+      result shouldBe true
+    }
+
+    "return true if p1 isMPAAApplicable is true" in new TestFixture {
+      // set up
+      implicit val previousPeriods = List[TaxYearResults](TaxYearResults(p1Contribution(0L),ExtendedSummaryFields(isMPA=true)))
+      implicit val contribution = Contribution(2015, 1L)
+
+      // test
+      val result = Group3P2Calculator().isMPAAApplicable
+
+      // check
+      result shouldBe true
+    }
+
+    "return true if p1 exhausts MPAA" in new TestFixture {
+      // set up
+      implicit val previousPeriods = List[TaxYearResults](TaxYearResults(p1Contribution(2000000L),ExtendedSummaryFields(isMPA=false)))
+      implicit val contribution = Contribution(2015, 1L)
+
+      // test
+      val result = Group3P2Calculator().isMPAAApplicable
+
+      // check
+      result shouldBe true
+    }
+
+    "return false if p2 money purchase is under mpa" in new TestFixture {
+      // set up
+      implicit val previousPeriods = List[TaxYearResults]()
+      implicit val contribution = p2Contribution(10L)
+
+      // test
+      val result = Group3P2Calculator().isMPAAApplicable
+
+      // check
+      result shouldBe false
+    }
   }
 
   "mpist" should {
