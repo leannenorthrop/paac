@@ -51,8 +51,12 @@ case class Group3P2Calculator(implicit amountsCalculator: BasicCalculator,
   }
 
   def period2PreTriggerSavings(): Long = {
-    val amounts = preTriggerAmounts.getOrElse(InputAmounts())
-    sum(List(amounts.moneyPurchase,amounts.definedBenefit))
+    if (isPeriod1Triggered) {
+      0L
+    } else {
+      val amounts = preTriggerAmounts.getOrElse(InputAmounts())
+      sum(List(amounts.moneyPurchase,amounts.definedBenefit))
+    }
   }
 
   override def isMPAAApplicable(): Boolean = (flexiAccessSavings > MPA) || period1.isMPA
@@ -146,9 +150,7 @@ case class Group3P2Calculator(implicit amountsCalculator: BasicCalculator,
 
   override def unusedAllowance(): Long = {
     if (isTriggered) {
-      val allowances = period1.unusedAllowance + previous3YearsUnusedAllowance
-
-      val unusedAllowance = if (allowances < period2PreTriggerSavings) {
+      val unusedAllowance = if (period1.isMPA) {
         period1.unusedAAA - definedBenefit
       } else {
         val savings = if (defaultChargableAmount >= alternativeChargableAmount) {
