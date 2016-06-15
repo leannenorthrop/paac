@@ -31,7 +31,7 @@ case class Group2P2Calculator(implicit amountsCalculator: BasicCalculator,
   
   def period1or2 = previous.asInstanceOf[ExtendedSummaryFields]
 
-  override def isMPAAApplicable(): Boolean = (definedContribution > MPA) || period1.isMPA
+  override def isMPAAApplicable(): Boolean = (definedContribution > MPA) || period1.isMPA || period1Amounts.moneyPurchase.getOrElse(0L) >= P1MPA
 
   override def definedBenefit(): Long = 0L
 
