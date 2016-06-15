@@ -30,7 +30,8 @@ trait Summary {
   def unusedAllowance: Long
   def availableAAWithCF: Long    // total available allowance for current year should be renamed to totalAA
   def availableAAWithCCF: Long   // available allowance carried forward to following year
-  def unusedAllowanceCF: Long
+  def unusedAAA: Long
+  def unusedMPAA: Long
 }
 
 case class SummaryResult(chargableAmount: Long = 0,
@@ -39,7 +40,8 @@ case class SummaryResult(chargableAmount: Long = 0,
                          unusedAllowance: Long = 0,
                          availableAAWithCF: Long = 0,    // total available allowance for current year should be renamed to totalAA
                          availableAAWithCCF: Long = 0,   // available allowance carried forward to following year
-                         unusedAllowanceCF: Long = 0) extends Summary
+                         unusedAAA: Long = 0,
+                         unusedMPAA: Long = 0) extends Summary
 
 case class ExtendedSummaryFields(chargableAmount: Long = 0,
                                  exceedingAAAmount: Long = 0,
@@ -47,7 +49,8 @@ case class ExtendedSummaryFields(chargableAmount: Long = 0,
                                  unusedAllowance: Long = 0,
                                  availableAAWithCF: Long = 0,    // total available allowance for current year should be renamed to totalAA
                                  availableAAWithCCF: Long = 0,   // available allowance carried forward to following year
-                                 unusedAllowanceCF: Long = 0,
+                                 unusedAAA: Long = 0,
+                                 unusedMPAA: Long = 0,
                                  moneyPurchaseAA: Long = 0,
                                  alternativeAA: Long = 0,
                                  dbist: Long = 0,
@@ -58,8 +61,6 @@ case class ExtendedSummaryFields(chargableAmount: Long = 0,
                                  cumulativeDB: Long = 0,
                                  exceedingMPAA: Long = 0,
                                  exceedingAAA: Long = 0,
-                                 unusedAAA: Long = 0,
-                                 unusedMPAA: Long = 0,
                                  preFlexiSavings: Long = 0,
                                  postFlexiSavings: Long = 0,
                                  isMPA: Boolean = false,
@@ -74,7 +75,8 @@ object Summary {
     (JsPath \ "unusedAllowance").write[Long] and 
     (JsPath \ "availableAAWithCF").write[Long] and
     (JsPath \ "availableAAWithCCF").write[Long] and
-    (JsPath \ "unusedAllowanceCF").write[Long]
+    (JsPath \ "unusedAAA").write[Long] and
+    (JsPath \ "unusedMPAA").write[Long]
   )(Summary.toTuple _ )
 
   implicit val summaryResultReads: Reads[Summary] = (
@@ -84,11 +86,12 @@ object Summary {
     (JsPath \ "unusedAllowance").read[Long] and
     (JsPath \ "availableAAWithCF").read[Long] and
     (JsPath \ "availableAAWithCCF").read[Long] and
-    (JsPath \ "unusedAllowanceCF").read[Long]
+    (JsPath \ "unusedAAA").read[Long] and
+    (JsPath \ "unusedMPAA").read[Long]
   )(Summary.toSummary _)
 
-  def toTuple(summary: Summary): (Long, Long, Long, Long, Long, Long, Long) = {
-    (summary.chargableAmount, summary.exceedingAAAmount, summary.availableAllowance, summary.unusedAllowance, summary.availableAAWithCF, summary.availableAAWithCCF, summary.unusedAllowanceCF)
+  def toTuple(summary: Summary): (Long, Long, Long, Long, Long, Long, Long, Long) = {
+    (summary.chargableAmount, summary.exceedingAAAmount, summary.availableAllowance, summary.unusedAllowance, summary.availableAAWithCF, summary.availableAAWithCCF, summary.unusedAAA, summary.unusedMPAA)
   }
 
   def toSummary(chargableAmount: Long = 0,
@@ -97,14 +100,16 @@ object Summary {
                 unusedAllowance: Long = 0,
                 availableAAWithCF: Long = 0,    // total available allowance for current year should be renamed to totalAA
                 availableAAWithCCF: Long = 0,   // available allowance carried forward to following year
-                unusedAllowanceCF: Long = 0): Summary = {
+                unusedAAA: Long = 0,
+                unusedMPAA: Long = 0): Summary = {
     SummaryResult(chargableAmount,
                   exceedingAAAmount,
                   availableAllowance,
                   unusedAllowance,
                   availableAAWithCF,
                   availableAAWithCCF,
-                  unusedAllowanceCF)
+                  unusedAAA,
+                  unusedMPAA)
   }
 }
 
