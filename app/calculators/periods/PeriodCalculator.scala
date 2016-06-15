@@ -46,6 +46,7 @@ trait PeriodCalculator {
   def preTriggerAmounts(implicit previousPeriods:Seq[TaxYearResults]): Option[InputAmounts] = previousPeriods.find(taxResultNotTriggered).flatMap(_.input.amounts)
 
   def period1Triggered(implicit previousPeriods:Seq[TaxYearResults]): Option[ExtendedSummaryFields] = previousPeriods.find(taxResultTriggered).map(_.summaryResult.asInstanceOf[ExtendedSummaryFields])
+  def period1NotTriggered(implicit previousPeriods:Seq[TaxYearResults]): Option[ExtendedSummaryFields] = previousPeriods.filter(taxResultNotTriggered).find(_.input.isPeriod1).map(_.summaryResult.asInstanceOf[ExtendedSummaryFields])
 
   def isPeriod1Triggered(implicit previousPeriods:Seq[TaxYearResults]): Boolean = {
     previousPeriods.find(_.input.amounts.getOrElse(InputAmounts()).triggered.getOrElse(false)) != None
@@ -71,11 +72,13 @@ trait PeriodCalculator {
     val contribution = Contribution(c.taxPeriodStart, c.taxPeriodEnd, Some(InputAmounts(0L,0L)))
 
     val l = if (!isPeriod1) {
-      basicCalculator().actualUnused(previousPeriods.drop(1), contribution).drop(1).slice(0,2)
+      val v = basicCalculator().actualUnused(previousPeriods.drop(1), contribution).drop(1).slice(0,2)
+      v
     } else {
-      basicCalculator().actualUnused(previousPeriods.drop(1), contribution).drop(2).slice(0,2)
+      val v = basicCalculator().actualUnused(previousPeriods.drop(1), contribution).drop(2).slice(0,2)
+      v
     }
-    
+
     l.foldLeft(0L)(_+_._2)
   }
 
@@ -107,7 +110,8 @@ trait PeriodCalculator {
   def dcaCF() : Long = 0L
 
   type FlatValues = (Int, Long, Long, Long, Long)
-  def extractFlatValues(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): List[FlatValues] = {
+  def extractFlatValues(implicit p:Seq[TaxYearResults], contribution: Contribution): List[FlatValues] = {
+    val previousPeriods = p.filterNot(_.input.isTriggered)
     val prefix = if (contribution.isPeriod1()) {
       List((20151, definedBenefit, annualAllowance, exceedingAllowance, unusedAllowance))
     } else if (contribution.isPeriod2()) {

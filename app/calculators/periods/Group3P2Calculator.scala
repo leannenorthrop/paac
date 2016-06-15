@@ -189,9 +189,10 @@ case class Group3P2Calculator(implicit amountsCalculator: BasicCalculator,
     if (isTriggered) {
       val unused = unusedAllowance
       if (unused > 0) {
-        (unused + previous2YearsUnusedAllowance)
+        unused + previous2YearsUnusedAllowance
       } else {
-        0L
+        val ccf = (previous2YearsUnusedAllowance - period1NotTriggered.map(_.exceedingAAAmount).getOrElse(0L)).max(0L)
+        if (ccf > previous.availableAAWithCCF) 0L else ccf
       }
     } else {
       group2P2Calculator.aaCCF
