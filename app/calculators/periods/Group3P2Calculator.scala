@@ -150,20 +150,14 @@ case class Group3P2Calculator(implicit amountsCalculator: BasicCalculator,
 
   override def unusedAllowance(): Long = {
     if (isTriggered) {
-      val allowances = period1.unusedAllowance + previous3YearsUnusedAllowance
-
-      val unusedAllowance = if (allowances < period2PreTriggerSavings || period1.isMPA) {
-        println("***************** 1")
+      val unusedAllowance = if (period1.isMPA) {
         period1.unusedAAA - definedBenefit
       } else {
         val savings = if (defaultChargableAmount >= alternativeChargableAmount) {
-          println("***************** 2")
           period2PreTriggerSavings + postTriggerSavings
         } else {
-          println("***************** 3")
           period2PreTriggerSavings
         }
-        println(s"${period1.unusedAllowance} ${period1.unusedAAA} ${unusedAAA} ${period2PreTriggerSavings} ")
         if (savings > 4000000L) 0L else period1.unusedAllowance - period2PreTriggerSavings
       }
       unusedAllowance.max(0)
