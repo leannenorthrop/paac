@@ -112,11 +112,15 @@ case class Group2P2Calculator(implicit amountsCalculator: BasicCalculator,
   override def aaCCF(): Long = {
     if (isTriggered) {
       val unused = unusedAllowance
-      if (unused > 0) {
-        unused + previous2YearsUnusedAllowance
+      if (period1or2.unusedAAA > 0) {
+        previous2YearsUnusedAllowance + period1.availableAAWithCCF
       } else {
-        val ccf = (previous2YearsUnusedAllowance - period1NotTriggered.map(_.exceedingAAAmount).getOrElse(0L)).max(0L)
-        if (ccf > previous.availableAAWithCCF) 0L else ccf
+        if (unused > 0) {
+          unused + previous2YearsUnusedAllowance
+        } else {
+          val ccf = (previous2YearsUnusedAllowance - period1NotTriggered.map(_.exceedingAAAmount).getOrElse(0L)).max(0L)
+          if (ccf > previous.availableAAWithCCF) 0L else ccf
+        }
       }
     } else {
       group1P2Calculator.aaCCF

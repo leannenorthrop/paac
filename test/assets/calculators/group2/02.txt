@@ -5,4 +5,4 @@ year    | Defined Benefit | Money Purchase  | Is Triggered | Amount Exceeding AA
 2014    | 40000           | 0               | false        | 0                   | 0                | 90000                      | 0            | 0                        | 0
 2015P1B | -1              | 15000           | false        | 0                   | 0                | 80000                      | 40000        | 40000                    | 0
 2015P1A | -1              | 75000           | true         | 10000               | 55000            | 80000                      | 0            | 30000                    | 0
-2015P2A | -1              | 35000           | true         | 0                   | 35000            | 30000                      | 0            | 0                        | 0
+2015P2A | -1              | 35000           | true         | 0                   | 35000            | 30000                      | 0            | 30000                    | 0

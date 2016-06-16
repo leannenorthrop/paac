@@ -154,18 +154,22 @@ case class Group3P2Calculator(implicit amountsCalculator: BasicCalculator,
 
   override def unusedAllowance(): Long = {
     if (isTriggered) {
-      val unusedAllowance = if (period1.isMPA) {
-        period1.unusedAAA - definedBenefit
+      if (previous.unusedAAA > 0) {
+        0L
       } else {
-        val savings = if (defaultChargableAmount >= alternativeChargableAmount) {
-          period2PreTriggerSavings + postTriggerSavings
+        val unusedAllowance = if (period1.isMPA) {
+          period1.unusedAAA - definedBenefit
         } else {
-          period2PreTriggerSavings
+          val savings = if (defaultChargableAmount >= alternativeChargableAmount) {
+            period2PreTriggerSavings + postTriggerSavings
+          } else {
+            period2PreTriggerSavings
+          }
+          val deduct = if (isPeriod1Triggered) p2definedBenefit else period2PreTriggerSavings
+          if (savings > MAXAACF) 0L else period1.unusedAllowance - deduct
         }
-        val deduct = if (isPeriod1Triggered) p2definedBenefit else period2PreTriggerSavings
-        if (savings > MAXAACF) 0L else period1.unusedAllowance - deduct
+        unusedAllowance.max(0)
       }
-      unusedAllowance.max(0)
     } else {
       group2P2Calculator.unusedAllowance
     }
@@ -188,7 +192,9 @@ case class Group3P2Calculator(implicit amountsCalculator: BasicCalculator,
   override def aaCCF(): Long = {
     if (isTriggered) {
       val unused = unusedAllowance
-      if (unused > 0) {
+      if (previous.unusedAAA > 0) {
+        previous2YearsUnusedAllowance + period1.availableAAWithCCF - definedBenefit
+      } else if (unused > 0) {
         unused + previous2YearsUnusedAllowance
       } else {
         val ccf = (previous2YearsUnusedAllowance - period1NotTriggered.map(_.exceedingAAAmount).getOrElse(0L)).max(0L)
