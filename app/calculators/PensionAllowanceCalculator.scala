@@ -21,7 +21,9 @@ import play.api.Logger
 
 trait PensionAllowanceCalculator {
 
-  protected def provideMissingYearContributions(contributions : Seq[Contribution]): List[Contribution] = {
+  protected def provideMissingYearContributions(contributions : Seq[Contribution],
+                                                earliestYear: Int = PensionPeriod.EARLIEST_YEAR_SUPPORTED,
+                                                missingRowsAreRegistered: Boolean = true): List[Contribution] = {
     def sortByYearAndPeriod(left: Contribution, right: Contribution): Boolean = {
       if (left.taxPeriodStart.year == right.taxPeriodStart.year &&
           left.taxPeriodStart.year == 2015) {
@@ -65,7 +67,7 @@ trait PensionAllowanceCalculator {
 
     // Ensure sequential tax years have values converted none amounts to 0 for calculation purposes
     val inputsByTaxYear = contributions.groupBy(_.taxPeriodStart.year)
-    val allContributions = ((PensionPeriod.EARLIEST_YEAR_SUPPORTED).min(inputsByTaxYear.keys.min) to inputsByTaxYear.keys.max).foldLeft(List[Contribution]()) {
+    val allContributions = ((earliestYear).min(inputsByTaxYear.keys.min) to inputsByTaxYear.keys.max).foldLeft(List[Contribution]()) {
       (lst:List[Contribution], year:Int) =>
         if (year != 2015) {
           val contribution = inputsByTaxYear.get(year).getOrElse(List(Contribution(year,0))).head
@@ -75,10 +77,15 @@ trait PensionAllowanceCalculator {
     allContributions.sortWith(sortByYearAndPeriod _)
   }
 
-  def calculateAllowances(contributions : Seq[Contribution], doCollate: Boolean = false) : Seq[TaxYearResults] = {
+  def calculateAllowances(contributions : Seq[Contribution], 
+                          doCollate: Boolean = false, 
+                          earliestYear: Int = PensionPeriod.EARLIEST_YEAR_SUPPORTED,
+                          missingRowsAreRegistered: Boolean = true) : Seq[TaxYearResults] = {
     // Calculate results
     val inputsByTaxYear = contributions.groupBy(_.taxYearLabel)
-    val results = provideMissingYearContributions(contributions).foldLeft(List[TaxYearResults]()) {
+    val allContributions = provideMissingYearContributions(contributions, earliestYear, missingRowsAreRegistered)
+
+    val results = allContributions.foldLeft(List[TaxYearResults]()) {
       (lst, contribution) =>
 
       val maybeCalculator = CalculatorFactory.get(contribution)
