@@ -37,20 +37,21 @@ trait CalculatorController {
   def calculate() = Action.async(parse.json) { 
     implicit request =>
 
-    request.body.validate[Seq[Contribution]].fold(
+    request.body.validate[BackendRequest].fold(
       errors => {
         Future.successful(BadRequest(Json.obj("status" -> JsNumber(BAD_REQUEST),
                                               "message" -> JsString("Invalid JSON request object."),
                                               "validationErrors" -> JsError.toFlatJson(errors))))
       },
-      inputs => {
-        if (inputs.exists((contribution)=>(contribution.taxPeriodStart.year < PensionPeriod.EARLIEST_YEAR_SUPPORTED || contribution.taxPeriodEnd.year > PensionPeriod.LATEST_YEAR_SUPPORTED)))
+      calculationRequest => {
+        val contributions = calculationRequest.contributions
+        if (contributions.exists((contribution)=>(contribution.taxPeriodStart.year < PensionPeriod.EARLIEST_YEAR_SUPPORTED || contribution.taxPeriodEnd.year > PensionPeriod.LATEST_YEAR_SUPPORTED)))
           Future.successful(BadRequest(Json.obj("status" -> JsNumber(BAD_REQUEST),
                                                 "message" -> JsString(s"Unsupported tax year supplied, only tax years between ${PensionPeriod.EARLIEST_YEAR_SUPPORTED} and ${PensionPeriod.LATEST_YEAR_SUPPORTED} inclusive, are supported."))))
         else
           Future.successful(Ok(Json.obj("status" -> JsNumber(OK), 
                                         "message" -> JsString("Valid pension calculation request received."),
-                                        "results" -> Json.toJson(calculateAllowances(inputs,true)))))
+                                        "results" -> Json.toJson(calculateAllowances(contributions, true, calculationRequest.startFromYear.getOrElse(PensionPeriod.EARLIEST_YEAR_SUPPORTED), calculationRequest.missingYearsAreRegistered.getOrElse(true))))))
       }
     )
   }

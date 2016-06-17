@@ -68,6 +68,11 @@ class PensionAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
         def test(contributions : Seq[Contribution]): List[Contribution] = {
           provideMissingYearContributions(contributions)
         }
+        def expandedTest(contributions : Seq[Contribution],
+                         earliestYear: Int,
+                         treatMissingRowsAsRegisteredPensionYears: Boolean): List[Contribution] = {
+          provideMissingYearContributions(contributions,earliestYear,treatMissingRowsAsRegisteredPensionYears)
+        }
       }
 
       "create period 1 contribution of 0 when period 2 supplied" in {
@@ -82,15 +87,26 @@ class PensionAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
         results.find(_.taxYearLabel == "2015/16 P1").get shouldBe Contribution(PensionPeriod(2015,4,6),PensionPeriod(2015,7,8),Some(InputAmounts(Some(0L),Some(0L))))
       }
 
+      "return missing early contributions if not supplied" in {
+        // set up
+        val contributions = Seq(Contribution(2014,0L),Contribution(2012,0L))
+
+        // test
+        val results = Test.expandedTest(contributions, 2009, true)
+
+        // check
+        results shouldBe List(Contribution(2009,0L),Contribution(2010,0L),Contribution(2011,0L),Contribution(2012,0L),Contribution(2013,0L),Contribution(2014,0L))
+      }
+
       "return contributions in year order if given values out of order" in {
         // set up
         val contributions = Seq(Contribution(2014,0L),Contribution(2012,0L),Contribution(2011,0L))
 
         // test
-        val results = Test.test(contributions)
+        val results = Test.expandedTest(contributions, 2010, true)
 
         // check
-        Some(Seq(Contribution(2011,0L),Contribution(2012,0L),Contribution(2014,0L),Contribution(2014,0L)))
+        results shouldBe List(Contribution(2010,0L),Contribution(2011,0L),Contribution(2012,0L),Contribution(2013,0L),Contribution(2014,0L))
       }
 
       "return interim period values if not provided" in {
@@ -98,10 +114,10 @@ class PensionAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
         val contributions = Seq(Contribution(2011,0L),Contribution(2014,0L))
 
         // test
-        val results = Test.test(contributions)
+        val results = Test.expandedTest(contributions, 2010, true)
 
         // check
-        Some(Seq(Contribution(2011,0L),Contribution(2012,0L),Contribution(2014,0L),Contribution(2014,0L)))
+        results shouldBe List(Contribution(2010,0L),Contribution(2011,0L),Contribution(2012,0L),Contribution(2013,0L),Contribution(2014,0L))
       }
 
       "return corrected sorted contributions" in {
