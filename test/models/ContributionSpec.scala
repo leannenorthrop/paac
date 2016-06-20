@@ -434,6 +434,25 @@ class ContributionSpec extends ModelSpec {
       }
     }
 
+    "allowance" can {
+      "return period 1 allowance" in {
+        // check
+        Contribution.allowance(20151) shouldBe 8000000L
+      }
+      "return period 2 allowance" in {
+        // check
+        Contribution.allowance(20152) shouldBe 0L
+      }
+      "return 2014 allowance" in {
+        // check
+        Contribution.allowance(2014) shouldBe 4000000L
+      }
+      "return 2013 allowance" in {
+        // check
+        Contribution.allowance(2013) shouldBe 5000000L
+      }
+    }
+
     "label" can {
       "have a simple label" in {
         // set up

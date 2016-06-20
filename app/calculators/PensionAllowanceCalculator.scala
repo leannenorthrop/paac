@@ -17,69 +17,65 @@
 package calculators
 
 import models._
+import models.PensionPeriod._
 import play.api.Logger
 
 trait PensionAllowanceCalculator {
 
+  protected def getPeriodContributions(contributions : Seq[Contribution],
+                                       missingRowsAreRegistered: Boolean = true): List[Contribution] = {
+    val inputsByTaxYear = contributions.groupBy(_.taxPeriodStart.year)
+
+    def getPeriodContribution(isP1: Boolean): List[Contribution] = {
+      val contributions = if (inputsByTaxYear.contains(2015)) inputsByTaxYear(2015).groupBy(_.isPeriod1) else Map[Boolean,Seq[Contribution]]()
+      contributions.get(isP1).map(_.toList).getOrElse(List(Contribution(isP1, if (missingRowsAreRegistered) 0L else Contribution.periodAllowance(isP1), 0)))
+    }
+
+    def addContribution(start: PensionPeriod, 
+                        end: PensionPeriod, 
+                        isP1: Boolean, 
+                        lst1: List[Contribution], 
+                        lst2: List[Contribution]): List[Contribution] = {
+      val newPreTrigger = Contribution(start, end, if (missingRowsAreRegistered) 0L else Contribution.periodAllowance(isP1), 0, false)
+      List(newPreTrigger) ++ lst1 ++ lst2
+    }
+
+    val p1 = getPeriodContribution(true)
+    val p2 = getPeriodContribution(false)
+
+    // whenever there is a triggered contribution then we must have 3 contributions over p1 and p2, one of which must be a pre-trigger contribution even if inputs are 0
+    if (p1.size == 1 && p1(0).isTriggered) {
+      addContribution(PERIOD_1_2015_START, p1(0).taxPeriodStart, true, p1, p2)
+    } else if (p2.size == 1 && p2(0).isTriggered) {
+      if (p1.size == 1 && !p1(0).isTriggered) {
+        addContribution(PERIOD_2_2015_START, p2(0).taxPeriodStart, false, p2, p1)
+      } else {
+        p1 ++ p2
+      }
+    } else {
+      p1 ++ p2
+    }
+  }
+
   protected def provideMissingYearContributions(contributions : Seq[Contribution],
-                                                earliestYear: Int = PensionPeriod.EARLIEST_YEAR_SUPPORTED,
+                                                earliestYear: Int = EARLIEST_YEAR_SUPPORTED,
                                                 missingRowsAreRegistered: Boolean = true): List[Contribution] = {
-    def sortByYearAndPeriod(left: Contribution, right: Contribution): Boolean = {
-      if (left.taxPeriodStart.year == right.taxPeriodStart.year &&
-          left.taxPeriodStart.year == 2015) {
-        left.isPeriod1 && right.isPeriod2 || 
-        (left.isPeriod1 && right.isPeriod1 && !left.amounts.get.triggered.get) ||
-        (left.isPeriod2 && right.isPeriod2 && !left.amounts.get.triggered.get)
-      } else {  
-        left.taxPeriodStart.year < right.taxPeriodStart.year
-      }
-    }
-
-    def generatePeriod1And2Contributions(inputsByTaxYear: Map[Int,Seq[Contribution]],
-                                         lst:List[Contribution]): List[Contribution] = {
-      def getPeriodContributions(): (List[Contribution], List[Contribution]) = {
-        val contributions = inputsByTaxYear(2015).groupBy(_.isPeriod1)
-
-        val p1 = contributions.get(true).map(_.toList).getOrElse(List(Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(0,0)))))
-        val p2 = contributions.get(false).map(_.toList).getOrElse(List(Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(0,0)))))
-
-        // whenever there is a triggered contribution then we must have 3 contributions over p1 and p2, one of which must be a pre-trigger contribution even if inputs are 0
-        if (p1.size == 1 && p1(0).isTriggered) {
-          val newPreTrigger = Contribution(PensionPeriod.PERIOD_1_2015_START, p1(0).taxPeriodStart, Some(InputAmounts(Some(0), Some(0), None, Some(false))))
-          val newP1 = List(newPreTrigger) ++ p1
-          (newP1, p2)
-        } else if (p2.size == 1 && p2(0).isTriggered) {
-          if (p1.size == 1 && !p1(0).isTriggered) {
-            val newPreTrigger = Contribution(PensionPeriod.PERIOD_2_2015_START, p2(0).taxPeriodStart, Some(InputAmounts(Some(0), Some(0), None, Some(false))))
-            val newP2 = List(newPreTrigger) ++ p2
-            (newP2, p1)
-          } else {
-            (p1, p2)
-          }
-        } else {
-          (p1, p2)
-        }
-      }
-
-      val (p1Contributions, p2Contributions) = getPeriodContributions()
-      (p1Contributions ++ p2Contributions ++ lst)
-    }
-
-    // Ensure sequential tax years have values converted none amounts to 0 for calculation purposes
     val inputsByTaxYear = contributions.groupBy(_.taxPeriodStart.year)
     val allContributions = ((earliestYear).min(inputsByTaxYear.keys.min) to inputsByTaxYear.keys.max).foldLeft(List[Contribution]()) {
       (lst:List[Contribution], year:Int) =>
         if (year != 2015) {
-          val contribution = inputsByTaxYear.get(year).getOrElse(List(Contribution(year,0))).head
-          (if (contribution.isEmpty) contribution.copy(amounts=Some(InputAmounts(0,0))) else contribution) :: lst
-        } else { generatePeriod1And2Contributions(inputsByTaxYear, lst) }
+          val contribution = inputsByTaxYear.get(year).getOrElse(List(Contribution(year,if (missingRowsAreRegistered) 0L else Contribution.allowance(year)))).head
+          contribution :: lst
+        } else { 
+          getPeriodContributions(contributions,missingRowsAreRegistered) ++ lst 
+        }
     }
-    allContributions.sortWith(sortByYearAndPeriod _)
+    allContributions.sortWith(Contribution.sortByYearAndPeriod _)
   }
 
   def calculateAllowances(contributions : Seq[Contribution], 
                           doCollate: Boolean = false, 
-                          earliestYear: Int = PensionPeriod.EARLIEST_YEAR_SUPPORTED,
+                          earliestYear: Int = EARLIEST_YEAR_SUPPORTED,
                           missingRowsAreRegistered: Boolean = true) : Seq[TaxYearResults] = {
     // Calculate results
     val inputsByTaxYear = contributions.groupBy(_.taxYearLabel)
@@ -109,8 +105,8 @@ trait PensionAllowanceCalculator {
 
     if (true) Logger.info("\n\n" + r.mkString("\n") + "\n")
 
-    val triggerAmountRow = r.find(_.input.isTriggered)
-    if (triggerAmountRow.isDefined) {
+    r.find(_.input.isTriggered).map {
+      (_) =>
       val year2015ResultsMap = r.groupBy((r)=>r.input.isPeriod1||r.input.isPeriod2)(true).groupBy(_.input.isPeriod1)
       val period1Results = year2015ResultsMap.get(true).get
       val period2Results = year2015ResultsMap.get(false).get
@@ -129,9 +125,7 @@ trait PensionAllowanceCalculator {
         r
       }
       results.toIndexedSeq
-    } else {
-      r.toIndexedSeq
-    }
+    }.getOrElse(r.toIndexedSeq)
   }
 }
 

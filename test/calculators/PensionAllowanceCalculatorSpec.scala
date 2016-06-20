@@ -84,7 +84,7 @@ class PensionAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
 
         // check
         results.size shouldBe 9
-        results.find(_.taxYearLabel == "2015/16 P1").get shouldBe Contribution(PensionPeriod(2015,4,6),PensionPeriod(2015,7,8),Some(InputAmounts(Some(0L),Some(0L))))
+        results.find(_.taxYearLabel == "2015/16 P1").get shouldBe Contribution(PensionPeriod(2015,4,6),PensionPeriod(2015,7,8),0,0,false)
       }
 
       "return missing early contributions if not supplied" in {
@@ -96,6 +96,41 @@ class PensionAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
 
         // check
         results shouldBe List(Contribution(2009,0L),Contribution(2010,0L),Contribution(2011,0L),Contribution(2012,0L),Contribution(2013,0L),Contribution(2014,0L))
+      }      
+
+      "return maxed out contributions if not supplied and missingRowsAreRegistered is false" in {
+        // set up
+        val contributions = Seq(Contribution(2014,0L),Contribution(2012,0L))
+
+        // test
+        val results = Test.expandedTest(contributions, 2009, false)
+
+        // check
+        results shouldBe List(Contribution(PensionPeriod(2009,4,6),PensionPeriod(2010,4,5),Some(InputAmounts(Some(5000000),None,None,None))), 
+                              Contribution(PensionPeriod(2010,4,6),PensionPeriod(2011,4,5),Some(InputAmounts(Some(5000000),None,None,None))), 
+                              Contribution(PensionPeriod(2011,4,6),PensionPeriod(2012,4,5),Some(InputAmounts(Some(5000000),None,None,None))), 
+                              Contribution(PensionPeriod(2012,4,6),PensionPeriod(2013,4,5),Some(InputAmounts(Some(0),None,None,None))), 
+                              Contribution(PensionPeriod(2013,4,6),PensionPeriod(2014,4,5),Some(InputAmounts(Some(5000000),None,None,None))), 
+                              Contribution(PensionPeriod(2014,4,6),PensionPeriod(2015,4,5),Some(InputAmounts(Some(0),None,None,None)))) 
+      }
+
+      "return maxed out period 1 and period 2 contributions if not supplied and missingRowsAreRegistered is false" in {
+        // set up
+        val contributions = Seq(Contribution(2013,123L),Contribution(2016,246L))
+
+        // test
+        val results = Test.expandedTest(contributions, 2009, false)
+
+        // check
+        results shouldBe List(Contribution(PensionPeriod(2009,4,6),PensionPeriod(2010,4,5),Some(InputAmounts(Some(5000000),None,None,None))), 
+                              Contribution(PensionPeriod(2010,4,6),PensionPeriod(2011,4,5),Some(InputAmounts(Some(5000000),None,None,None))), 
+                              Contribution(PensionPeriod(2011,4,6),PensionPeriod(2012,4,5),Some(InputAmounts(Some(5000000),None,None,None))), 
+                              Contribution(PensionPeriod(2012,4,6),PensionPeriod(2013,4,5),Some(InputAmounts(Some(5000000),None,None,None))), 
+                              Contribution(PensionPeriod(2013,4,6),PensionPeriod(2014,4,5),Some(InputAmounts(Some(123),None,None,None))), 
+                              Contribution(PensionPeriod(2014,4,6),PensionPeriod(2015,4,5),Some(InputAmounts(Some(4000000),None,None,None))), 
+                              Contribution(PensionPeriod(2015,4,6),PensionPeriod(2015,7,8),Some(InputAmounts(Some(8000000),Some(0),None,Some(false)))), 
+                              Contribution(PensionPeriod(2015,7,9),PensionPeriod(2016,4,5),Some(InputAmounts(Some(0),Some(0),None,Some(false)))), 
+                              Contribution(PensionPeriod(2016,4,6),PensionPeriod(2017,4,5),Some(InputAmounts(Some(246),None,None,None))))
       }
 
       "return contributions in year order if given values out of order" in {
@@ -122,8 +157,8 @@ class PensionAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
 
       "return corrected sorted contributions" in {
         // set up
-        val c1 = Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, Some(false))))
-        val c2 = Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, Some(true))))
+        val c1 = Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, 1L, 2L, false)
+        val c2 = Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, 1L, 2L, true)
         val contributions = Seq(c2, c1)
 
         // test
@@ -131,14 +166,14 @@ class PensionAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
 
         // check
         val r = results.reverse
-        info(r.mkString("\n"))
+        //info(r.mkString("\n"))
         r(0) shouldBe c2
         r(1) shouldBe c1
       }
 
       "will provide missing pre-trigger p1 contribution" in {
         // set up
-        val c1 = Contribution(PensionPeriod(2015,6,1),PensionPeriod(2015,7,8),Some(InputAmounts(Some(0),Some(1000000),None,Some(true))))
+        val c1 = Contribution(PensionPeriod(2015,6,1),PensionPeriod(2015,7,8),0,1000000,true)
         val contributions = Seq(c1)
 
         // test
@@ -147,13 +182,13 @@ class PensionAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
         // check
         val r = results.reverse
         r(1) shouldBe c1
-        r(2) shouldBe Contribution(PensionPeriod(2015,4,6),PensionPeriod(2015,6,1),Some(InputAmounts(Some(0),Some(0),None,Some(false))))
+        r(2) shouldBe Contribution(PensionPeriod(2015,4,6),PensionPeriod(2015,6,1),0,0,false)
       }
 
       "will provide missing pre-trigger p1 contribution if 2 contributions triggered" in {
         // set up
-        val c0 = Contribution(PensionPeriod.PERIOD_1_2015_START,PensionPeriod.PERIOD_1_2015_END,Some(InputAmounts(Some(0),Some(1000000),None,Some(true))))
-        val c1 = Contribution(PensionPeriod.PERIOD_2_2015_START,PensionPeriod.PERIOD_2_2015_END,Some(InputAmounts(Some(0),Some(1000000),None,Some(true))))
+        val c0 = Contribution(PensionPeriod.PERIOD_1_2015_START,PensionPeriod.PERIOD_1_2015_END,1000000,0,true)
+        val c1 = Contribution(PensionPeriod.PERIOD_2_2015_START,PensionPeriod.PERIOD_2_2015_END,1000000,0,true)
         val contributions = Seq(c1, c0)
 
         // test
@@ -163,13 +198,13 @@ class PensionAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
         val r = results.reverse
         r(0) shouldBe c1
         r(1) shouldBe c0
-        r(2) shouldBe Contribution(PensionPeriod(2015,4,6),PensionPeriod(2015,4,6),Some(InputAmounts(Some(0),Some(0),None,Some(false))))
+        r(2) shouldBe Contribution(PensionPeriod(2015,4,6),PensionPeriod(2015,4,6),0,0,false)
       }
 
       "will provide missing pre-trigger p2 contribution" in {
         // set up
-        val c1 = Contribution(PensionPeriod.PERIOD_1_2015_START,PensionPeriod.PERIOD_1_2015_END,Some(InputAmounts(Some(0),Some(1000000),None,Some(false))))
-        val c2 = Contribution(PensionPeriod.PERIOD_2_2015_START,PensionPeriod.PERIOD_2_2015_END,Some(InputAmounts(Some(0),Some(1000000),None,Some(true))))
+        val c1 = Contribution(PensionPeriod.PERIOD_1_2015_START,PensionPeriod.PERIOD_1_2015_END,0,1000000,false)
+        val c2 = Contribution(PensionPeriod.PERIOD_2_2015_START,PensionPeriod.PERIOD_2_2015_END,0,1000000,true)
         val contributions = Seq(c1,c2)
 
         // test
@@ -178,7 +213,7 @@ class PensionAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
         // check
         val r = results.reverse
         r(0) shouldBe c2
-        r(1) shouldBe Contribution(PensionPeriod(2015,7,9),PensionPeriod(2015,7,9),Some(InputAmounts(Some(0),Some(0),None,Some(false)))) 
+        r(1) shouldBe Contribution(PensionPeriod(2015,7,9),PensionPeriod(2015,7,9),0,0,false)
         r(2) shouldBe c1
       }
     }

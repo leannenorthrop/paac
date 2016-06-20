@@ -44,6 +44,17 @@ case class PensionPeriod(year: Int, month: Int, day: Int) {
                                     year > that.year || (year == that.year && month > that.month) || (year == that.year && month == that.month && day > that.day) 
   def <=(that: PensionPeriod): Boolean = if (year == that.year && month == that.month && day == that.day) true else this < that
   def >=(that: PensionPeriod): Boolean = if (year == that.year && month == that.month && day == that.day) true else this > that
+  def isPeriod(s:PensionPeriod, e:PensionPeriod):Boolean = {
+    (this >= s) && (this <= e)
+  }
+
+  def isPeriod1(): Boolean = {
+    isPeriod(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END)
+  }
+
+  def isPeriod2(): Boolean = {
+    isPeriod(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END)
+  }
 }
 
 case class Contribution(taxPeriodStart: PensionPeriod, taxPeriodEnd: PensionPeriod, amounts: Option[InputAmounts]) extends CalculationParam {
@@ -74,19 +85,15 @@ case class Contribution(taxPeriodStart: PensionPeriod, taxPeriodEnd: PensionPeri
     amounts == None || (amounts.isDefined && amounts.get.isEmpty)
   }
 
-  def isPeriod(s:PensionPeriod, e:PensionPeriod):Boolean = {
-    (taxPeriodStart >= s) && (taxPeriodStart <= e) && (taxPeriodEnd >= s) && (taxPeriodEnd <= e)
-  }
-
   def isPeriod1(): Boolean = {
-    isPeriod(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END) 
+    taxPeriodStart.isPeriod1 && taxPeriodEnd.isPeriod1
   }
 
   def isPeriod2(): Boolean = {
-    isPeriod(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END) 
+    taxPeriodStart.isPeriod2 && taxPeriodEnd.isPeriod2
   }
 
-  def +(that:Contribution): Contribution = {
+  def + (that:Contribution): Contribution = {
     if (amounts.isDefined && that.amounts.isDefined) {
       val thisAmounts = amounts.get
       val thatAmounts = that.amounts.get
@@ -196,11 +203,37 @@ object Contribution {
 
   def apply(year: Int, definedBenefit: Long) : Contribution = {
     // month is 0 based
-    Contribution(PensionPeriod(year, 4, 6), PensionPeriod(year+1, 4, 5), Some(InputAmounts(definedBenefit)))
+    Contribution(PensionPeriod(year, 4, 6), PensionPeriod(year + 1, 4, 5), Some(InputAmounts(definedBenefit)))
   }
 
   def apply(year: Int, amounts: Option[InputAmounts]) : Contribution = {
     // month is 0 based
-    Contribution(PensionPeriod(year, 4, 6), PensionPeriod(year+1, 4, 5), amounts)
+    Contribution(PensionPeriod(year, 4, 6), PensionPeriod(year + 1, 4, 5), amounts)
+  }
+
+  def apply(start: PensionPeriod, end: PensionPeriod, db: Long, dc: Long, triggered: Boolean): Contribution = {
+    val amounts = InputAmounts(db, dc).copy(triggered=Some(triggered))
+    Contribution(start, end, Some(amounts))
+  }
+
+  def apply(isP1: Boolean, db: Long, dc: Long): Contribution = {
+    val start = if (isP1) PensionPeriod.PERIOD_1_2015_START else PensionPeriod.PERIOD_2_2015_START
+    val end = if (isP1) PensionPeriod.PERIOD_1_2015_END else PensionPeriod.PERIOD_2_2015_END
+    Contribution(start, end, db, dc, false)
+  }
+
+  def periodAllowance(isP1:Boolean):Long = calculators.CalculatorFactory.get(Contribution(isP1, 0, 0)).map(_.allowance).getOrElse(0L)
+
+  def allowance(year:Int):Long = if (year == 20151) periodAllowance(true) else if (year == 20152) periodAllowance(false) else calculators.CalculatorFactory.get(Contribution(year,0L)).map(_.allowance).getOrElse(0L)
+
+  def sortByYearAndPeriod(left: Contribution, right: Contribution): Boolean = {
+    if (left.taxPeriodStart.year == right.taxPeriodStart.year &&
+        left.taxPeriodStart.year == 2015) {
+      left.isPeriod1 && right.isPeriod2 || 
+      (left.isPeriod1 && right.isPeriod1 && !left.amounts.get.triggered.get) ||
+      (left.isPeriod2 && right.isPeriod2 && !left.amounts.get.triggered.get)
+    } else {  
+      left.taxPeriodStart.year < right.taxPeriodStart.year
+    }
   }
 }

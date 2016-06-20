@@ -49,10 +49,11 @@ class CalculatorControllerSpec extends ControllerSpec with BeforeAndAfterAll {
   }
 
   val ENDPOINT_PATH = "/paac/calculate/"
-  val VALID_CONTRIBUTION_JSON_BODY : List[Contribution] = List[Contribution](Contribution(taxPeriodStart=PensionPeriod(2009, 1, 1), taxPeriodEnd=PensionPeriod(2009, 4, 31), amounts=Some(InputAmounts(90000L,0L))))
-  val INVALID_CONTRIBUTION_JSON_BODY : List[Contribution] = List[Contribution](Contribution(taxPeriodStart=PensionPeriod(2009, 1, 1), taxPeriodEnd=PensionPeriod(2009, 4, 31), amounts=Some(InputAmounts(-2000L,0L))))
+  val VALID_CONTRIBUTION_JSON_BODY : List[Contribution] = List[Contribution](Contribution(taxPeriodStart=PensionPeriod(2012, 1, 1), taxPeriodEnd=PensionPeriod(2009, 4, 31), amounts=Some(InputAmounts(0L,0L))))
+  val INVALID_CONTRIBUTION_JSON_BODY : List[Contribution] = List[Contribution](Contribution(taxPeriodStart=PensionPeriod(2012, 1, 1), taxPeriodEnd=PensionPeriod(2009, 4, 31), amounts=Some(InputAmounts(-2000L,0L))))
 
-  def execute(body : List[Contribution]) : Future[Result] = controllers.CalculatorController.calculate()(getRequestWithJsonBody(ENDPOINT_PATH, Json.toJson(CalculationRequest(body,Some(2008), Some(true)))))
+  def submit(body : List[Contribution],
+            maybeYear: Option[Int] = Some(2008)) : Future[Result] = controllers.CalculatorController.calculate()(getRequestWithJsonBody(ENDPOINT_PATH, Json.toJson(CalculationRequest(body, maybeYear, Some(true)))))
 
   "Calculator API" should {
     "with valid json request body" must {
@@ -61,7 +62,7 @@ class CalculatorControllerSpec extends ControllerSpec with BeforeAndAfterAll {
           val requestBody = VALID_CONTRIBUTION_JSON_BODY
 
           // do it
-          val result = execute(requestBody)
+          val result = submit(requestBody)
 
           // check
           status(result) shouldBe OK
@@ -72,11 +73,53 @@ class CalculatorControllerSpec extends ControllerSpec with BeforeAndAfterAll {
           val requestBody = VALID_CONTRIBUTION_JSON_BODY
 
           // do it
-          val result = execute(requestBody)
+          val result = submit(requestBody)
 
           // check
           (contentAsJson(result) \ "status") shouldBe JsNumber(200)
           (contentAsJson(result) \ "message") shouldBe JsString("Valid pension calculation request received.")
+      }
+    }
+
+    "with parameterised request" must {
+      "supply earliest date if not provided" in {
+        // setup
+        val requestBody = VALID_CONTRIBUTION_JSON_BODY
+
+        // do it
+        val result = submit(requestBody, None)
+
+        // check
+        status(result) shouldBe OK
+        val lst = (contentAsJson(result) \ "results").as[List[TaxYearResults]]
+        lst.head.summaryResult.availableAAWithCF shouldBe 20000000L
+      }
+
+      "use earliest date if provided" in {
+        // setup
+        val requestBody = VALID_CONTRIBUTION_JSON_BODY
+
+        // do it
+        val result = submit(requestBody, Some(2010))
+
+        // check
+        status(result) shouldBe OK
+        val lst = (contentAsJson(result) \ "results").as[List[TaxYearResults]]
+        lst.head.summaryResult.availableAAWithCF shouldBe 15000000L
+      }
+
+      "with  year less than earliest supported tax year" in {
+        // set up
+        val requestBody = VALID_CONTRIBUTION_JSON_BODY
+
+        // test
+        val result = submit(requestBody, Some(1900))
+
+        // check
+        status(result) shouldBe 400
+        val results = contentAsJson(result)
+        (results \ "status") shouldBe JsNumber(400)
+        (results \ "message") shouldBe JsString("Invalid JSON request object.")
       }
     }
 
@@ -86,7 +129,7 @@ class CalculatorControllerSpec extends ControllerSpec with BeforeAndAfterAll {
           val requestBody = INVALID_CONTRIBUTION_JSON_BODY
 
           // do it
-          val result = execute(requestBody)
+          val result = submit(requestBody)
 
           // check
           status(result) shouldBe status(BadRequest)
@@ -97,7 +140,7 @@ class CalculatorControllerSpec extends ControllerSpec with BeforeAndAfterAll {
         val requestBody = INVALID_CONTRIBUTION_JSON_BODY
 
         //do it
-        val result = execute(requestBody)
+        val result = submit(requestBody)
 
         //check
         val obj : JsObject = contentAsJson(result).as[JsObject]
@@ -110,7 +153,7 @@ class CalculatorControllerSpec extends ControllerSpec with BeforeAndAfterAll {
       val contribution0 = Contribution(4400, 5000)
       val contributions = List(contribution0)
 
-      val result = execute(contributions)
+      val result = submit(contributions)
 
       status(result) shouldBe 400
       val results = contentAsJson(result)

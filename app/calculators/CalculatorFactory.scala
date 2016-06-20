@@ -24,6 +24,7 @@ trait Calculator {
 }
 
 trait AllowanceCalculator extends Calculator {
+  def allowance(): Long
   def isSupported(contribution:Contribution):Boolean
 }
 
