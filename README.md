@@ -24,7 +24,7 @@ There is a single REST endpoint on http://127.0.0.1:9443/paac/calculate which ex
 of the format where amounts are in pence:
 
 ```
-[
+{"contributions": [
 {
 "taxPeriodStart": {"year": 2013, "month": 4, "day": 6},
  "taxPeriodEnd": {"year": 2014, "month": 4, "day": 5},
@@ -35,12 +35,14 @@ of the format where amounts are in pence:
  "taxPeriodEnd": {"year": 2015, "month": 4, "day": 5},
  "amounts":{"definedBenefit":1200000,"moneyPurchase":0}
 }
-]
+], 
+"startFromYear": 2012, 
+"missingYearsAreRegistered": false }
 ```
 
 ## Trigger in Period 1
 ```
-[
+{"contributions": [
 {
 "taxPeriodStart": {"year": 2015, "month": 4, "day": 6},
  "taxPeriodEnd": {"year": 2015, "month": 6, "day": 30},
@@ -56,12 +58,14 @@ of the format where amounts are in pence:
  "taxPeriodEnd": {"year": 2016, "month": 4, "day": 5},
  "amounts":{"definedBenefit":0,"moneyPurchase":12000,"income":0,"triggered":true}
 }
-]
+], 
+"startFromYear": 2012, 
+"missingYearsAreRegistered": false }
 ```
 
 ## Trigger in Period 2
 ```
-[
+{"contributions": [
 {
 "taxPeriodStart":{"year": 2015, "month": 4, "day": 6},
 "taxPeriodEnd":{"year": 2015, "month": 7, "day": 8},
@@ -77,12 +81,14 @@ of the format where amounts are in pence:
 "taxPeriodEnd":{"year": 2016, "month": 4, "day": 5},
 "amounts":{"definedBenefit":0,"moneyPurchase":12000,"income":0,"triggered":true}
 }
-]
+], 
+"startFromYear": 2012, 
+"missingYearsAreRegistered": false }
 ```
 
 ### Group 2 testing (Defined contribution/money purchase only example)
 ```
-[
+{"contributions": [
 {
 "taxPeriodStart":{"year": 2015, "month": 4, "day": 6},
 "taxPeriodEnd":{"year": 2015, "month": 7, "day": 8},
@@ -98,13 +104,22 @@ of the format where amounts are in pence:
 "taxPeriodEnd":{"year": 2016, "month": 4, "day": 5},
 "amounts":{"definedBenefit":0,"moneyPurchase":12000,"income":0,"triggered":true}
 }
-]
+], 
+"startFromYear": 2012, 
+"missingYearsAreRegistered": false }
 ```
+
+### Parameters
+#### startFromYear
+The startFromYear parameter is used to control when calculations (namely carry forwards) should begin from. To obtain results similar to the existing extended calculator this parameter should be set to `2008` and missingYearsAreRegistered should be `true`.
+
+#### missingYearsAreRegistered
+The missingYearsAreRegistered parameter is used to control the carry forward portion of the calculations. If set to true any years not supplied as contributions it will be assumed that the 'user' is registered in a pension for those years and therefore carry forward applies. This should be set to true to mimic the existing extended calculator. To prevent carry forward of allowances for missing years then set this parameter to false.
 
 ### CURL Example
 
 ```
-curl -H "Content-Type: application/json" -d '[{"taxPeriodStart":{"year":2014,"month":4,"day":6},"taxPeriodEnd":{"year":2015,"month":4,"day":5}, "amounts":{"definedBenefit":3000,"moneyPurchase":0}},{"taxPeriodStart":{"year":2013,"month":4,"day":6},"taxPeriodEnd":{"year":2014,"month":4,"day":5}, "amounts":{"definedBenefit":8000,"moneyPurchase":0}}]' -X POST -vvvv http://127.0.0.1:9443/paac/calculate
+curl -H "Content-Type: application/json" -d '{"contributions": [{"taxPeriodStart":{"year":2014,"month":4,"day":6},"taxPeriodEnd":{"year":2015,"month":4,"day":5}, "amounts":{"definedBenefit":3000,"moneyPurchase":0}},{"taxPeriodStart":{"year":2013,"month":4,"day":6},"taxPeriodEnd":{"year":2014,"month":4,"day":5}, "amounts":{"definedBenefit":8000,"moneyPurchase":0}}], "startFromYear": 2012, "missingYearsAreRegistered": false }' -X POST -vvvv http://127.0.0.1:9443/paac/calculate
 ```
 
 ### Peculiarities
@@ -113,7 +128,7 @@ Please note that 2015 pension input period is unique in that it comprises of two
 using the correct start end dates in the input JSON e.g.
 
 ```
-[
+{"contributions": [
 { /* 2015 Period 1 */
 "taxPeriodStart": {"year": 2015, "month": 4, "day": 6},
  "taxPeriodEnd": {"year": 2015, "month": 7, "day": 8},
@@ -124,7 +139,9 @@ using the correct start end dates in the input JSON e.g.
  "taxPeriodEnd": {"year": 2016, "month": 4, "day": 5},
  "amounts":{"definedBenefit":12000,"moneyPurchase":0}
 }
-]
+], 
+"startFromYear": 2012, 
+"missingYearsAreRegistered": false }
 ```
 
 # Debugging
