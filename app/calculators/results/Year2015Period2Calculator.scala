@@ -22,6 +22,8 @@ import calculators.periods._
 object Year2015Period2Calculator extends calculators.AllowanceCalculator {
   protected def getAnnualAllowanceInPounds: Long = 0L
 
+  def allowance(): Long = getAnnualAllowanceInPounds * 100L
+  
   def isSupported(contribution:Contribution): Boolean = contribution.isPeriod2() && !contribution.isEmpty
 
   def summary(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Option[Summary] = {

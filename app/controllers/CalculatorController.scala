@@ -17,6 +17,7 @@
 package controllers
 
 import models._
+import models.PensionPeriod._
 import calculators.PensionAllowanceCalculator
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
@@ -45,13 +46,15 @@ trait CalculatorController {
       },
       calculationRequest => {
         val contributions = calculationRequest.contributions
-        if (contributions.exists((contribution)=>(contribution.taxPeriodStart.year < PensionPeriod.EARLIEST_YEAR_SUPPORTED || contribution.taxPeriodEnd.year > PensionPeriod.LATEST_YEAR_SUPPORTED)))
+        if (contributions.exists((contribution)=>(contribution.taxPeriodStart.year < EARLIEST_YEAR_SUPPORTED || 
+                                                  contribution.taxPeriodEnd.year > LATEST_YEAR_SUPPORTED)) ||
+            calculationRequest.startFromYear.getOrElse(EARLIEST_YEAR_SUPPORTED) < EARLIEST_YEAR_SUPPORTED)
           Future.successful(BadRequest(Json.obj("status" -> JsNumber(BAD_REQUEST),
-                                                "message" -> JsString(s"Unsupported tax year supplied, only tax years between ${PensionPeriod.EARLIEST_YEAR_SUPPORTED} and ${PensionPeriod.LATEST_YEAR_SUPPORTED} inclusive, are supported."))))
+                                                "message" -> JsString(s"Unsupported tax year supplied, only tax years between ${EARLIEST_YEAR_SUPPORTED} and ${LATEST_YEAR_SUPPORTED} inclusive, are supported."))))
         else
           Future.successful(Ok(Json.obj("status" -> JsNumber(OK), 
                                         "message" -> JsString("Valid pension calculation request received."),
-                                        "results" -> Json.toJson(calculateAllowances(contributions, true, calculationRequest.startFromYear.getOrElse(PensionPeriod.EARLIEST_YEAR_SUPPORTED), calculationRequest.missingYearsAreRegistered.getOrElse(true))))))
+                                        "results" -> Json.toJson(calculateAllowances(contributions, true, calculationRequest.startFromYear.getOrElse(EARLIEST_YEAR_SUPPORTED), calculationRequest.missingYearsAreRegistered.getOrElse(true))))))
       }
     )
   }
