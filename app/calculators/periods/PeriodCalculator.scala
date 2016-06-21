@@ -49,7 +49,7 @@ trait PeriodCalculator {
   def period1NotTriggered(implicit previousPeriods:Seq[TaxYearResults]): Option[ExtendedSummaryFields] = previousPeriods.filter(taxResultNotTriggered).find(_.input.isPeriod1).map(_.summaryResult.asInstanceOf[ExtendedSummaryFields])
 
   def isPeriod1Triggered(implicit previousPeriods:Seq[TaxYearResults]): Boolean = {
-    previousPeriods.find(_.input.amounts.getOrElse(InputAmounts()).triggered.getOrElse(false)) != None
+    previousPeriods.find(_.input.amounts.getOrElse(InputAmounts()).triggered.getOrElse(false)).isDefined
   }
 
   def basicCalculator(): calculators.results.BasicCalculator
