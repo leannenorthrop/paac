@@ -32,6 +32,8 @@ trait Summary {
   def availableAAWithCCF: Long   // available allowance carried forward to following year
   def unusedAAA: Long
   def unusedMPAA: Long
+  def exceedingMPAA: Long
+  def exceedingAAA: Long
 }
 
 case class SummaryResult(chargableAmount: Long = 0,
@@ -41,7 +43,9 @@ case class SummaryResult(chargableAmount: Long = 0,
                          availableAAWithCF: Long = 0,    // total available allowance for current year should be renamed to totalAA
                          availableAAWithCCF: Long = 0,   // available allowance carried forward to following year
                          unusedAAA: Long = 0,
-                         unusedMPAA: Long = 0) extends Summary
+                         unusedMPAA: Long = 0,
+                         exceedingMPAA: Long = 0,
+                         exceedingAAA: Long = 0) extends Summary
 
 case class ExtendedSummaryFields(chargableAmount: Long = 0,
                                  exceedingAAAmount: Long = 0,
@@ -76,7 +80,9 @@ object Summary {
     (JsPath \ "availableAAWithCF").write[Long] and
     (JsPath \ "availableAAWithCCF").write[Long] and
     (JsPath \ "unusedAAA").write[Long] and
-    (JsPath \ "unusedMPAA").write[Long]
+    (JsPath \ "unusedMPAA").write[Long] and 
+    (JsPath \ "exceedingMPAA").write[Long] and 
+    (JsPath \ "exceedingAAA").write[Long]
   )(Summary.toTuple _ )
 
   implicit val summaryResultReads: Reads[Summary] = (
@@ -87,11 +93,13 @@ object Summary {
     (JsPath \ "availableAAWithCF").read[Long] and
     (JsPath \ "availableAAWithCCF").read[Long] and
     (JsPath \ "unusedAAA").read[Long] and
-    (JsPath \ "unusedMPAA").read[Long]
+    (JsPath \ "unusedMPAA").read[Long] and
+    (JsPath \ "exceedingMPAA").read[Long] and 
+    (JsPath \ "exceedingAAA").read[Long]
   )(Summary.toSummary _)
 
-  def toTuple(summary: Summary): (Long, Long, Long, Long, Long, Long, Long, Long) = {
-    (summary.chargableAmount, summary.exceedingAAAmount, summary.availableAllowance, summary.unusedAllowance, summary.availableAAWithCF, summary.availableAAWithCCF, summary.unusedAAA, summary.unusedMPAA)
+  def toTuple(summary: Summary): (Long, Long, Long, Long, Long, Long, Long, Long, Long, Long) = {
+    (summary.chargableAmount, summary.exceedingAAAmount, summary.availableAllowance, summary.unusedAllowance, summary.availableAAWithCF, summary.availableAAWithCCF, summary.unusedAAA, summary.unusedMPAA, summary.exceedingMPAA, summary.exceedingAAA)
   }
 
   def toSummary(chargableAmount: Long = 0,
@@ -101,7 +109,9 @@ object Summary {
                 availableAAWithCF: Long = 0,    // total available allowance for current year should be renamed to totalAA
                 availableAAWithCCF: Long = 0,   // available allowance carried forward to following year
                 unusedAAA: Long = 0,
-                unusedMPAA: Long = 0): Summary = {
+                unusedMPAA: Long = 0,
+                exceedingMPAA: Long = 0,
+                exceedingAAA: Long = 0): Summary = {
     SummaryResult(chargableAmount,
                   exceedingAAAmount,
                   availableAllowance,
@@ -109,7 +119,9 @@ object Summary {
                   availableAAWithCF,
                   availableAAWithCCF,
                   unusedAAA,
-                  unusedMPAA)
+                  unusedMPAA,
+                  exceedingMPAA,
+                  exceedingAAA)
   }
 }
 
