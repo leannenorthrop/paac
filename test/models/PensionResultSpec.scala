@@ -150,7 +150,7 @@ class PensionResultSpec extends ModelSpec {
 
     "unmarshall from JSON" in {
       // setup
-      val json = Json.parse("""{"chargableAmount": 12345, "exceedingAAAmount": 67890, "availableAllowance":0, "unusedAllowance": 0, "availableAAWithCF": 0, "availableAAWithCCF":0, "unusedAAA":0, "unusedMPAA": 0}""")
+      val json = Json.parse("""{"chargableAmount": 12345, "exceedingAAAmount": 67890, "availableAllowance":0, "unusedAllowance": 0, "availableAAWithCF": 0, "availableAAWithCCF":0, "unusedAAA":0, "unusedMPAA": 0, "exceedingMPAA": 0, "exceedingAAA": 0}""")
 
       // do it
       val summaryResultOption : Option[Summary] = json.validate[Summary].fold(invalid = { _ => None }, valid = { obj => Some(obj)})
@@ -211,6 +211,10 @@ class PensionResultSpec extends ModelSpec {
       jsonUnusedAAA.as[Long] shouldBe 0L
       val jsonUnusedMPAA = json \ "summaryResult" \ "unusedMPAA"
       jsonUnusedMPAA.as[Long] shouldBe 0L
+      val jsonExceedingMPAA = json \ "summaryResult" \ "exceedingMPAA"
+      jsonExceedingMPAA.as[Long] shouldBe 0L
+      val jsonExceedingAAA = json \ "summaryResult" \ "exceedingAAA"
+      jsonExceedingAAA.as[Long] shouldBe 0L
     }    
 
     "unmarshall from JSON" in {
@@ -218,7 +222,9 @@ class PensionResultSpec extends ModelSpec {
       val json = Json.parse("""{"input": {"taxPeriodStart": {"year":2008, "month" : 2, "day" : 11}, 
                                           "taxPeriodEnd": {"year":2008, "month" : 8, "day" : 12}, 
                                           "amounts": {"definedBenefit": 12345, "moneyPurchase": 67890}}, 
-                                          "summaryResult": {"chargableAmount": 12345, "exceedingAAAmount": 67890, "availableAllowance":1, "unusedAllowance": 2, "availableAAWithCF": 3, "availableAAWithCCF":4, "unusedAAA":5, "unusedMPAA": 6}}""")
+                                          "summaryResult": {"chargableAmount": 12345, "exceedingAAAmount": 67890, "availableAllowance":1, "unusedAllowance": 2,
+                                          "availableAAWithCF": 3, "availableAAWithCCF":4, "unusedAAA":5, "unusedMPAA": 6,
+                                          "exceedingMPAA": 0, "exceedingAAA": 0}}""")
 
       // do it
       val taxYearResultsOption : Option[TaxYearResults] = json.validate[TaxYearResults].fold(invalid = { _ => None }, valid = { obj => Some(obj)})
