@@ -135,13 +135,7 @@ case class Group3P2Calculator(implicit amountsCalculator: BasicCalculator,
           ((flexiAccessSavings + definedBenefit) - period1.availableAAWithCCF).max(0)
         }
       }.getOrElse {
-        if (isMPAAApplicable) {
-          //((preTriggerSavings + flexiAccessSavings + definedBenefit) - period1.availableAAWithCCF).max(0)
-          ((period2PreTriggerSavings + flexiAccessSavings) - period1.availableAAWithCCF).max(0)
-        } else {
-          //((flexiAccessSavings + definedBenefit) - period1.availableAAWithCCF).max(0)
-          ((flexiAccessSavings) - period1.availableAAWithCCF).max(0)
-        }
+        ((period2PreTriggerSavings + flexiAccessSavings) - period1.availableAAWithCCF).max(0)
       }
     } else {
       0L

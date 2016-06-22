@@ -57,19 +57,18 @@ case class Group2P2Calculator(implicit amountsCalculator: BasicCalculator,
     val period1ACA = period1or2.alternativeChargableAmount
     val period1AA = period1or2.unusedAllowance
     val period1AAA = period1or2.unusedAAA
-
-      if (period1AAA > 0) {
-        if (period1AAA > savings) {
-          0L
-        } else {
-          (savings - (period1AAA + period1or2.availableAAWithCCF)).max(0)
-        }
+    if (period1AAA > 0) {
+      if (period1AAA > savings) {
+        0L
       } else {
-        if (period1AA > savings) {
-          0L
-        } else {
-          (savings - (period1AA + period1or2.availableAAWithCCF)).max(0)
-        }
+        (savings - (period1AAA + period1or2.availableAAWithCCF)).max(0)
+      }
+    } else {
+      if (period1AA > savings) {
+        0L
+      } else {
+        (savings - (period1AA + period1or2.availableAAWithCCF)).max(0)
+      }
     }
   }
 
