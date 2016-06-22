@@ -22,7 +22,7 @@ import org.scalatest._
 import org.scalatest.prop._
 import calculators.results.BasicCalculator
 
-class Group3P2CalculatorSpec extends UnitSpec {
+class Period2CalculatorSpec extends UnitSpec {
   trait TestFixture {
     val annualAllowance = 50000
     implicit val amountsCalculator = BasicCalculator(annualAllowance)
@@ -41,7 +41,7 @@ class Group3P2CalculatorSpec extends UnitSpec {
       implicit val contribution = Contribution(2015, 1L).copy(amounts=Some(InputAmounts(definedBenefit=None,moneyPurchase=Some(5000000L))))
 
       // test
-      val result = Group3P2Calculator().isMPAAApplicable
+      val result = Period2Calculator().isMPAAApplicable
 
       // check
       result shouldBe true
@@ -53,7 +53,7 @@ class Group3P2CalculatorSpec extends UnitSpec {
       implicit val contribution = Contribution(2015, 1L)
 
       // test
-      val result = Group3P2Calculator().isMPAAApplicable
+      val result = Period2Calculator().isMPAAApplicable
 
       // check
       result shouldBe true
@@ -65,7 +65,7 @@ class Group3P2CalculatorSpec extends UnitSpec {
       implicit val contribution = Contribution(2015, 1L)
 
       // test
-      val result = Group3P2Calculator().isMPAAApplicable
+      val result = Period2Calculator().isMPAAApplicable
 
       // check
       result shouldBe true
@@ -77,7 +77,7 @@ class Group3P2CalculatorSpec extends UnitSpec {
       implicit val contribution = p2Contribution(10L)
 
       // test
-      val result = Group3P2Calculator().isMPAAApplicable
+      val result = Period2Calculator().isMPAAApplicable
 
       // check
       result shouldBe false
@@ -91,7 +91,7 @@ class Group3P2CalculatorSpec extends UnitSpec {
       implicit val contribution = Contribution(2015, 1L)
 
       // test
-      val result = Group3P2Calculator().mpist
+      val result = Period2Calculator().mpist
 
       // check
       result shouldBe 0L
@@ -105,7 +105,7 @@ class Group3P2CalculatorSpec extends UnitSpec {
       implicit val contribution = Contribution(2015, 9100000L)
 
       // test
-      val result = Group3P2Calculator().defaultChargableAmount
+      val result = Period2Calculator().defaultChargableAmount
 
       // check
       result shouldBe 0L
@@ -119,7 +119,7 @@ class Group3P2CalculatorSpec extends UnitSpec {
       implicit val contribution = Contribution(2015, 9100000L)
 
       // test
-      val result = Group3P2Calculator().exceedingAllowance
+      val result = Period2Calculator().exceedingAllowance
 
       // check
       result shouldBe 9100000L
@@ -133,7 +133,7 @@ class Group3P2CalculatorSpec extends UnitSpec {
       implicit val contribution = Contribution(2015, 9100000L)
 
       // test
-      val result = Group3P2Calculator().unusedAllowance
+      val result = Period2Calculator().unusedAllowance
 
       // check
       result shouldBe 0L
@@ -145,7 +145,7 @@ class Group3P2CalculatorSpec extends UnitSpec {
       implicit val contribution = Contribution(2015, 0).copy(amounts=Some(InputAmounts(triggered=Some(true))))
 
       // test
-      val result = Group3P2Calculator().unusedAllowance
+      val result = Period2Calculator().unusedAllowance
 
       // check
       result shouldBe 0L
@@ -159,7 +159,7 @@ class Group3P2CalculatorSpec extends UnitSpec {
       implicit val contribution = Contribution(2015, 123)
 
       // test
-      val result = Group3P2Calculator().postFlexiSavings
+      val result = Period2Calculator().postFlexiSavings
 
       // check
       result shouldBe 0L
@@ -173,7 +173,7 @@ class Group3P2CalculatorSpec extends UnitSpec {
       implicit val contribution = Contribution(2015, 123)
 
       // test
-      val result = Group3P2Calculator().preFlexiSavings
+      val result = Period2Calculator().preFlexiSavings
 
       // check
       result shouldBe 123L
@@ -185,7 +185,7 @@ class Group3P2CalculatorSpec extends UnitSpec {
       implicit val contribution = Contribution(2015, 0).copy(amounts=Some(InputAmounts(moneyPurchase=Some(123L), triggered=Some(true))))
 
       // test
-      val result = Group3P2Calculator().preFlexiSavings
+      val result = Period2Calculator().preFlexiSavings
 
       // check
       result shouldBe 0L
@@ -198,7 +198,7 @@ class Group3P2CalculatorSpec extends UnitSpec {
       implicit val contribution = Contribution(2015, 0).copy(amounts=Some(InputAmounts(triggered=Some(true))))
 
       // test
-      val result = Group3P2Calculator().preFlexiSavings
+      val result = Period2Calculator().preFlexiSavings
 
       // check
       result shouldBe 123L
@@ -212,7 +212,7 @@ class Group3P2CalculatorSpec extends UnitSpec {
       implicit val contribution = Contribution(2015, 0)
 
       // test
-      val result = Group3P2Calculator().unusedAAA
+      val result = Period2Calculator().unusedAAA
 
       // check
       result shouldBe 0L
@@ -226,7 +226,7 @@ class Group3P2CalculatorSpec extends UnitSpec {
       implicit val contribution = Contribution(2015, 0).copy(amounts=Some(InputAmounts(definedBenefit=Some(123L),moneyPurchase=Some(123L),triggered=Some(true))))
 
       // test
-      val result = Group3P2Calculator().unusedAAA
+      val result = Period2Calculator().unusedAAA
 
       // check
       result shouldBe (period1UnusedAAA-123L)
@@ -240,7 +240,7 @@ class Group3P2CalculatorSpec extends UnitSpec {
       implicit val contribution = Contribution(2015, 0).copy(amounts=Some(InputAmounts(definedBenefit=Some(123L),moneyPurchase=Some(123L),triggered=Some(true))))
 
       // test
-      val result = Group3P2Calculator().unusedAAA
+      val result = Period2Calculator().unusedAAA
 
       // check
       result shouldBe 0L
@@ -254,7 +254,7 @@ class Group3P2CalculatorSpec extends UnitSpec {
       implicit val contribution = Contribution(2015, 123)
 
       // test
-      val result = Group3P2Calculator().aaCCF
+      val result = Period2Calculator().aaCCF
 
       // check
       result shouldBe 0L
@@ -268,7 +268,7 @@ class Group3P2CalculatorSpec extends UnitSpec {
       implicit val contribution = Contribution(2015, 123)
 
       // test
-      val result = Group3P2Calculator().aaCF
+      val result = Period2Calculator().aaCF
 
       // check
       result shouldBe 0L

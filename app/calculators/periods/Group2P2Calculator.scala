@@ -22,7 +22,6 @@ import calculators.results.BasicCalculator
 case class Group2P2Calculator(implicit amountsCalculator: BasicCalculator,
                                        previousPeriods:Seq[TaxYearResults], 
                                        contribution:Contribution) extends PeriodCalculator {
-  val group1P2Calculator = Group1P2Calculator()
   val MPA = 10000 * 100L
   val P1MPA = 20000 * 100L
   val AAA = 30000 * 100L
@@ -33,7 +32,7 @@ case class Group2P2Calculator(implicit amountsCalculator: BasicCalculator,
 
   override def isMPAAApplicable(): Boolean = (definedContribution > MPA) || period1.isMPA || period1Amounts.moneyPurchase.getOrElse(0L) >= P1MPA
 
-  override def definedBenefit(): Long = 0L
+  override def definedBenefit(): Long = if (contribution.isGroup2) 0L else basicCalculator().definedBenefit
 
   override def dbist(): Long = 0L
 
@@ -53,28 +52,32 @@ case class Group2P2Calculator(implicit amountsCalculator: BasicCalculator,
   }
 
   override def defaultChargableAmount(): Long = {
-    val savings = mpist
-    val period1ACA = period1or2.alternativeChargableAmount
-    val period1AA = period1or2.unusedAllowance
-    val period1AAA = period1or2.unusedAAA
-    if (period1AAA > 0) {
-      if (period1AAA > savings) {
-        0L
+    if (contribution.isGroup2) {
+      val savings = mpist
+      val period1ACA = period1or2.alternativeChargableAmount
+      val period1AA = period1or2.unusedAllowance
+      val period1AAA = period1or2.unusedAAA
+      if (period1AAA > 0) {
+        if (period1AAA > savings) {
+          0L
+        } else {
+          (savings - (period1AAA + period1or2.availableAAWithCCF)).max(0)
+        }
       } else {
-        (savings - (period1AAA + period1or2.availableAAWithCCF)).max(0)
+        if (period1AA > savings) {
+          0L
+        } else {
+          (savings - (period1AA + period1or2.availableAAWithCCF)).max(0)
+        }
       }
     } else {
-      if (period1AA > savings) {
-        0L
-      } else {
-        (savings - (period1AA + period1or2.availableAAWithCCF)).max(0)
-      }
+      0L
     }
   }
 
-  override def exceedingAllowance(): Long = if (isTriggered) 0L else group1P2Calculator.exceedingAllowance
+  override def exceedingAllowance(): Long = if (contribution.isGroup2 && isTriggered) 0L else (basicCalculator().definedBenefit - period1.unusedAllowance).max(0)
 
-  override def annualAllowance(): Long = period1or2.unusedAllowance
+  override def annualAllowance(): Long = if (contribution.isGroup2) period1or2.unusedAllowance else basicCalculator().annualAllowance
 
   override def unusedAllowance(): Long = {
     if (isTriggered) {
@@ -90,7 +93,7 @@ case class Group2P2Calculator(implicit amountsCalculator: BasicCalculator,
         }
       }
     } else {
-      group1P2Calculator.unusedAllowance
+      (period1.unusedAllowance - basicCalculator().definedBenefit).max(0)
     }
   }
 
@@ -102,11 +105,12 @@ case class Group2P2Calculator(implicit amountsCalculator: BasicCalculator,
         defaultChargableAmount
       }
     } else {
-      group1P2Calculator.chargableAmount
+      val cf = previous.availableAAWithCCF
+      if (basicCalculator().definedBenefit > cf) basicCalculator().definedBenefit - cf else 0L
     }
   }
 
-  override def aaCF(): Long = if (isTriggered) period1or2.availableAAWithCCF else group1P2Calculator.aaCF
+  override def aaCF(): Long = if (isTriggered) period1or2.availableAAWithCCF else previousResults.map(_.summaryResult.availableAAWithCCF).getOrElse(0L)
 
   override def aaCCF(): Long = {
     if (isTriggered) {
@@ -122,7 +126,21 @@ case class Group2P2Calculator(implicit amountsCalculator: BasicCalculator,
         }
       }
     } else {
-      group1P2Calculator.aaCCF
+      val execeeding = exceedingAllowance
+        if (execeeding > 0) {
+        val previousResults = previousPeriods.map(_.summaryResult).headOption.getOrElse(SummaryResult())
+
+          val period1AACCF = previousResults.availableAAWithCCF
+          if (execeeding >= period1AACCF) {
+            0L
+          } else {
+            val unusedAllowanceList = actualUnused.slice(0, 3).map(_._2)
+            unusedAllowanceList.foldLeft(0L)(_ + _)
+          }
+        } else {
+          val unusedAllowanceList = actualUnused.slice(0, 3).map(_._2)
+          unusedAllowanceList.foldLeft(0L)(_ + _)
+      }
     }
   }
 

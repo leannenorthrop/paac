@@ -19,10 +19,10 @@ package calculators.periods
 import models._
 import calculators.results.BasicCalculator
 
-case class Group3P2Calculator(implicit amountsCalculator: BasicCalculator,
-                                       previousPeriods:Seq[TaxYearResults], 
-                                       contribution: Contribution) extends PeriodCalculator {
-  val group2P2Calculator = Group1P2Calculator()
+case class Period2Calculator(implicit amountsCalculator: BasicCalculator,
+                                      previousPeriods:Seq[TaxYearResults], 
+                                      contribution: Contribution) extends PeriodCalculator {
+  val group2P2Calculator = Group2P2Calculator()
   val MPA = 10000 * 100L
   val AAA = 30000 * 100L
   val P1MPA = 20000 * 100L

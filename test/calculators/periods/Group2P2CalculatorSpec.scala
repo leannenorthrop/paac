@@ -147,12 +147,12 @@ class Group2P2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks
     } 
 
     "annualAllowance" should {
-      "return 0 if no previous periods supplied" in new TestFixture {
+      "return basic allowance if no previous periods supplied" in new TestFixture {
         // test
         val result = Group2P2Calculator().annualAllowance
 
         // check
-        result shouldBe 0L
+        result shouldBe 5000000L
       }
     }
 
