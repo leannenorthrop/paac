@@ -223,7 +223,7 @@ case class Group3P2Calculator(implicit amountsCalculator: BasicCalculator,
 
   override def exceedingAAA(): Long = 0L
 
-  override def unusedAAA(): Long = if (isTriggered) period1.unusedAAA else 0L
+  override def unusedAAA(): Long = if (isTriggered) (period1.unusedAAA - p2definedBenefit).max(0) else 0L
 
   override def unusedMPAA(): Long = 0L
 
