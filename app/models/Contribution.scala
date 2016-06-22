@@ -33,7 +33,7 @@ case class InputAmounts(definedBenefit: Option[Long] = None,
                         income: Option[Long] = None,
                         triggered: Option[Boolean] = None) extends PensionCalculatorValue {
   def isEmpty() : Boolean = {
-    definedBenefit == None && moneyPurchase == None && income == None
+    !definedBenefit.isDefined && !moneyPurchase.isDefined && !income.isDefined
   }
 }
 
@@ -82,7 +82,7 @@ case class Contribution(taxPeriodStart: PensionPeriod, taxPeriodEnd: PensionPeri
   }
   
   def isEmpty(): Boolean = {
-    amounts == None || (amounts.isDefined && amounts.get.isEmpty)
+    !amounts.isDefined || (amounts.isDefined && amounts.get.isEmpty)
   }
 
   def isPeriod1(): Boolean = {
@@ -108,22 +108,22 @@ case class Contribution(taxPeriodStart: PensionPeriod, taxPeriodEnd: PensionPeri
   def isGroup1(): Boolean = {
     amounts.isDefined && 
     (isPeriod1() || isPeriod2()) &&
-    (amounts.get.moneyPurchase == None &&
-     (amounts.get.triggered == None || !amounts.get.triggered.get))
+    ( !amounts.get.moneyPurchase.isDefined &&
+     ( !amounts.get.triggered.isDefined|| !amounts.get.triggered.get))
   }
 
   def isGroup2(): Boolean = {
     amounts.isDefined && 
     (isPeriod1() || isPeriod2()) && 
-    amounts.get.moneyPurchase != None
+    amounts.get.moneyPurchase.isDefined
   }
 
   def isGroup3(): Boolean = {
     amounts.isDefined && 
     (isPeriod2() && 
     amounts.get.triggered.getOrElse(false) && 
-    amounts.get.moneyPurchase != None && 
-    amounts.get.definedBenefit != None)
+    amounts.get.moneyPurchase.isDefined &&
+    amounts.get.definedBenefit.isDefined)
   }
 
   def isTriggered(): Boolean = {
