@@ -34,6 +34,7 @@ trait Summary {
   def unusedMPAA: Long
   def exceedingMPAA: Long
   def exceedingAAA: Long
+  def isMPA: Boolean
 }
 
 case class SummaryResult(chargableAmount: Long = 0,
@@ -45,7 +46,8 @@ case class SummaryResult(chargableAmount: Long = 0,
                          unusedAAA: Long = 0,
                          unusedMPAA: Long = 0,
                          exceedingMPAA: Long = 0,
-                         exceedingAAA: Long = 0) extends Summary
+                         exceedingAAA: Long = 0,
+                         isMPA: Boolean = false) extends Summary
 
 case class ExtendedSummaryFields(chargableAmount: Long = 0,
                                  exceedingAAAmount: Long = 0,
@@ -82,7 +84,8 @@ object Summary {
     (JsPath \ "unusedAAA").write[Long] and
     (JsPath \ "unusedMPAA").write[Long] and 
     (JsPath \ "exceedingMPAA").write[Long] and 
-    (JsPath \ "exceedingAAA").write[Long]
+    (JsPath \ "exceedingAAA").write[Long] and
+    (JsPath \ "isMPA").write[Boolean]
   )(Summary.toTuple _ )
 
   implicit val summaryResultReads: Reads[Summary] = (
@@ -95,11 +98,12 @@ object Summary {
     (JsPath \ "unusedAAA").read[Long] and
     (JsPath \ "unusedMPAA").read[Long] and
     (JsPath \ "exceedingMPAA").read[Long] and 
-    (JsPath \ "exceedingAAA").read[Long]
+    (JsPath \ "exceedingAAA").read[Long] and
+    (JsPath \ "isMPA").read[Boolean]
   )(Summary.toSummary _)
 
-  def toTuple(summary: Summary): (Long, Long, Long, Long, Long, Long, Long, Long, Long, Long) = {
-    (summary.chargableAmount, summary.exceedingAAAmount, summary.availableAllowance, summary.unusedAllowance, summary.availableAAWithCF, summary.availableAAWithCCF, summary.unusedAAA, summary.unusedMPAA, summary.exceedingMPAA, summary.exceedingAAA)
+  def toTuple(summary: Summary): (Long, Long, Long, Long, Long, Long, Long, Long, Long, Long, Boolean) = {
+    (summary.chargableAmount, summary.exceedingAAAmount, summary.availableAllowance, summary.unusedAllowance, summary.availableAAWithCF, summary.availableAAWithCCF, summary.unusedAAA, summary.unusedMPAA, summary.exceedingMPAA, summary.exceedingAAA, summary.isMPA)
   }
 
   def toSummary(chargableAmount: Long = 0,
@@ -111,7 +115,8 @@ object Summary {
                 unusedAAA: Long = 0,
                 unusedMPAA: Long = 0,
                 exceedingMPAA: Long = 0,
-                exceedingAAA: Long = 0): Summary = {
+                exceedingAAA: Long = 0,
+                isMPA: Boolean = false): Summary = {
     SummaryResult(chargableAmount,
                   exceedingAAAmount,
                   availableAllowance,
@@ -121,7 +126,8 @@ object Summary {
                   unusedAAA,
                   unusedMPAA,
                   exceedingMPAA,
-                  exceedingAAA)
+                  exceedingAAA,
+                  isMPA)
   }
 }
 

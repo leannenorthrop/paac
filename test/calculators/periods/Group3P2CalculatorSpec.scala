@@ -217,6 +217,34 @@ class Group3P2CalculatorSpec extends UnitSpec {
       // check
       result shouldBe 0L
     }
+
+    "return period1 unusedAAA - definedBenefit" in new TestFixture {
+      // set up
+      val period1UnusedAAA = 29098
+      val c = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, 0, 20001,true)
+      implicit val previousPeriods = List[TaxYearResults](TaxYearResults(c,ExtendedSummaryFields(unusedAAA=period1UnusedAAA,isMPA=true)))
+      implicit val contribution = Contribution(2015, 0).copy(amounts=Some(InputAmounts(definedBenefit=Some(123L),moneyPurchase=Some(123L),triggered=Some(true))))
+
+      // test
+      val result = Group3P2Calculator().unusedAAA
+
+      // check
+      result shouldBe (period1UnusedAAA-123L)
+    }
+
+    "return 0 when triggered and no allowance" in new TestFixture {
+      // set up
+      val period1UnusedAAA = 5
+      val c = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, 0, 20001,true)
+      implicit val previousPeriods = List[TaxYearResults](TaxYearResults(c,ExtendedSummaryFields(unusedAAA=period1UnusedAAA,isMPA=true)))
+      implicit val contribution = Contribution(2015, 0).copy(amounts=Some(InputAmounts(definedBenefit=Some(123L),moneyPurchase=Some(123L),triggered=Some(true))))
+
+      // test
+      val result = Group3P2Calculator().unusedAAA
+
+      // check
+      result shouldBe 0L
+    }
   }
 
   "aaCCF" should {
