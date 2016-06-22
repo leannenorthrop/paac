@@ -86,7 +86,7 @@ class Group2P2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks
     "moneyPurchaseAA" should {
       "return 0 if no previous periods supplied" in new TestFixture {
         // test
-        val result = Group1P1Calculator().moneyPurchaseAA
+        val result = Group2P2Calculator().moneyPurchaseAA
 
         // check
         result shouldBe 0L

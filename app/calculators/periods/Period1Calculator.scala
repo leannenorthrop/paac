@@ -19,16 +19,15 @@ package calculators.periods
 import models._
 import calculators.results.BasicCalculator
 
-case class Group2P1Calculator(implicit amountsCalculator: BasicCalculator,
-                                       previousPeriods:Seq[TaxYearResults], 
-                                       contribution: Contribution) extends PeriodCalculator {
+case class Period1Calculator(implicit amountsCalculator: BasicCalculator,
+                                      previousPeriods:Seq[TaxYearResults], 
+                                      contribution: Contribution) extends PeriodCalculator {
   val MPA = 20000 * 100L
   val P2MPA = 10000 * 100L
   val AAA = 60000 * 100L
   val P2AAA = 30000 * 100L
   val AA = 80000 * 100L
   val MAX_CF = 4000000L
-  val group1Calculator = Group1P1Calculator()
 
   def basicCalculator(): BasicCalculator = amountsCalculator
   
@@ -140,7 +139,7 @@ case class Group2P1Calculator(implicit amountsCalculator: BasicCalculator,
 
   override def exceedingAllowance(): Long = {
     if (!isTriggered) {
-      group1Calculator.exceedingAllowance
+      basicCalculator().exceedingAllowance
     } else {
       if (isMPAAApplicable) {
         if (definedBenefit + definedContribution > AA) {
@@ -156,7 +155,7 @@ case class Group2P1Calculator(implicit amountsCalculator: BasicCalculator,
 
   override def annualAllowance(): Long = {
     if (!isTriggered) {
-      group1Calculator.annualAllowance
+      basicCalculator().annualAllowance
     } else if (defaultChargableAmount >= alternativeChargableAmount) {
       AA
     } else {
@@ -166,7 +165,7 @@ case class Group2P1Calculator(implicit amountsCalculator: BasicCalculator,
 
   override def unusedAllowance(): Long = {
     if (!isTriggered) {
-      group1Calculator.unusedAllowance
+      basicCalculator().unusedAllowance.min(4000000L)
     } else {
       if (isMPAAApplicable) {
         0L
@@ -186,7 +185,7 @@ case class Group2P1Calculator(implicit amountsCalculator: BasicCalculator,
 
   override def chargableAmount(): Long = {
     if (!isTriggered) {
-      group1Calculator.chargableAmount
+      basicCalculator().chargableAmount
     } else {
       if (isMPAAApplicable) {
         alternativeChargableAmount.max(defaultChargableAmount) // if aca == dca then choose dca
@@ -198,7 +197,7 @@ case class Group2P1Calculator(implicit amountsCalculator: BasicCalculator,
 
   override def aaCF(): Long = {
     if (!isTriggered) {
-      group1Calculator.aaCF
+      annualAllowance + previousResults.map(_.summaryResult.availableAAWithCCF).getOrElse(0L)
     } else {
       previousResults.map(_.summaryResult.availableAAWithCF).getOrElse(0L)
     }
@@ -206,7 +205,25 @@ case class Group2P1Calculator(implicit amountsCalculator: BasicCalculator,
 
   override def aaCCF(): Long = {
     if (!isTriggered) {
-      group1Calculator.aaCCF
+
+      val execeeding = exceedingAllowance
+
+      if (execeeding > 0) {
+        val previousResults = previousPeriods.map(_.summaryResult).headOption.getOrElse(SummaryResult())
+        val prePeriod1AACCF = previousResults.availableAAWithCCF
+
+        if (execeeding >= prePeriod1AACCF) {
+          0L
+        } else {
+          val unusedAllowanceList = actualUnused.slice(0, 4).map(_._2)
+          unusedAllowanceList.foldLeft(0L)(_ + _)
+        }
+
+      } else {
+        val unusedAllowanceList = actualUnused.slice(0, 4).map(_._2)
+        unusedAllowanceList.foldLeft(0L)(_ + _)
+      }
+
     } else {
       val annualAllowance = AA
       if (isMPAAApplicable) {
