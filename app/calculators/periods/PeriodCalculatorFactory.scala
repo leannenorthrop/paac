@@ -24,9 +24,7 @@ trait PeriodCalculatorFactory {
     if (contribution.isPeriod1) {
       Some(Period1Calculator())
     } else if (contribution.isPeriod2) {
-      Some(Group2P2Calculator())
-      //if (contribution.isGroup3) Some(Period2Calculator())
-      //else Some(Group2P2Calculator())
+      Some(Period2Calculator())
     } else {
       None
     }

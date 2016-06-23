@@ -26,36 +26,35 @@ class PeriodCalculatorFactorySpec extends UnitSpec {
     implicit val previousPeriods = List[TaxYearResults]()
   }
 
-/*
   "PeriodCalculatorFactory" should {
-    "return Group1P1Calculator for period 1 group 1 contribution" in new TestFixture {
+    "return Period1Calculator for period 1 group 1 contribution" in new TestFixture {
       implicit val contribution = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, None)
-      PeriodCalculatorFactory.get(allowanceInPounds).get shouldBe Group1P1Calculator()
+      PeriodCalculatorFactory.get(allowanceInPounds).get shouldBe Period1Calculator()
     }
 
-    "return Group2P1Calculator for period 1 group 2 contribution" in new TestFixture {
+    "return Period1Calculator for period 1 group 2 contribution" in new TestFixture {
       implicit val contribution = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(1L),Some(2L))))
-      PeriodCalculatorFactory.get(allowanceInPounds).get shouldBe Group2P1Calculator()
+      PeriodCalculatorFactory.get(allowanceInPounds).get shouldBe Period1Calculator()
     }
 
-    "return Group2P1Calculator for period 1 group 3 contribution" in new TestFixture {
+    "return Period1Calculator for period 1 group 3 contribution" in new TestFixture {
       implicit val contribution = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(1L),Some(2L),None,Some(true))))
-      PeriodCalculatorFactory.get(allowanceInPounds).get shouldBe Group2P1Calculator()
+      PeriodCalculatorFactory.get(allowanceInPounds).get shouldBe Period1Calculator()
     }
 
-    "return Group1P2Calculator for period 2 group 1 contribution" in new TestFixture {
+    "return Period2Calculator for period 2 group 1 contribution" in new TestFixture {
       implicit val contribution = Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, None)
-      PeriodCalculatorFactory.get(allowanceInPounds).get shouldBe Group1P2Calculator()
+      PeriodCalculatorFactory.get(allowanceInPounds).get shouldBe Period2Calculator()
     }
 
-    "return Group2P2Calculator for period 2 group 2 contribution" in new TestFixture {
+    "return Period2Calculator for period 2 group 2 contribution" in new TestFixture {
       implicit val contribution = Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(1L),Some(2L))))
-      PeriodCalculatorFactory.get(allowanceInPounds).get shouldBe Group2P2Calculator()
+      PeriodCalculatorFactory.get(allowanceInPounds).get shouldBe Period2Calculator()
     }
 
-    "return Group3P2Calculator for period 2 group 3 contribution" in new TestFixture {
+    "return Period2Calculator for period 2 group 3 contribution" in new TestFixture {
       implicit val contribution = Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(1L),Some(2L),None,Some(true))))
-      PeriodCalculatorFactory.get(allowanceInPounds).get shouldBe Group3P2Calculator()
+      PeriodCalculatorFactory.get(allowanceInPounds).get shouldBe Period2Calculator()
     }
 
     "return None for unknown" in new TestFixture {
@@ -63,5 +62,4 @@ class PeriodCalculatorFactorySpec extends UnitSpec {
       PeriodCalculatorFactory.get(allowanceInPounds) shouldBe None
     }
   }
-*/
 }

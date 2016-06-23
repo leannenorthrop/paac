@@ -20,25 +20,23 @@ import uk.gov.hmrc.play.test.UnitSpec
 import models._
 import org.scalatest._
 import org.scalatest.prop._
+import org.scalacheck.Gen
 import calculators.results.BasicCalculator
 
-class Period2CalculatorSpec extends UnitSpec {
+class Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks {
+
   trait TestFixture {
     val annualAllowance = 50000
     implicit val amountsCalculator = BasicCalculator(annualAllowance)
-    def p1Contribution(mp:Long):Contribution = {
-      Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(definedBenefit=None,moneyPurchase=Some(mp))))
-    }    
-    def p2Contribution(mp:Long):Contribution = {
-      Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(definedBenefit=None,moneyPurchase=Some(mp))))
-    }
+    implicit var previousPeriods = List[TaxYearResults]()
+    implicit var contribution = Contribution(2015, 0)
+    val period2Contribution = Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, None)
   }
 
   "isMPAAApplicable" should {
-    "return true if trigger amount > MPA" in new TestFixture {
+    "return true if above MPA" in new TestFixture {
       // set up
-      implicit val previousPeriods = List[TaxYearResults]()
-      implicit val contribution = Contribution(2015, 1L).copy(amounts=Some(InputAmounts(definedBenefit=None,moneyPurchase=Some(5000000L))))
+      contribution = period2Contribution.copy(amounts = Some(InputAmounts(Some(0L), Some(1200000L))))
 
       // test
       val result = Period2Calculator().isMPAAApplicable
@@ -47,34 +45,9 @@ class Period2CalculatorSpec extends UnitSpec {
       result shouldBe true
     }
 
-    "return true if p1 isMPAAApplicable is true" in new TestFixture {
+    "return false if below MPA" in new TestFixture {
       // set up
-      implicit val previousPeriods = List[TaxYearResults](TaxYearResults(p1Contribution(0L),ExtendedSummaryFields(isMPA=true)))
-      implicit val contribution = Contribution(2015, 1L)
-
-      // test
-      val result = Period2Calculator().isMPAAApplicable
-
-      // check
-      result shouldBe true
-    }
-
-    "return true if p1 exhausts MPAA" in new TestFixture {
-      // set up
-      implicit val previousPeriods = List[TaxYearResults](TaxYearResults(p1Contribution(2000000L),ExtendedSummaryFields(isMPA=false)))
-      implicit val contribution = Contribution(2015, 1L)
-
-      // test
-      val result = Period2Calculator().isMPAAApplicable
-
-      // check
-      result shouldBe true
-    }
-
-    "return false if p2 money purchase is under mpa" in new TestFixture {
-      // set up
-      implicit val previousPeriods = List[TaxYearResults]()
-      implicit val contribution = p2Contribution(10L)
+      contribution = period2Contribution.copy(amounts = Some(InputAmounts(Some(0L), Some(1200L))))
 
       // test
       val result = Period2Calculator().isMPAAApplicable
@@ -82,196 +55,174 @@ class Period2CalculatorSpec extends UnitSpec {
       // check
       result shouldBe false
     }
-  }
 
-  "mpist" should {
-    "return 0 when not triggered" in new TestFixture {
+    "defined benefit is 0" in new TestFixture {
+      // test
+      val result = Period2Calculator().definedBenefit
+
+      // check
+      result shouldBe 0L
+    }
+
+    "dbist is 0" in new TestFixture {
+      // test
+      val result = Period2Calculator().dbist
+
+      // check
+      result shouldBe 0L
+    }
+
+    "mpist is equal to defined contribution" in new TestFixture {
       // set up
-      implicit val previousPeriods = List[TaxYearResults]()
-      implicit val contribution = Contribution(2015, 1L)
+      contribution = period2Contribution.copy(amounts = Some(InputAmounts(Some(0L), Some(1200L))))
 
       // test
       val result = Period2Calculator().mpist
 
       // check
-      result shouldBe 0L
-    }
-  }
-
-  "defaultChargableAmount" should {
-    "return 0 when not triggered" in new TestFixture {
-      // set up
-      implicit val previousPeriods = List[TaxYearResults]()
-      implicit val contribution = Contribution(2015, 9100000L)
-
-      // test
-      val result = Period2Calculator().defaultChargableAmount
-
-      // check
-      result shouldBe 0L
-    }
-  }
-
-  "exceedingAllowance" should {
-    "return 9100000 when not triggered" in new TestFixture {
-      // set up
-      implicit val previousPeriods = List[TaxYearResults]()
-      implicit val contribution = Contribution(2015, 9100000L)
-
-      // test
-      val result = Period2Calculator().exceedingAllowance
-
-      // check
-      result shouldBe 9100000L
-    }
-  }
-
-  "unusedAllowance" should {
-    "return 0 when not triggered" in new TestFixture {
-      // set up
-      implicit val previousPeriods = List[TaxYearResults]()
-      implicit val contribution = Contribution(2015, 9100000L)
-
-      // test
-      val result = Period2Calculator().unusedAllowance
-
-      // check
-      result shouldBe 0L
+      result shouldBe 1200L
     }
 
-    "return 0 when triggered and no previous results" in new TestFixture {
-      // set up
-      implicit val previousPeriods = List[TaxYearResults]()
-      implicit val contribution = Contribution(2015, 0).copy(amounts=Some(InputAmounts(triggered=Some(true))))
+    "moneyPurchaseAA" should {
+      "return 0 if no previous periods supplied" in new TestFixture {
+        // test
+        val result = Period2Calculator().moneyPurchaseAA
 
-      // test
-      val result = Period2Calculator().unusedAllowance
-
-      // check
-      result shouldBe 0L
-    }
-  }
-
-  "postFlexiSavings" should {
-    "return 0 when not triggered" in new TestFixture {
-      // set up
-      implicit val previousPeriods = List[TaxYearResults]()
-      implicit val contribution = Contribution(2015, 123)
-
-      // test
-      val result = Period2Calculator().postFlexiSavings
-
-      // check
-      result shouldBe 0L
-    }
-  }
-
-  "preFlexiSavings" should {
-    "return sum of dc and db if not triggered" in new TestFixture {
-      // set up
-      implicit val previousPeriods = List[TaxYearResults]()
-      implicit val contribution = Contribution(2015, 123)
-
-      // test
-      val result = Period2Calculator().preFlexiSavings
-
-      // check
-      result shouldBe 123L
+        // check
+        result shouldBe 0L
+      }
     }
 
-    "return 0 if triggered and no previous" in new TestFixture {
-      // set up
-      implicit val previousPeriods = List[TaxYearResults]()
-      implicit val contribution = Contribution(2015, 0).copy(amounts=Some(InputAmounts(moneyPurchase=Some(123L), triggered=Some(true))))
+    "alternativeAA" should {
+      "return 0 if no previous periods supplied" in new TestFixture {
+        // test
+        val result = Period2Calculator().alternativeAA
 
-      // test
-      val result = Period2Calculator().preFlexiSavings
-
-      // check
-      result shouldBe 0L
+        // check
+        result shouldBe 0L
+      }
     }
 
-    "return dc if triggered and no previous" in new TestFixture {
-      // set up
-      val c = Contribution(2015,0).copy(amounts=Some(InputAmounts(definedBenefit=None,moneyPurchase=Some(123L))))
-      implicit val previousPeriods = List[TaxYearResults](TaxYearResults(c, SummaryResult()))
-      implicit val contribution = Contribution(2015, 0).copy(amounts=Some(InputAmounts(triggered=Some(true))))
+    "alternativeChargableAmount" should {
+      "return defined contribution if no previous periods supplied" in new TestFixture {
+        // set up
+        contribution = period2Contribution.copy(amounts = Some(InputAmounts(Some(0L), Some(1200000L))))
 
-      // test
-      val result = Period2Calculator().preFlexiSavings
+        // test
+        val result = Period2Calculator().alternativeChargableAmount
 
-      // check
-      result shouldBe 123L
-    }
-  }
-
-  "unusedAAA" should {
-    "return 0 when not triggered" in new TestFixture {
-      // set up
-      implicit val previousPeriods = List[TaxYearResults]()
-      implicit val contribution = Contribution(2015, 0)
-
-      // test
-      val result = Period2Calculator().unusedAAA
-
-      // check
-      result shouldBe 0L
+        // check
+        result shouldBe 1200000L
+      }
     }
 
-    "return period1 unusedAAA - definedBenefit" in new TestFixture {
-      // set up
-      val period1UnusedAAA = 29098
-      val c = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, 0, 20001,true)
-      implicit val previousPeriods = List[TaxYearResults](TaxYearResults(c,ExtendedSummaryFields(unusedAAA=period1UnusedAAA,isMPA=true)))
-      implicit val contribution = Contribution(2015, 0).copy(amounts=Some(InputAmounts(definedBenefit=Some(123L),moneyPurchase=Some(123L),triggered=Some(true))))
+    "defaultChargableAmount" should {
+      "return defined contribution if no previous periods supplied" in new TestFixture {
+        // set up
+        contribution = period2Contribution.copy(amounts = Some(InputAmounts(Some(0L), Some(1200000L))))
 
-      // test
-      val result = Period2Calculator().unusedAAA
+        // test
+        val result = Period2Calculator().defaultChargableAmount
 
-      // check
-      result shouldBe (period1UnusedAAA-123L)
+        // check
+        result shouldBe 1200000L
+      }
+
+      "return 0 if period 1 unused AAA > defined contribution" in new TestFixture {
+        // set up
+        val period1 = ExtendedSummaryFields(unusedAAA=5000000L)
+        contribution = period2Contribution.copy(amounts = Some(InputAmounts(Some(0L), Some(12000L))))
+        previousPeriods = List[TaxYearResults](TaxYearResults(contribution, period1))
+
+        // test
+        val result = Period2Calculator().defaultChargableAmount
+
+        // check
+        result shouldBe 0L
+      }
     }
 
-    "return 0 when triggered and no allowance" in new TestFixture {
-      // set up
-      val period1UnusedAAA = 5
-      val c = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, 0, 20001,true)
-      implicit val previousPeriods = List[TaxYearResults](TaxYearResults(c,ExtendedSummaryFields(unusedAAA=period1UnusedAAA,isMPA=true)))
-      implicit val contribution = Contribution(2015, 0).copy(amounts=Some(InputAmounts(definedBenefit=Some(123L),moneyPurchase=Some(123L),triggered=Some(true))))
+    "exceedingAllowance should be 0" in new TestFixture {
+      Period2Calculator().exceedingAllowance shouldBe 0L
+    } 
 
-      // test
-      val result = Period2Calculator().unusedAAA
+    "annualAllowance" should {
+      "return basic allowance if no previous periods supplied" in new TestFixture {
+        // test
+        val result = Period2Calculator().annualAllowance
 
-      // check
-      result shouldBe 0L
+        // check
+        result shouldBe 5000000L
+      }
     }
-  }
 
-  "aaCCF" should {
-    "return 0 when not triggered and no previous" in new TestFixture {
-      // set up
-      implicit val previousPeriods = List[TaxYearResults]()
-      implicit val contribution = Contribution(2015, 123)
+    "unusedAllowance" should {
+      "return 0 if no previous periods supplied" in new TestFixture {
+        // set up
+        contribution = period2Contribution.copy(amounts = Some(InputAmounts(Some(0L), Some(12000L))))
 
-      // test
-      val result = Period2Calculator().aaCCF
+        // test
+        val result = Period2Calculator().unusedAllowance
 
-      // check
-      result shouldBe 0L
+        // check
+        result shouldBe 0L
+      }
     }
-  }
 
-  "aaCF" should {
-    "return 0 if no previous periods supplied" in new TestFixture {
-      // set up
-      implicit val previousPeriods = List[TaxYearResults]()
-      implicit val contribution = Contribution(2015, 123)
+    "aaCF" should {
+      "return 0 if no previous periods supplied" in new TestFixture {
+        // test
+        val result = Period2Calculator().aaCF
 
-      // test
-      val result = Period2Calculator().aaCF
+        // check
+        result shouldBe 0L
+      }
+    }
 
-      // check
-      result shouldBe 0L
+    "cumulativeMP" should {
+      "return defined contribution if no previous periods supplied" in new TestFixture {
+        // set up
+        contribution = period2Contribution.copy(amounts = Some(InputAmounts(Some(0L), Some(1200000L))))
+
+        // test
+        val result = Period2Calculator().cumulativeMP
+
+        // check
+        result shouldBe 1200000L
+      }
+    }
+
+    "cumulativeDB" should {
+      "return 0 if no previous periods supplied" in new TestFixture {
+        // set up
+        contribution = period2Contribution.copy(amounts = Some(InputAmounts(Some(0L), Some(1200000L))))
+
+        // test
+        val result = Period2Calculator().cumulativeDB
+
+        // check
+        result shouldBe 0L
+      }
+    }
+
+    "unusedAAA" should {
+      "return 0 if no previous periods supplied" in new TestFixture {
+        // test
+        val result = Period2Calculator().unusedAAA
+
+        // check
+        result shouldBe 0L
+      }
+    }
+
+    "unusedMPAA" should {
+      "return 0" in new TestFixture {
+        // test
+        val result = Period2Calculator().unusedMPAA
+
+        // check
+        result shouldBe 0L
+      }
     }
   }
 }
