@@ -43,6 +43,7 @@ case class Period2Calculator(implicit amountsCalculator: BasicCalculator,
         if (unusedAllowance > 0) {
           unusedAllowance + previous2YearsUnusedAllowance
         } else {
+          val period1NotTriggered = previousPeriods.filter(taxResultNotTriggered).find(_.input.isPeriod1).map(_.summaryResult.asInstanceOf[ExtendedSummaryFields])
           val ccf = (previous2YearsUnusedAllowance - period1NotTriggered.map(_.exceedingAAAmount).getOrElse(0L)).max(0L)
           if (ccf > previous.availableAAWithCCF) 0L else ccf
         }
@@ -60,7 +61,7 @@ case class Period2Calculator(implicit amountsCalculator: BasicCalculator,
                                        else if (contribution.isGroup2 && contribution.isTriggered) previous.unusedAAA 
                                        else 0L
 
-  override def alternativeChargableAmount(): Long = if (contribution.isGroup3 && (isMPAAApplicable || (isPeriod1Triggered && period1Triggered.get.isMPA))) (mpist + dbist).max(0) 
+  override def alternativeChargableAmount(): Long = if (contribution.isGroup3 && (isMPAAApplicable || (isPeriod1Triggered && period1.isMPA))) (mpist + dbist).max(0) 
                                                     else if (contribution.isGroup2 && isMPAAApplicable) (definedContribution - previous.unusedMPAA).max(0) 
                                                     else 0L
 
@@ -107,20 +108,19 @@ case class Period2Calculator(implicit amountsCalculator: BasicCalculator,
 
   override def defaultChargableAmount(): Long = {
     if (contribution.isGroup3 && contribution.isTriggered) {
-      period1Triggered.map {
-        (fields) =>
-        if (fields.isMPA) {
+      if (isPeriod1Triggered) {
+        if (period1.isMPA) {
           /*
             // scenario 26 only 
             val savings = previous.preFlexiSavings + previous.postFlexiSavings
             val aacf = previous.availableAAWithCF
             postFlexiSavings - previous.dcaCF
           */
-          ((flexiAccessSavings + definedBenefit) - (previous3YearsUnusedAllowance + fields.unusedAAA)).max(0)
+          ((flexiAccessSavings + definedBenefit) - (previous3YearsUnusedAllowance + period1.unusedAAA)).max(0)
         } else {
           ((flexiAccessSavings + definedBenefit) - period1.availableAAWithCCF).max(0)
         }
-      }.getOrElse {
+      } else {
         ((period2PreTriggerSavings + flexiAccessSavings) - period1.availableAAWithCCF).max(0)
       }
     } else if (contribution.isGroup2) {
@@ -137,9 +137,9 @@ case class Period2Calculator(implicit amountsCalculator: BasicCalculator,
   override def definedBenefit(): Long = {
     if (contribution.isGroup3) {
       if (!isPeriod1Triggered && isTriggered) {
-        previousInputs.definedBenefit.getOrElse(0L)
+        previous.cumulativeDB
       } else {
-        contribution.amounts.map(_.definedBenefit.getOrElse(0L)).getOrElse(0L)
+        basicCalculator().definedBenefit
       }
     } else if (contribution.isGroup2) 0L 
       else basicCalculator().definedBenefit
@@ -161,14 +161,14 @@ case class Period2Calculator(implicit amountsCalculator: BasicCalculator,
                                                (flexiAccessSavings > MPA) || period1.isMPA || period1.cumulativeMP >= P1MPA
                                              else false
 
-  def isPeriod1Triggered(): Boolean = period1Triggered.isDefined
+  def isPeriod1Triggered(): Boolean = previousPeriods.find(taxResultTriggered).find(_.input.isPeriod1).isDefined
 
   override def moneyPurchaseAA(): Long = if (contribution.isGroup3) period1.unusedMPAA else if (contribution.isGroup2 && contribution.isTriggered) previous.unusedMPAA else 0L
 
   override def mpist(): Long = {
     if (contribution.isGroup3) {
       if (isPeriod1Triggered) {
-        (flexiAccessSavings - period1Triggered.get.unusedMPAA).max(0)
+        (flexiAccessSavings - period1.unusedMPAA).max(0)
       } else if (contribution.isTriggered) {
         if (isMPAAApplicable) {
           (flexiAccessSavings - MPA).max(0)
@@ -182,57 +182,20 @@ case class Period2Calculator(implicit amountsCalculator: BasicCalculator,
       definedContribution
   }
 
-  def period1(implicit previousPeriods:Seq[TaxYearResults]): ExtendedSummaryFields = previousPeriods.find(_.input.isPeriod1).map(_.summaryResult.asInstanceOf[ExtendedSummaryFields]).getOrElse(ExtendedSummaryFields())
+  def period1(): ExtendedSummaryFields = previousPeriods.find(_.input.isPeriod1).map(_.summaryResult.asInstanceOf[ExtendedSummaryFields]).getOrElse(ExtendedSummaryFields())
 
-  def period1Amounts(implicit previousPeriods:Seq[TaxYearResults]): InputAmounts = previousPeriods.find(_.input.isPeriod1).map(_.input.amounts.getOrElse(InputAmounts())).getOrElse(InputAmounts()) 
+  def period2PreTriggerSavings(): Long = if (isTriggered && !isPeriod1Triggered) preTriggerInputs.map((c)=>c.moneyPurchase+c.definedBenefit).getOrElse(0L) else 0L
 
-  def period1NotTriggered(implicit previousPeriods:Seq[TaxYearResults]): Option[ExtendedSummaryFields] = previousPeriods.filter(taxResultNotTriggered).find(_.input.isPeriod1).map(_.summaryResult.asInstanceOf[ExtendedSummaryFields])
+  def postTriggerSavings(): Long = if (!isPeriod1Triggered && isTriggered) definedBenefit + definedContribution else definedBenefit + definedContribution + period1.cumulativeDB
 
-  def period1Triggered(implicit previousPeriods:Seq[TaxYearResults]): Option[ExtendedSummaryFields] = previousPeriods.find(taxResultTriggered).map(_.summaryResult.asInstanceOf[ExtendedSummaryFields])
+  override def preFlexiSavings() : Long = if (isTriggered) period2PreTriggerSavings() else definedContribution + definedBenefit
 
-  def period2PreTriggerSavings(): Long = {
-    if (isPeriod1Triggered) {
-      0L
-    } else {
-      val amounts = preTriggerAmounts.getOrElse(InputAmounts())
-      sum(List(amounts.moneyPurchase,amounts.definedBenefit))
-    }
-  }
+  def preTriggerAmounts(): Option[InputAmounts] = previousPeriods.find(taxResultNotTriggered).flatMap(_.input.amounts)
 
-  def postTriggerSavings(): Long = {
-    if (!isPeriod1Triggered && isTriggered) {
-      definedBenefit + definedContribution
-    } else {
-      val amounts = preTriggerAmounts.getOrElse(InputAmounts())
-      definedBenefit + definedContribution + period1.cumulativeDB
-    }
-  }
-
-  override def preFlexiSavings() : Long = {
-    if (isTriggered) {
-      period2PreTriggerSavings()
-    } else {
-      definedContribution + definedBenefit
-    }
-  }
-
-  def preTriggerAmounts(implicit previousPeriods:Seq[TaxYearResults]): Option[InputAmounts] = previousPeriods.find(taxResultNotTriggered).flatMap(_.input.amounts)
-
-  def preTriggerSavings(): Long = {
-    val values = if (!isPeriod1Triggered && isTriggered) {
-      val p2BeforeTrigger = preTriggerAmounts.getOrElse(InputAmounts())
-      List(period1Amounts,p2BeforeTrigger).flatMap((v)=>List(v.moneyPurchase, v.definedBenefit))
-    } else {
-      val amounts = preTriggerAmounts.getOrElse(InputAmounts())
-      List(amounts.moneyPurchase,amounts.definedBenefit)
-    }
-    sum(values)
-  }
+  def preTriggerSavings(): Long = if (!isPeriod1Triggered && isTriggered) period1.cumulativeDB + period2PreTriggerSavings else period2PreTriggerSavings
 
   def previous(): ExtendedSummaryFields = previousPeriods.headOption.map(_.summaryResult.asInstanceOf[ExtendedSummaryFields]).getOrElse(ExtendedSummaryFields())
   
-  def previousInputs(implicit previousPeriods:Seq[TaxYearResults]): InputAmounts = previousPeriods.headOption.map(_.input.amounts.getOrElse(InputAmounts())).getOrElse(InputAmounts())
-
   def previous2YearsUnusedAllowance()(implicit previousPeriods:Seq[TaxYearResults], c: Contribution): Long = {
     // we only want previous values so create dummy contribution which does not affect the calculation
     val contribution = Contribution(c.taxPeriodStart, c.taxPeriodEnd, Some(InputAmounts(0L,0L)))
@@ -248,15 +211,7 @@ case class Period2Calculator(implicit amountsCalculator: BasicCalculator,
     l.foldLeft(0L)(_+_._2)
   }
 
-  override def postFlexiSavings() : Long = {
-    if (isTriggered) {
-      flexiAccessSavings + definedBenefit
-    } else {
-      0L
-    }
-  }
-
-  def sum(values: List[Option[Long]]): Long = values.map(_.getOrElse(0L)).foldLeft(0L)(_+_)
+  override def postFlexiSavings() : Long = if (isTriggered) flexiAccessSavings + definedBenefit else 0L
 
   override def unusedAAA(): Long = if (isTriggered) if (contribution.isGroup3) (period1.unusedAAA - contribution.definedBenefit).max(0) else previous.unusedAAA.max(0) else 0L
 
@@ -280,7 +235,7 @@ case class Period2Calculator(implicit amountsCalculator: BasicCalculator,
           unusedAllowance.max(0)
         }
       } else { //if (contribution.isGroup2) {
-        val period1DC = previousInputs.moneyPurchase.getOrElse(0L)
+        val period1DC = period1.cumulativeMP
         val period2DC = definedContribution
         if (previous.unusedAAA > 0) {
           0L
