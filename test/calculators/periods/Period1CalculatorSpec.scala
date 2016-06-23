@@ -30,6 +30,39 @@ class Period1CalculatorSpec extends UnitSpec {
     implicit val amountsCalculator = BasicCalculator(annualAllowance)
   }
 
+  "isBefore2015" should {
+    "return true if start period is less than 2015" in new TestFixture {
+      implicit var previousPeriods = List[TaxYearResults]()
+      implicit val contribution = Contribution(2012, 3L)
+      val result = TaxYearResults(contribution, SummaryResult())
+      Period1Calculator().isBefore2015(result) shouldBe true
+    }
+    "return true if start period is equal to 2015 but not period 1 or period 2" in new TestFixture {
+      implicit var previousPeriods = List[TaxYearResults]()
+      implicit val contribution = Contribution(PensionPeriod(2015,1,1), PensionPeriod(2015,2,2), Some(InputAmounts(Some(1L), Some(2L), None, None)))
+      val result = TaxYearResults(contribution, SummaryResult())
+      Period1Calculator().isBefore2015(result) shouldBe true
+    }
+    "return false if start period is equal to period 1" in new TestFixture {
+      implicit var previousPeriods = List[TaxYearResults]()
+      implicit val contribution = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, None)))
+      val result = TaxYearResults(contribution, SummaryResult())
+      Period1Calculator().isBefore2015(result) shouldBe false
+    }
+    "return false if start period is equal to period 2" in new TestFixture {
+      implicit var previousPeriods = List[TaxYearResults]()
+      implicit val contribution = Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, None)))
+      val result = TaxYearResults(contribution, SummaryResult())
+      Period1Calculator().isBefore2015(result) shouldBe false
+    }
+    "return false if start period is greater to 2015" in new TestFixture {
+      implicit var previousPeriods = List[TaxYearResults]()
+      implicit val contribution = Contribution(2016, 3L)
+      val result = TaxYearResults(contribution, SummaryResult())
+      Period1Calculator().isBefore2015(result) shouldBe false
+    }
+  }
+
   "year2014CCF" should {
     "when no previous results return 0" in new TestFixture {
       // set up

@@ -31,6 +31,8 @@ case class Period1Calculator(implicit amountsCalculator: BasicCalculator,
 
   def basicCalculator(): BasicCalculator = amountsCalculator
   
+  def isBefore2015(taxYearResult: TaxYearResults): Boolean = !(taxYearResult.input.isPeriod1 || taxYearResult.input.isPeriod2) && taxYearResult.input.taxPeriodStart.year <= 2015
+  
   override def isMPAAApplicable(): Boolean = definedContribution > MPA
 
   def sum(values: List[Option[Long]]): Long = values.map(_.getOrElse(0L)).foldLeft(0L)(_+_)
@@ -60,7 +62,7 @@ case class Period1Calculator(implicit amountsCalculator: BasicCalculator,
     }.getOrElse(0L)
   }
 
-  def year2014CCF(): Long = pre2015Results.headOption.map(_.summaryResult).getOrElse(SummaryResult()).availableAAWithCCF
+  def year2014CCF(): Long = previousPeriods.filter(isBefore2015).headOption.map(_.summaryResult).getOrElse(SummaryResult()).availableAAWithCCF
 
   override def dbist(): Long = {
     if (isTriggered) {
@@ -197,9 +199,9 @@ case class Period1Calculator(implicit amountsCalculator: BasicCalculator,
 
   override def aaCF(): Long = {
     if (!isTriggered) {
-      annualAllowance + previousResults.map(_.summaryResult.availableAAWithCCF).getOrElse(0L)
+      annualAllowance + previousPeriods.headOption.map(_.summaryResult.availableAAWithCCF).getOrElse(0L)
     } else {
-      previousResults.map(_.summaryResult.availableAAWithCF).getOrElse(0L)
+      previousPeriods.headOption.map(_.summaryResult.availableAAWithCF).getOrElse(0L)
     }
   }
 

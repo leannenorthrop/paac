@@ -33,6 +33,35 @@ class Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
     val period2Contribution = Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, None)
   }
 
+  "period1" should {
+    "return empty results if no previous periods" in new TestFixture {
+      Period2Calculator().period1 shouldBe ExtendedSummaryFields()
+    }
+    "return empty results if no previous period 1 periods" in new TestFixture {
+      val p2 = Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, None)))
+      previousPeriods = List(Contribution(2012,2),Contribution(2016,3),p2).map(TaxYearResults(_,SummaryResult()))
+      Period2Calculator().period1 shouldBe ExtendedSummaryFields()
+    }
+    "return period1 results if no previous period 1 periods" in new TestFixture {
+      val p2 = Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, None)))
+      val p1 = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(1324L), Some(2L), None, None)))
+      previousPeriods = List(Contribution(2012,2),Contribution(2016,3),p2,p1).map((c)=>TaxYearResults(c,ExtendedSummaryFields(c.amounts.get.definedBenefit.get)))
+      Period2Calculator().period1 shouldBe ExtendedSummaryFields(1324L)
+    }
+  }
+
+  "previous" should {
+    "return empty results if no previous periods" in new TestFixture {
+      Period2Calculator().previous shouldBe ExtendedSummaryFields()
+    }
+    "return results if previous periods" in new TestFixture {
+      val p2 = Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, None)))
+      val p1 = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(1324L), Some(2L), None, None)))
+      previousPeriods = List(Contribution(2012,2),Contribution(2016,3),p2,p1).map((c)=>TaxYearResults(c,ExtendedSummaryFields(c.amounts.get.definedBenefit.get)))
+      Period2Calculator().previous shouldBe ExtendedSummaryFields(2L)
+    }
+  }
+
   "isMPAAApplicable" should {
     "return true if above MPA" in new TestFixture {
       // set up

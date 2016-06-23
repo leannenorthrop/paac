@@ -31,6 +31,33 @@ case class Period2Calculator(implicit amountsCalculator: BasicCalculator,
   
   def period1or2 = previous.asInstanceOf[ExtendedSummaryFields]
 
+  def previous(implicit previousPeriods:Seq[TaxYearResults]): Summary = previousPeriods.headOption.map(_.summaryResult).getOrElse(ExtendedSummaryFields())
+
+  def period1Amounts(implicit previousPeriods:Seq[TaxYearResults]): InputAmounts = previousPeriods.find(_.input.isPeriod1).map(_.input.amounts.getOrElse(InputAmounts())).getOrElse(InputAmounts()) 
+
+  def period1Triggered(implicit previousPeriods:Seq[TaxYearResults]): Option[ExtendedSummaryFields] = previousPeriods.find(taxResultTriggered).map(_.summaryResult.asInstanceOf[ExtendedSummaryFields])
+
+  def period1NotTriggered(implicit previousPeriods:Seq[TaxYearResults]): Option[ExtendedSummaryFields] = previousPeriods.filter(taxResultNotTriggered).find(_.input.isPeriod1).map(_.summaryResult.asInstanceOf[ExtendedSummaryFields])
+
+  def isPeriod1Triggered(implicit previousPeriods:Seq[TaxYearResults]): Boolean = {
+    previousPeriods.find(_.input.amounts.getOrElse(InputAmounts()).triggered.getOrElse(false)).isDefined
+  }
+
+  def previous2YearsUnusedAllowance()(implicit previousPeriods:Seq[TaxYearResults], c: Contribution): Long = {
+    // we only want previous values so create dummy contribution which does not affect the calculation
+    val contribution = Contribution(c.taxPeriodStart, c.taxPeriodEnd, Some(InputAmounts(0L,0L)))
+
+    val l = if (!previousPeriods.find(_.input.isPeriod1).isDefined) {
+      val v = basicCalculator().actualUnused(previousPeriods.drop(1), contribution).drop(1).slice(0,2)
+      v
+    } else {
+      val v = basicCalculator().actualUnused(previousPeriods.drop(1), contribution).drop(2).slice(0,2)
+      v
+    }
+
+    l.foldLeft(0L)(_+_._2)
+  }
+
   def sum(values: List[Option[Long]]): Long = values.map(_.getOrElse(0L)).foldLeft(0L)(_+_)
 
   def preTriggerSavings(): Long = {
@@ -181,6 +208,8 @@ case class Period2Calculator(implicit amountsCalculator: BasicCalculator,
 
   def p2definedBenefit(): Long = contribution.amounts.map(_.definedBenefit.getOrElse(0L)).getOrElse(0L)
 
+  def period1(implicit previousPeriods:Seq[TaxYearResults]): ExtendedSummaryFields = previousPeriods.find(_.input.isPeriod1).map(_.summaryResult.asInstanceOf[ExtendedSummaryFields]).getOrElse(ExtendedSummaryFields())
+
   override def unusedAllowance(): Long = {
     if (isTriggered) {
       if (contribution.isGroup3) {
@@ -231,7 +260,7 @@ case class Period2Calculator(implicit amountsCalculator: BasicCalculator,
     }
   }
 
-  override def aaCF(): Long = if (isTriggered) if (contribution.isGroup3) period1.availableAAWithCCF else period1or2.availableAAWithCCF else previousResults.map(_.summaryResult.availableAAWithCCF).getOrElse(0L)
+  override def aaCF(): Long = if (isTriggered) if (contribution.isGroup3) period1.availableAAWithCCF else period1or2.availableAAWithCCF else previousPeriods.headOption.map(_.summaryResult.availableAAWithCCF).getOrElse(0L)
 
   override def aaCCF(): Long = {
     if (isTriggered) {
