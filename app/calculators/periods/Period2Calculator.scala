@@ -29,6 +29,10 @@ case class Period2Calculator(implicit amountsCalculator: BasicCalculator,
 
   def basicCalculator(): BasicCalculator = amountsCalculator
   
+  def preTriggerAmounts(implicit previousPeriods:Seq[TaxYearResults]): Option[InputAmounts] = previousPeriods.find(taxResultNotTriggered).flatMap(_.input.amounts)
+
+  def previousInputs(implicit previousPeriods:Seq[TaxYearResults]): InputAmounts = previousPeriods.headOption.map(_.input.amounts.getOrElse(InputAmounts())).getOrElse(InputAmounts())
+
   def period1or2 = previous.asInstanceOf[ExtendedSummaryFields]
 
   def previous(implicit previousPeriods:Seq[TaxYearResults]): Summary = previousPeriods.headOption.map(_.summaryResult).getOrElse(ExtendedSummaryFields())

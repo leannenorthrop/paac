@@ -29,152 +29,119 @@ case class Period1Calculator(implicit amountsCalculator: BasicCalculator,
   val AA = 80000 * 100L
   val MAX_CF = 4000000L
 
-  def basicCalculator(): BasicCalculator = amountsCalculator
-  
-  def isBefore2015(taxYearResult: TaxYearResults): Boolean = !(taxYearResult.input.isPeriod1 || taxYearResult.input.isPeriod2) && taxYearResult.input.taxPeriodStart.year <= 2015
-  
-  override def isMPAAApplicable(): Boolean = definedContribution > MPA
-
-  def sum(values: List[Option[Long]]): Long = values.map(_.getOrElse(0L)).foldLeft(0L)(_+_)
-
-  def preTriggerSavings(): Long = {
-    val amounts = preTriggerAmounts.getOrElse(InputAmounts())
-    sum(List(amounts.moneyPurchase,amounts.definedBenefit))
-  }
-
-  def postTriggerSavings(): Long = {
-    if (isTriggered) {
-      definedContribution
+  override def aaCCF(): Long = {
+    if (!isTriggered) {
+      if (exceedingAllowance > 0) {
+        // not triggered therefore previous row is 2014
+        val year2014 = previous
+        if (exceedingAllowance >= year2014.availableAAWithCCF) 0L else actualUnused.slice(0, 4).map(_._2).foldLeft(0L)(_ + _)
+      } else {
+        actualUnused.slice(0, 4).map(_._2).foldLeft(0L)(_ + _)
+      }
     } else {
-      0L
+      val annualAllowance = AA
+      if (isMPAAApplicable) {
+        val aaa = (AAA + previous3YearsUnusedAllowance - preTriggerSavings)
+        if (preTriggerSavings > AAA) (aaa).max(0) else (aaa).min(P2AAA)
+      } else if (definedBenefit >= annualAllowance) {
+        (annualAllowance + previous3YearsUnusedAllowance - postFlexiSavings).max(0)
+      } else {
+        (unusedAllowance.min(MAX_CF) + previous3YearsUnusedAllowance).max(0)
+      }
     }
   }
 
-  override def definedBenefit(): Long = {
-    contribution.amounts.map {
-      (amounts) =>
-      if (!isTriggered)
-        amounts.definedBenefit.getOrElse(0L) + amounts.moneyPurchase.getOrElse(0L)
-      else {
-        // treat both money purchase and defined benefit as same prior to flexi access
-        amounts.definedBenefit.getOrElse(0L) + (previousInputs.definedBenefit.getOrElse(0L) + previousInputs.moneyPurchase.getOrElse(0L)) 
-      }
-    }.getOrElse(0L)
+  override def aaCF(): Long = {
+    if (!isTriggered) {
+      annualAllowance + previous.availableAAWithCCF
+    } else {
+      previous.availableAAWithCF
+    }
   }
 
-  def year2014CCF(): Long = previousPeriods.filter(isBefore2015).headOption.map(_.summaryResult).getOrElse(SummaryResult()).availableAAWithCCF
+  override def acaCF() : Long = if (isTriggered) 0L else (AAA + previous3YearsUnusedAllowance) - preFlexiSavings
 
+  override def alternativeAA(): Long = if (isMPAAApplicable && isTriggered) AAA else 0L
+
+  override def alternativeChargableAmount(): Long = if (isMPAAApplicable && isTriggered) mpist + dbist else 0L
+
+  override def annualAllowance(): Long = if (!isTriggered) basicCalculator().annualAllowance else if (defaultChargableAmount >= alternativeChargableAmount) AA else AAA
+
+  def basicCalculator(): BasicCalculator = amountsCalculator
+
+  override def chargableAmount(): Long = if (!isTriggered) basicCalculator().chargableAmount else if (isMPAAApplicable) alternativeChargableAmount.max(defaultChargableAmount) else defaultChargableAmount
+
+  override def cumulativeDB(): Long = definedBenefit
+
+  override def cumulativeMP(): Long = definedContribution
+  
   override def dbist(): Long = {
+    def isBefore2015(taxYearResult: TaxYearResults): Boolean = !(taxYearResult.input.isPeriod1 || taxYearResult.input.isPeriod2) && taxYearResult.input.taxPeriodStart.year <= 2015
+    def year2014CCF(): Long = previousPeriods.filter(isBefore2015).headOption.map(_.summaryResult).getOrElse(SummaryResult()).availableAAWithCCF
+
     if (isTriggered) {
-      val allowances = (preTriggerFields.getOrElse(ExtendedSummaryFields()).unusedAAA + year2014CCF)
+      val unusedaaa = preTriggerFields.map(_.unusedAAA).getOrElse(0L)
+      val allowances = unusedaaa + year2014CCF
       if (definedBenefit < allowances) {
         0L
       } else {
         (allowances - definedBenefit).max(0)
       }
     } else {
-      val db = preTriggerAmounts.map {
-        (amounts) =>
-        amounts.definedBenefit.getOrElse(0L)+amounts.moneyPurchase.getOrElse(0L)
-      }.getOrElse(0L)
-      (db - year2014CCF).max(0)
+      (preTriggerSavings - year2014CCF).max(0)
     }
   }
 
-  override def mpist(): Long = {
-    if (isMPAAApplicable) {
-      definedContribution - MPA
-    } else {
-      definedContribution
-    }
-  }
+  override def dcaCF() : Long = if (!isTriggered) 0L else (AA + previous3YearsUnusedAllowance) - postFlexiSavings
 
-  override def moneyPurchaseAA(): Long = {
-    if (!isTriggered) {
-      0L
-    } else {
-      if (isMPAAApplicable) {
-        (MPA - definedContribution).max(0)
-      } else {
-        0L
-      }
-    }
-  }
-
-  override def alternativeAA(): Long = {
-    if (!isTriggered) {
-      0L
-    } else {
-      if (isMPAAApplicable) {
-        AAA
-      } else {
-        0L
-      }
-    }
-  }
-
-  override def alternativeChargableAmount(): Long = {
-    if (!isTriggered) {
-      0L
-    } else {
-      if (isMPAAApplicable) {
-        mpist + dbist
-      } else {
-        0L
-      }
-    }
-  }
+  // treat both money purchase and defined benefit as same prior to flexi access
+  override def definedBenefit(): Long = if (isTriggered) contribution.definedBenefit + preTriggerSavings else contribution.definedBenefit + contribution.moneyPurchase
 
   override def defaultChargableAmount(): Long = {
     if (!isTriggered) {
       0L
     } else {
-      val savings = definedBenefit + definedContribution
       val aa = AA + previous3YearsUnusedAllowance
-      if (savings > aa) {
-        savings - aa
+      if (postFlexiSavings > aa) {
+        postFlexiSavings - aa
       } else {
         0L
       }
     }
   }
 
-  override def exceedingAllowance(): Long = {
-    if (!isTriggered) {
-      basicCalculator().exceedingAllowance
-    } else {
-      if (isMPAAApplicable) {
-        if (definedBenefit + definedContribution > AA) {
-          (definedBenefit + definedContribution) - AA
-        } else {
-          0L
-        }
-      } else {
-        ((definedBenefit + definedContribution) - AA).max(0)
-      }
-    }
-  }
+  override def exceedingAAA(): Long = if (isMPAAApplicable) (definedBenefit - AAA).max(0) else 0L
 
-  override def annualAllowance(): Long = {
-    if (!isTriggered) {
-      basicCalculator().annualAllowance
-    } else if (defaultChargableAmount >= alternativeChargableAmount) {
-      AA
-    } else {
-      AAA
-    }
-  }
+  override def exceedingAllowance(): Long = if (isTriggered) ((definedBenefit + definedContribution) - AA).max(0) else basicCalculator().exceedingAllowance
+
+  override def exceedingMPAA(): Long = if (isMPAAApplicable) definedContribution - MPA else 0L
+
+  override def isMPAAApplicable(): Boolean = definedContribution > MPA
+
+  override def moneyPurchaseAA(): Long = if (isMPAAApplicable && isTriggered) (MPA - definedContribution).max(0) else 0L
+
+  override def mpist(): Long = if (isMPAAApplicable) definedContribution - MPA else definedContribution
+
+  override def preFlexiSavings() : Long = if (isTriggered) preTriggerSavings() else definedContribution + definedBenefit
+
+  def preTriggerSavings(): Long = preTriggerInputs.map((c)=>c.definedBenefit+c.moneyPurchase).getOrElse(0L)
+
+  def previous(): Summary = previousPeriods.map(_.summaryResult).headOption.getOrElse(SummaryResult())
+
+  override def postFlexiSavings() : Long = if (isTriggered) definedContribution + definedBenefit else 0L
+
+  override def unusedAAA(): Long = if (isMPAAApplicable && isTriggered) (AAA - definedBenefit).min(P2AAA).max(0) else 0L
 
   override def unusedAllowance(): Long = {
     if (!isTriggered) {
-      basicCalculator().unusedAllowance.min(4000000L)
+      basicCalculator().unusedAllowance.min(MAX_CF)
     } else {
       if (isMPAAApplicable) {
         0L
       } else {
         val unusedAllowance = {
           val savings = if (defaultChargableAmount >= alternativeChargableAmount) {
-            preTriggerSavings + postTriggerSavings
+            preTriggerSavings + definedContribution
           } else {
             preTriggerSavings
           }
@@ -185,138 +152,5 @@ case class Period1Calculator(implicit amountsCalculator: BasicCalculator,
     }
   }
 
-  override def chargableAmount(): Long = {
-    if (!isTriggered) {
-      basicCalculator().chargableAmount
-    } else {
-      if (isMPAAApplicable) {
-        alternativeChargableAmount.max(defaultChargableAmount) // if aca == dca then choose dca
-      } else {
-        defaultChargableAmount
-      }
-    }
-  }
-
-  override def aaCF(): Long = {
-    if (!isTriggered) {
-      annualAllowance + previousPeriods.headOption.map(_.summaryResult.availableAAWithCCF).getOrElse(0L)
-    } else {
-      previousPeriods.headOption.map(_.summaryResult.availableAAWithCF).getOrElse(0L)
-    }
-  }
-
-  override def aaCCF(): Long = {
-    if (!isTriggered) {
-
-      val execeeding = exceedingAllowance
-
-      if (execeeding > 0) {
-        val previousResults = previousPeriods.map(_.summaryResult).headOption.getOrElse(SummaryResult())
-        val prePeriod1AACCF = previousResults.availableAAWithCCF
-
-        if (execeeding >= prePeriod1AACCF) {
-          0L
-        } else {
-          val unusedAllowanceList = actualUnused.slice(0, 4).map(_._2)
-          unusedAllowanceList.foldLeft(0L)(_ + _)
-        }
-
-      } else {
-        val unusedAllowanceList = actualUnused.slice(0, 4).map(_._2)
-        unusedAllowanceList.foldLeft(0L)(_ + _)
-      }
-
-    } else {
-      val annualAllowance = AA
-      if (isMPAAApplicable) {
-        if (preTriggerSavings > AAA) {
-          ((AAA + previous3YearsUnusedAllowance - preTriggerSavings)).max(0)
-        } else {
-          ((AAA + previous3YearsUnusedAllowance - preTriggerSavings)).min(P2AAA)
-        }
-      } else if (definedBenefit >= annualAllowance) {
-        (annualAllowance + previous3YearsUnusedAllowance - (definedBenefit+definedContribution)).max(0)
-      } else {
-        (unusedAllowance.min(MAX_CF) + previous3YearsUnusedAllowance).max(0)
-      }
-    }
-  }
-
-  override def cumulativeMP(): Long = definedContribution
-
-  override def cumulativeDB(): Long = definedBenefit
-
-  override def exceedingMPAA(): Long = {
-    if (isMPAAApplicable) {
-      definedContribution - MPA
-    } else {
-      0L
-    }
-  }
-
-  override def exceedingAAA(): Long = {
-    if (isMPAAApplicable) {
-      (definedBenefit - AAA).max(0)
-    } else {
-      0L
-    }
-  }
-
-  override def unusedAAA(): Long = {
-    if (!isTriggered) {
-      0L
-    } else if (isMPAAApplicable) {
-      (AAA - definedBenefit).min(P2AAA).max(0)
-    } else {
-      0L
-    }
-  }
-
-  override def unusedMPAA(): Long = {
-    if (!isTriggered) {
-      0L
-    } else if (definedContribution < MPA) {
-      val v = MPA - definedContribution
-      if (v > P2MPA) {
-        P2MPA
-      } else {
-        v
-      }
-    } else {
-      0L
-    }
-  }
-
-  override def preFlexiSavings() : Long = {
-    if (isTriggered) {
-      val amounts = preTriggerAmounts.getOrElse(InputAmounts(Some(0), Some(0), None, Some(false)))
-      amounts.definedBenefit.getOrElse(0L) + amounts.moneyPurchase.getOrElse(0L)
-    } else {
-      definedContribution + definedBenefit
-    }
-  }
-
-  override def postFlexiSavings() : Long = {
-    if (isTriggered) {
-      definedContribution + definedBenefit
-    } else {
-      0L
-    }
-  }
-
-  override def acaCF() : Long = {
-    if (isTriggered) {
-      0L
-    } else {
-     (AAA + previous3YearsUnusedAllowance) - preFlexiSavings
-    }
-  }
-
-  override def dcaCF() : Long = {
-    if (!isTriggered) {
-      0L
-    } else {
-      (AA + previous3YearsUnusedAllowance) - postFlexiSavings
-    }
-  }
+  override def unusedMPAA(): Long = if (isTriggered && definedContribution < MPA) if ((MPA - definedContribution) > P2MPA) P2MPA else MPA - definedContribution else 0L
 }

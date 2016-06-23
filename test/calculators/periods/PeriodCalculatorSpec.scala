@@ -81,20 +81,4 @@ class PeriodCalculatorSpec extends UnitSpec {
       PeriodCalculator.taxResultTriggered(tr) shouldBe true
     }
   }
-
-  "previous amounts" should {
-    "return empty results if no previous periods" in new TestFixture {
-      PeriodCalculator.previousInputs shouldBe InputAmounts()
-    }    
-    "return empty results if previous periods with no amounts" in new TestFixture {
-      previousPeriods = List(Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, None)).map((c)=>TaxYearResults(c,ExtendedSummaryFields()))
-      PeriodCalculator.previousInputs shouldBe InputAmounts()
-    }
-    "return results if previous periods" in new TestFixture {
-      val p2 = Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, None)))
-      val p1 = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(1324L), Some(2L), None, None)))
-      previousPeriods = List(Contribution(2012,2),Contribution(2016,3),p2,p1).map((c)=>TaxYearResults(c,ExtendedSummaryFields(c.amounts.get.definedBenefit.get)))
-      PeriodCalculator.previousInputs shouldBe InputAmounts(2L)
-    }
-  }
 }

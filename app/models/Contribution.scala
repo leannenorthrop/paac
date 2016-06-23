@@ -129,6 +129,14 @@ case class Contribution(taxPeriodStart: PensionPeriod, taxPeriodEnd: PensionPeri
   def isTriggered(): Boolean = {
     amounts.map(_.triggered.getOrElse(false)).getOrElse(false)
   }
+
+  def definedBenefit(): Long = {
+    amounts.map(_.definedBenefit.getOrElse(0L)).getOrElse(0L)
+  }
+  
+  def moneyPurchase(): Long = {
+    amounts.map(_.moneyPurchase.getOrElse(0L)).getOrElse(0L)
+  }
 }
 
 object PensionPeriod {

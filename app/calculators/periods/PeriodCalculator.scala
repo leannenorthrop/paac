@@ -53,11 +53,9 @@ trait PeriodCalculator {
 
   def taxResultTriggered(tx: TaxYearResults): Boolean = (tx.input.isPeriod1 || tx.input.isPeriod2) && !taxResultNotTriggered(tx)
 
-  def previousInputs(implicit previousPeriods:Seq[TaxYearResults]): InputAmounts = previousPeriods.headOption.map(_.input.amounts.getOrElse(InputAmounts())).getOrElse(InputAmounts())
-
   def preTriggerFields(implicit previousPeriods:Seq[TaxYearResults]): Option[ExtendedSummaryFields] = previousPeriods.find(taxResultNotTriggered).map(_.summaryResult.asInstanceOf[ExtendedSummaryFields])
 
-  def preTriggerAmounts(implicit previousPeriods:Seq[TaxYearResults]): Option[InputAmounts] = previousPeriods.find(taxResultNotTriggered).flatMap(_.input.amounts)
+  def preTriggerInputs(implicit previousPeriods:Seq[TaxYearResults]): Option[Contribution] = previousPeriods.find(taxResultNotTriggered).map(_.input)
 
   def previous3YearsUnusedAllowance()(implicit previousPeriods:Seq[TaxYearResults], c: Contribution): Long = {
     // we only want previous values so create dummy contribution which does not affect the calculation
