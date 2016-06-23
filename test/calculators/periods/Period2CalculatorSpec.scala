@@ -175,16 +175,6 @@ class Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
       Period2Calculator().exceedingAllowance shouldBe 0L
     } 
 
-    "annualAllowance" should {
-      "return basic allowance if no previous periods supplied" in new TestFixture {
-        // test
-        val result = Period2Calculator().annualAllowance
-
-        // check
-        result shouldBe 5000000L
-      }
-    }
-
     "unusedAllowance" should {
       "return 0 if no previous periods supplied" in new TestFixture {
         // set up

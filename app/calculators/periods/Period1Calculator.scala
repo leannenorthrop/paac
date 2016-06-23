@@ -31,33 +31,20 @@ case class Period1Calculator(implicit amountsCalculator: BasicCalculator,
 
   override def aaCCF(): Long = {
     if (!isTriggered) {
-      if (exceedingAllowance > 0) {
-        // not triggered therefore previous row is 2014
-        val year2014 = previous
-        if (exceedingAllowance >= year2014.availableAAWithCCF) 0L else actualUnused.slice(0, 4).map(_._2).foldLeft(0L)(_ + _)
-      } else {
-        actualUnused.slice(0, 4).map(_._2).foldLeft(0L)(_ + _)
-      }
+      actualUnused.slice(0, 4).map(_._2).foldLeft(0L)(_ + _)
     } else {
-      val annualAllowance = AA
       if (isMPAAApplicable) {
         val aaa = (AAA + previous3YearsUnusedAllowance - preTriggerSavings)
         if (preTriggerSavings > AAA) (aaa).max(0) else (aaa).min(P2AAA)
-      } else if (definedBenefit >= annualAllowance) {
-        (annualAllowance + previous3YearsUnusedAllowance - postFlexiSavings).max(0)
+      } else if (definedBenefit >= AA) {
+        (AA + previous3YearsUnusedAllowance - postFlexiSavings).max(0)
       } else {
         (unusedAllowance.min(MAX_CF) + previous3YearsUnusedAllowance).max(0)
       }
     }
   }
 
-  override def aaCF(): Long = {
-    if (!isTriggered) {
-      annualAllowance + previous.availableAAWithCCF
-    } else {
-      previous.availableAAWithCF
-    }
-  }
+  override def aaCF(): Long = if (!isTriggered) annualAllowance + previous.availableAAWithCCF else previous.availableAAWithCF
 
   override def acaCF() : Long = if (isTriggered) 0L else (AAA + previous3YearsUnusedAllowance) - preFlexiSavings
 
@@ -65,7 +52,7 @@ case class Period1Calculator(implicit amountsCalculator: BasicCalculator,
 
   override def alternativeChargableAmount(): Long = if (isMPAAApplicable && isTriggered) mpist + dbist else 0L
 
-  override def annualAllowance(): Long = if (!isTriggered) basicCalculator().annualAllowance else if (defaultChargableAmount >= alternativeChargableAmount) AA else AAA
+  override def annualAllowance(): Long = if (!isTriggered) AA else if (defaultChargableAmount >= alternativeChargableAmount) AA else AAA
 
   def basicCalculator(): BasicCalculator = amountsCalculator
 
@@ -77,7 +64,7 @@ case class Period1Calculator(implicit amountsCalculator: BasicCalculator,
   
   override def dbist(): Long = {
     def isBefore2015(taxYearResult: TaxYearResults): Boolean = !(taxYearResult.input.isPeriod1 || taxYearResult.input.isPeriod2) && taxYearResult.input.taxPeriodStart.year <= 2015
-    def year2014CCF(): Long = previousPeriods.filter(isBefore2015).headOption.map(_.summaryResult).getOrElse(SummaryResult()).availableAAWithCCF
+    val year2014CCF = previousPeriods.filter(isBefore2015).headOption.map(_.summaryResult).getOrElse(SummaryResult()).availableAAWithCCF
 
     if (isTriggered) {
       val unusedaaa = preTriggerFields.map(_.unusedAAA).getOrElse(0L)
@@ -152,5 +139,5 @@ case class Period1Calculator(implicit amountsCalculator: BasicCalculator,
     }
   }
 
-  override def unusedMPAA(): Long = if (isTriggered && definedContribution < MPA) if ((MPA - definedContribution) > P2MPA) P2MPA else MPA - definedContribution else 0L
+  override def unusedMPAA(): Long = if (isTriggered && !isMPAAApplicable) if ((MPA - definedContribution) > P2MPA) P2MPA else MPA - definedContribution else 0L
 }

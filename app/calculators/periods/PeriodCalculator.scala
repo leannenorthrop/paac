@@ -60,14 +60,8 @@ trait PeriodCalculator {
   def previous3YearsUnusedAllowance()(implicit previousPeriods:Seq[TaxYearResults], c: Contribution): Long = {
     // we only want previous values so create dummy contribution which does not affect the calculation
     val contribution = Contribution(c.taxPeriodStart, c.taxPeriodEnd, Some(InputAmounts(0L,0L)))
-
-    val l = if (!previousPeriods.find(_.input.isPeriod1).isDefined) {
-      basicCalculator().actualUnused(previousPeriods, contribution).drop(1).slice(0,3)
-    } else {
-      basicCalculator().actualUnused(previousPeriods.drop(1), contribution).drop(1).slice(0,3)
-    }
-    
-    l.foldLeft(0L)(_+_._2)
+    val pp = if (!previousPeriods.find(_.input.isPeriod1).isDefined) previousPeriods else previousPeriods.drop(1)
+    basicCalculator().actualUnused(pp, contribution).drop(1).slice(0,3).foldLeft(0L)(_+_._2)
   }
 
   def actualUnused(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): List[(Int,Long)] = {
