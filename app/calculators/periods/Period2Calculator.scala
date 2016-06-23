@@ -165,11 +165,11 @@ case class Period2Calculator(implicit amountsCalculator: BasicCalculator,
       definedContribution
   }
 
-  def period1(): ExtendedSummaryFields = previousPeriods.find(_.input.isPeriod1).map(_.summaryResult.asInstanceOf[ExtendedSummaryFields]).getOrElse(ExtendedSummaryFields())
+  def period1(): ExtendedSummaryFields = previousPeriods.find(_.input.isPeriod1).flatMap(maybeExtended(_)).getOrElse(ExtendedSummaryFields())
 
   override def preFlexiSavings() : Long = if (isPeriod2Triggered) preTriggerInputs.map((c)=>c.moneyPurchase+c.definedBenefit).getOrElse(0L) else 0L
 
-  def previous(): ExtendedSummaryFields = previousPeriods.headOption.map(_.summaryResult.asInstanceOf[ExtendedSummaryFields]).getOrElse(ExtendedSummaryFields())
+  def previous(): ExtendedSummaryFields = previousPeriods.headOption.flatMap(maybeExtended(_)).getOrElse(ExtendedSummaryFields())
   
   def previous2YearsUnusedAllowance()(implicit previousPeriods:Seq[TaxYearResults], c: Contribution): Long = {
     // we only want previous values so create dummy contribution which does not affect the calculation

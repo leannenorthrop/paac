@@ -53,9 +53,13 @@ trait PeriodCalculator {
 
   def taxResultTriggered(tx: TaxYearResults): Boolean = (tx.input.isPeriod1 || tx.input.isPeriod2) && !taxResultNotTriggered(tx)
 
-  def preTriggerFields(implicit previousPeriods:Seq[TaxYearResults]): Option[ExtendedSummaryFields] = previousPeriods.find(taxResultNotTriggered).map(_.summaryResult.asInstanceOf[ExtendedSummaryFields])
+  def maybeExtended(t: TaxYearResults): Option[ExtendedSummaryFields] = if (t.summaryResult.isInstanceOf[ExtendedSummaryFields]) Some(t.summaryResult.asInstanceOf[ExtendedSummaryFields]) else None
 
-  def preTriggerInputs(implicit previousPeriods:Seq[TaxYearResults]): Option[Contribution] = previousPeriods.find(taxResultNotTriggered).map(_.input)
+  def notTriggered(implicit previousPeriods:Seq[TaxYearResults]): Option[TaxYearResults] = previousPeriods.find(taxResultNotTriggered)
+
+  def preTriggerFields(implicit previousPeriods:Seq[TaxYearResults]): Option[ExtendedSummaryFields] = notTriggered.flatMap(maybeExtended(_))
+
+  def preTriggerInputs(implicit previousPeriods:Seq[TaxYearResults]): Option[Contribution] = notTriggered.map(_.input)
 
   def previous3YearsUnusedAllowance()(implicit previousPeriods:Seq[TaxYearResults], c: Contribution): Long = {
     // we only want previous values so create dummy contribution which does not affect the calculation
@@ -64,6 +68,7 @@ trait PeriodCalculator {
     basicCalculator().actualUnused(pp, contribution).drop(1).slice(0,3).foldLeft(0L)(_+_._2)
   }
 
+  // LN TODO simplify
   def actualUnused(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): List[(Int,Long)] = {
     type FlatValues = (Int, Long, Long, Long, Long)
     def extractFlatValues(implicit p:Seq[TaxYearResults], contribution: Contribution): List[FlatValues] = {
