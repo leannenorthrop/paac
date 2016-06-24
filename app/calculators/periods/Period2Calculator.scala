@@ -192,12 +192,15 @@ case class Period2Calculator(implicit amountsCalculator: BasicCalculator,
           val unusedAllowance = if (period1.isMPA) {
             period1.unusedAAA - definedBenefit
           } else {
-            val delta = if (defaultChargableAmount >= alternativeChargableAmount) {
-              definedBenefit + definedContribution + (if (isPeriod2Triggered) 0L else period1.cumulativeDB)
-            } else 0L
-
-            val deduct = if (isPeriod1Triggered) contribution.definedBenefit else preFlexiSavings
-            if (preFlexiSavings + delta > MAXAACF) 0L else period1.unusedAllowance - deduct
+            val previousSavings = previousPeriods.headOption.map(_.input).getOrElse(Contribution(0,0))
+            val allSavings = definedBenefit + definedContribution + previousSavings.definedBenefit + previousSavings.moneyPurchase
+            val unused = if (isPeriod1Triggered) {
+              period1.unusedAllowance - contribution.definedBenefit
+            } else {
+              period1.unusedAllowance - (previousSavings.definedBenefit + previousSavings.moneyPurchase)
+            }
+            val savings = preFlexiSavings + (if (defaultChargableAmount >= alternativeChargableAmount) allSavings else 0L)
+            if (savings > MAXAACF) 0L else unused
           }
           unusedAllowance.max(0)
         }
