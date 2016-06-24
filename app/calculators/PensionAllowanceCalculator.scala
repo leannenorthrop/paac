@@ -112,14 +112,16 @@ trait PensionAllowanceCalculator {
       val period2Results = year2015ResultsMap.get(false).get
       val non2015Results = r.filterNot((t)=>t.input.isPeriod1||t.input.isPeriod2)
       val results: List[TaxYearResults] = if (period1Results.size == 2) {
-        val p1Triggered = fetchTriggered(period1Results).get
+        val p1Triggered = fetchTriggered(period1Results).get.summaryResult.asInstanceOf[ExtendedSummaryFields]
         val p1NotTriggered = fetchNotTriggered(period1Results).get
-        val newP1 = p1Triggered.copy(input=p1NotTriggered.input)
+        val tax = p1NotTriggered.summaryResult.chargableAmount+p1Triggered.chargableAmount
+        val newP1 = TaxYearResults(p1NotTriggered.input, p1Triggered.copy(chargableAmount=tax))
         non2015Results ++ List(newP1) ++ List(fetchTriggered(period2Results).get)
       } else if (period2Results.size == 2) {
-        val p2Triggered = fetchTriggered(period2Results).get
+        val p2Triggered = fetchTriggered(period2Results).get.summaryResult.asInstanceOf[ExtendedSummaryFields]
         val p2NotTriggered = fetchNotTriggered(period2Results).get
-        val newP2 = p2Triggered.copy(input=p2NotTriggered.input)
+        val tax = p2NotTriggered.summaryResult.chargableAmount+p2Triggered.chargableAmount
+        val newP2 = TaxYearResults(p2NotTriggered.input, p2Triggered.copy(chargableAmount=tax))
         non2015Results ++ List(fetchNotTriggered(period1Results).get) ++ List(newP2)
       } else {
         r
