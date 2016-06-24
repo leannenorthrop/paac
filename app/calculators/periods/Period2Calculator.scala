@@ -132,7 +132,7 @@ case class Period2Calculator(implicit amountsCalculator: BasicCalculator,
 
   override def exceedingAllowance(): Long = if ((isGroup2 || isGroup3) && isTriggered) 0L else (basicDefinedBenefit - period1.unusedAllowance).max(0)
 
-  override def exceedingMPAA(): Long = if (isMPAAApplicable) definedContribution - MPA else 0L
+  override def exceedingMPAA(): Long = if (isMPAAApplicable) (definedContribution - MPA).max(0) else 0L
 
   def isGroup1(implicit contribution: Contribution): Boolean = contribution.isGroup1
   def isGroup2(implicit contribution: Contribution): Boolean = !contribution.isGroup3 && contribution.isGroup2
