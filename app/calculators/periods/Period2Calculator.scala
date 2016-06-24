@@ -24,6 +24,7 @@ case class Period2Calculator(implicit amountsCalculator: BasicCalculator,
                                       contribution:Contribution) extends PeriodCalculator {
   val MPA = 10000 * 100L
   val P1MPA = 20000 * 100L
+  val P2MPA = 10000 * 100L
   val AAA = 30000 * 100L
   val MAXAACF = 40000 * 100L
 
@@ -52,8 +53,8 @@ case class Period2Calculator(implicit amountsCalculator: BasicCalculator,
 
   override def alternativeAA(): Long = if (isGroup3 || (isGroup2 && isTriggered)) previous.unusedAAA else 0L
 
-  override def alternativeChargableAmount(): Long = if (isGroup3 && (isMPAAApplicable || (isPeriod1Triggered && period1.isMPA))) (mpist + dbist).max(0) 
-                                                    else if (isGroup2 && isMPAAApplicable) (definedContribution - previous.unusedMPAA).max(0) 
+  override def alternativeChargableAmount(): Long = if (isGroup3 && (isMPAAApplicable || (isPeriod1Triggered && period1.isMPA))) (mpist + dbist).max(0)
+                                                    else if (isGroup2 && isMPAAApplicable) if (isPeriod1Triggered) (definedContribution - previous.unusedMPAA).max(0) else definedContribution - P2MPA
                                                     else 0L
 
   override def annualAllowance(): Long = previous.unusedAllowance
@@ -220,5 +221,5 @@ case class Period2Calculator(implicit amountsCalculator: BasicCalculator,
     }
   }
 
-  override def unusedMPAA(): Long = 0L
+  override def unusedMPAA(): Long = 0
 }
