@@ -53,9 +53,25 @@ case class Period2Calculator(implicit amountsCalculator: BasicCalculator,
 
   override def alternativeAA(): Long = if (isGroup3 || (isGroup2 && isTriggered)) previous.unusedAAA else 0L
 
-  override def alternativeChargableAmount(): Long = if (isGroup3 && (isMPAAApplicable || (isPeriod1Triggered && period1.isMPA))) (mpist + dbist).max(0)
-                                                    else if (isGroup2 && isMPAAApplicable) if (isPeriod1Triggered) (definedContribution - previous.unusedMPAA).max(0) else definedContribution - P2MPA
-                                                    else 0L
+  override def alternativeChargableAmount(): Long = {
+    if (isGroup3 && (isMPAAApplicable || (isPeriod1Triggered && period1.isMPA))) 
+      (mpist + dbist).max(0) 
+    else if (isGroup2)
+      if (isMPAAApplicable) {
+        if (isPeriod1Triggered){ 
+          (definedContribution - previous.unusedMPAA).max(0) 
+        } else { 
+          definedContribution - P2MPA
+        }
+      } else {
+        if (previous.unusedMPAA < definedContribution) {
+          (definedContribution - previous.unusedMPAA).max(0)
+        } else {
+          0L
+        }
+      }
+    else { 0L }
+  }
 
   override def annualAllowance(): Long = previous.unusedAllowance
 
@@ -144,7 +160,7 @@ case class Period2Calculator(implicit amountsCalculator: BasicCalculator,
   def isGroup3(implicit contribution: Contribution): Boolean = contribution.isGroup3
 
   override def isMPAAApplicable(): Boolean = if (isGroup3 || isGroup2)
-                                               (definedContribution > MPA) || period1.isMPA || period1.cumulativeMP >= P1MPA
+                                               (definedContribution > MPA) || period1.isMPA || period1.cumulativeMP >= P1MPA || (previous.unusedMPAA < definedContribution)
                                              else false
 
   def isPeriod1Triggered(): Boolean = previousPeriods.find(taxResultTriggered).find(_.input.isPeriod1).isDefined

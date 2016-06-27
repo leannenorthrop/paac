@@ -74,7 +74,7 @@ class Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
       result shouldBe true
     }
 
-    "return false if below MPA" in new TestFixture {
+    "return true if below MPA " in new TestFixture {
       // set up
       contribution = period2Contribution.copy(amounts = Some(InputAmounts(Some(0L), Some(1200L))))
 
@@ -82,7 +82,7 @@ class Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
       val result = Period2Calculator().isMPAAApplicable
 
       // check
-      result shouldBe false
+      result shouldBe true
     }
 
     "defined benefit is 0" in new TestFixture {
