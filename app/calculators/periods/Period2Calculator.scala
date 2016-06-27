@@ -105,11 +105,15 @@ case class Period2Calculator(implicit amountsCalculator: BasicCalculator,
       } else {
         ((preFlexiSavings + definedContribution) - period1.availableAAWithCCF).max(0)
       }
-    } else if (isGroup2) {
+    } else if (isGroup2 && isTriggered) {
       if (previous.unusedAAA > 0) {
         (mpist - (previous.unusedAAA + previous.availableAAWithCCF)).max(0)
       } else {
-        (mpist - (previous.unusedAllowance + previous.availableAAWithCCF)).max(0)
+        if (isPeriod1Triggered) {
+          (mpist - (previous.unusedAllowance + previous.availableAAWithCCF)).max(0)
+        } else {
+          ((mpist + previous.mpist) - (previous.unusedAllowance + previous.availableAAWithCCF)).max(0)
+        }
       }
     } else {
       0L

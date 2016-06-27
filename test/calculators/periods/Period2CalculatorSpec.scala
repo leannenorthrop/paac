@@ -146,17 +146,6 @@ class Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
     }
 
     "defaultChargableAmount" should {
-      "return defined contribution if no previous periods supplied" in new TestFixture {
-        // set up
-        contribution = period2Contribution.copy(amounts = Some(InputAmounts(Some(0L), Some(1200000L))))
-
-        // test
-        val result = Period2Calculator().defaultChargableAmount
-
-        // check
-        result shouldBe 1200000L
-      }
-
       "return 0 if period 1 unused AAA > defined contribution" in new TestFixture {
         // set up
         val period1 = ExtendedSummaryFields(unusedAAA=5000000L)
