@@ -35,9 +35,9 @@ case class Period2Calculator(implicit amountsCalculator: BasicCalculator,
       actualUnused.slice(0, 3).map(_._2).foldLeft(0L)(_ + _)
     } else {
       if (previous.unusedAAA > 0) {
-        if (contribution.isGroup3) 
+        if (contribution.isGroup3)
           previous2YearsUnusedAllowance + period1.availableAAWithCCF - definedBenefit
-        else 
+        else
           previous2YearsUnusedAllowance + period1.availableAAWithCCF
       } else {
         if (unusedAllowance > 0) {
