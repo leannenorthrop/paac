@@ -216,7 +216,11 @@ case class Period2Calculator(implicit amountsCalculator: BasicCalculator,
             val previousSavings = previousPeriods.headOption.map(_.input).getOrElse(Contribution(0,0))
             val allSavings = definedBenefit + definedContribution + previousSavings.definedBenefit + previousSavings.moneyPurchase
             val unused = if (isPeriod1Triggered) {
-              period1.unusedAllowance - contribution.definedBenefit
+              if (alternativeChargableAmount > defaultChargableAmount) {
+                period1.unusedAllowance - contribution.definedBenefit
+              } else {
+                period1.unusedAllowance - (contribution.definedBenefit + contribution.moneyPurchase)
+              }
             } else {
               if (alternativeChargableAmount > defaultChargableAmount) {
                 period1.unusedAllowance - (previousSavings.definedBenefit + previousSavings.moneyPurchase)
