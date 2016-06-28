@@ -223,7 +223,7 @@ case class Period2Calculator(implicit amountsCalculator: BasicCalculator,
               }
             } else {
               if (alternativeChargableAmount > defaultChargableAmount) {
-                period1.unusedAllowance - (previousSavings.definedBenefit + previousSavings.moneyPurchase)
+                period1.unusedAllowance - (previousSavings.definedBenefit + previousSavings.moneyPurchase) 
               } else {
                 period1.unusedAllowance - (previousSavings.definedBenefit + previousSavings.moneyPurchase + contribution.moneyPurchase)
               }
@@ -240,7 +240,11 @@ case class Period2Calculator(implicit amountsCalculator: BasicCalculator,
           if (period1.cumulativeMP < P1MPA && definedContribution < MPA){
             (annualAllowance - definedContribution).max(0)
           } else {
-            annualAllowance
+            if (alternativeChargableAmount > defaultChargableAmount) {
+              annualAllowance
+            } else {
+              (annualAllowance - definedContribution).max(0)
+            }
           }
         }
       }
