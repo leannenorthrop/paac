@@ -105,7 +105,7 @@ case class Period1Calculator(implicit amountsCalculator: BasicCalculator,
 
   override def isMPAAApplicable(): Boolean = definedContribution > MPA
 
-  override def moneyPurchaseAA(): Long = if (isMPAAApplicable && isTriggered) (MPA - definedContribution).max(0) else 0L
+  override def moneyPurchaseAA(): Long = MPA
 
   override def mpist(): Long = if (isMPAAApplicable) definedContribution - MPA else definedContribution
 
