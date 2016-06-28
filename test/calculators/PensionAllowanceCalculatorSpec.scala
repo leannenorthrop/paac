@@ -301,7 +301,7 @@ class PensionAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
         collatedResults(1) shouldBe result1
         collatedResults(2) shouldBe result2
         collatedResults(3) shouldBe result3
-        collatedResults(4) shouldBe TaxYearResults(input=result4.input,summaryResult=result5.summaryResult.asInstanceOf[ExtendedSummaryFields].copy(chargableAmount=7900000))
+        collatedResults(4) shouldBe TaxYearResults(input=result4.input,summaryResult=result5.summaryResult)
       }
 
       "collapse period 2 trigger row result when trigger date is 5/4/2016" in new TestFixture with P2 {
@@ -323,7 +323,7 @@ class PensionAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
         collatedResults(1) shouldBe result1
         collatedResults(2) shouldBe result2
         collatedResults(3) shouldBe result3
-        collatedResults(4) shouldBe TaxYearResults(input=result4.input,summaryResult=result5.summaryResult.asInstanceOf[ExtendedSummaryFields].copy(chargableAmount=7900000))
+        collatedResults(4) shouldBe TaxYearResults(input=result4.input,summaryResult=result5.summaryResult)
       }
     }
   }

@@ -1,0 +1,8 @@
+Scenario 18 repeat?
+year    | Defined Benefit | Money Purchase  | Is Triggered | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward | MPAA 
+2012    | 200000          | 0               | false        | 150000              | 0                | 200000                     | 0            | 0                        | 0
+2013    | 50000           | 0               | false        | 0                   | 0                | 50000                      | 0            | 0                        | 0
+2014    | 40000           | 0               | false        | 0                   | 0                | 40000                      | 0            | 0                        | 0
+2015P1B | 0               | 55000           | false        | 0                   | 0                | 80000                      | 25000        | 25000                    | 0
+2015P2B | 0               | 0               | false        | 0                   | 0                | 25000                      | 25000        | 25000                    | 0
+2015P2A | 0               | 30000           | true         | 0                   | 20000            | 25000                      | 0            | 0                        | 0

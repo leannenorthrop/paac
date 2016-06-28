@@ -23,37 +23,11 @@ import org.scalatest.prop._
 import org.scalacheck.Gen
 import calculators.results.BasicCalculator
 
-class Group2P1CalculatorSpec extends UnitSpec {
+class Period1CalculatorSpec extends UnitSpec {
 
   trait TestFixture {
     val annualAllowance = 80000L
     implicit val amountsCalculator = BasicCalculator(annualAllowance)
-  }
-
-  "year2014CCF" should {
-    "when no previous results return 0" in new TestFixture {
-      // set up
-      implicit val previousPeriods = List[TaxYearResults]()
-      implicit val contribution = Contribution(2015, 123L)
-
-      // test
-      val result = Group2P1Calculator().year2014CCF
-
-      // check
-      result shouldBe 0L
-    }
-
-    "when previous results return 2014 ccf" in new TestFixture {
-      // set up
-      implicit val previousPeriods = List[TaxYearResults](TaxYearResults(Contribution(2014,0), SummaryResult(availableAAWithCCF=123L)))
-      implicit val contribution = Contribution(2015, 123L)
-
-      // test
-      val result = Group2P1Calculator().year2014CCF
-
-      // check
-      result shouldBe 123L
-    }
   }
 
   "dbist" should {
@@ -63,7 +37,7 @@ class Group2P1CalculatorSpec extends UnitSpec {
       implicit val contribution = Contribution(2015, 0L).copy(amounts=Some(InputAmounts(triggered=Some(true))))
 
       // test
-      val result = Group2P1Calculator().dbist
+      val result = Period1Calculator().dbist
 
       // check
       result shouldBe 0L
@@ -77,7 +51,7 @@ class Group2P1CalculatorSpec extends UnitSpec {
       implicit val contribution = Contribution(2015, 0L).copy(amounts=Some(InputAmounts(triggered=Some(true),moneyPurchase=Some(2100000))))
 
       // test
-      val result = Group2P1Calculator().exceedingAllowance
+      val result = Period1Calculator().exceedingAllowance
 
       // check
       result shouldBe 0L
@@ -91,7 +65,7 @@ class Group2P1CalculatorSpec extends UnitSpec {
       implicit val contribution = Contribution(2015, 0L)
 
       // test
-      val result = Group2P1Calculator().preFlexiSavings
+      val result = Period1Calculator().preFlexiSavings
 
       // check
       result shouldBe 0L
@@ -105,7 +79,7 @@ class Group2P1CalculatorSpec extends UnitSpec {
       implicit val contribution = Contribution(2015, 0L).copy(amounts=Some(InputAmounts(triggered=Some(true),moneyPurchase=Some(2100000))))
 
       // test
-      val result = Group2P1Calculator().unusedAAA
+      val result = Period1Calculator().unusedAAA
 
       // check
       result shouldBe 3000000L
@@ -119,7 +93,7 @@ class Group2P1CalculatorSpec extends UnitSpec {
       implicit val contribution = Contribution(2015, 0L).copy(amounts=Some(InputAmounts(triggered=Some(true),definedBenefit=Some(1),moneyPurchase=Some(1))))
 
       // test
-      val result = Group2P1Calculator().preFlexiSavings
+      val result = Period1Calculator().preFlexiSavings
 
       // check
       result shouldBe 0L
@@ -133,7 +107,7 @@ class Group2P1CalculatorSpec extends UnitSpec {
       implicit val contribution = Contribution(2015, 0L).copy(amounts=Some(InputAmounts(triggered=Some(true),moneyPurchase=Some(2100000))))
 
       // test
-      val result = Group2P1Calculator().aaCCF
+      val result = Period1Calculator().aaCCF
 
       // check
       result shouldBe 3000000L

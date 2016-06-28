@@ -19,71 +19,9 @@ package calculators.periods
 import models._
 
 trait PeriodCalculator {
-  def isTriggered(implicit contribution: Contribution): Boolean = contribution.isTriggered
-
-  def taxResultNotTriggered(tx: TaxYearResults): Boolean = !tx.input.amounts.getOrElse(InputAmounts()).triggered.getOrElse(false)
-
-  def taxResultTriggered(tx: TaxYearResults): Boolean = !taxResultNotTriggered(tx)
-
-  def isBefore2015(taxYearResult: TaxYearResults): Boolean = taxYearResult.input.taxPeriodStart.year <= 2015 && !taxYearResult.input.isPeriod1 && !taxYearResult.input.isPeriod2
-
-  def pre2015Results(implicit previousPeriods:Seq[TaxYearResults]) = previousPeriods.filter(isBefore2015)
-
-  def period1(implicit previousPeriods:Seq[TaxYearResults]): ExtendedSummaryFields = previousPeriods.find(_.input.isPeriod1).map(_.summaryResult.asInstanceOf[ExtendedSummaryFields]).getOrElse(ExtendedSummaryFields())  
-
-  def period1Amounts(implicit previousPeriods:Seq[TaxYearResults]): InputAmounts = previousPeriods.find(_.input.isPeriod1).map(_.input.amounts.getOrElse(InputAmounts())).getOrElse(InputAmounts())  
-
-  def isPeriod1(implicit previousPeriods:Seq[TaxYearResults]) = previousPeriods.find(_.input.isPeriod1).isDefined
-
-  def previous(implicit previousPeriods:Seq[TaxYearResults]): Summary = previousResults.map(_.summaryResult).getOrElse(ExtendedSummaryFields())
-
-  def previousResults(implicit previousPeriods:Seq[TaxYearResults]): Option[TaxYearResults] = previousPeriods.headOption
-
-  def previousInputs(implicit previousPeriods:Seq[TaxYearResults]): InputAmounts = previousResults.map(_.input.amounts.getOrElse(InputAmounts())).getOrElse(InputAmounts())
-
-  def preTriggerFields(implicit previousPeriods:Seq[TaxYearResults]): Option[ExtendedSummaryFields] = previousPeriods.find(taxResultNotTriggered).map(_.summaryResult.asInstanceOf[ExtendedSummaryFields])
-
-  def preTriggerAmounts(implicit previousPeriods:Seq[TaxYearResults]): Option[InputAmounts] = previousPeriods.find(taxResultNotTriggered).flatMap(_.input.amounts)
-
-  def period1Triggered(implicit previousPeriods:Seq[TaxYearResults]): Option[ExtendedSummaryFields] = previousPeriods.find(taxResultTriggered).map(_.summaryResult.asInstanceOf[ExtendedSummaryFields])
-  def period1NotTriggered(implicit previousPeriods:Seq[TaxYearResults]): Option[ExtendedSummaryFields] = previousPeriods.filter(taxResultNotTriggered).find(_.input.isPeriod1).map(_.summaryResult.asInstanceOf[ExtendedSummaryFields])
-
-  def isPeriod1Triggered(implicit previousPeriods:Seq[TaxYearResults]): Boolean = {
-    previousPeriods.find(_.input.amounts.getOrElse(InputAmounts()).triggered.getOrElse(false)).isDefined
-  }
+  def definedContribution(implicit contribution:Contribution): Long = contribution.amounts.getOrElse(InputAmounts()).moneyPurchase.getOrElse(0L)
 
   def basicCalculator(): calculators.results.BasicCalculator
-
-  def previous3YearsUnusedAllowance()(implicit previousPeriods:Seq[TaxYearResults], c: Contribution): Long = {
-    // we only want previous values so create dummy contribution which does not affect the calculation
-    val contribution = Contribution(c.taxPeriodStart, c.taxPeriodEnd, Some(InputAmounts(0L,0L)))
-
-    val l = if (!isPeriod1) {
-      basicCalculator().actualUnused(previousPeriods, contribution).drop(1).slice(0,3)
-    } else {
-      basicCalculator().actualUnused(previousPeriods.drop(1), contribution).drop(1).slice(0,3)
-    }
-    
-    l.foldLeft(0L)(_+_._2)
-  }
-
-  def previous2YearsUnusedAllowance()(implicit previousPeriods:Seq[TaxYearResults], c: Contribution): Long = {
-    // we only want previous values so create dummy contribution which does not affect the calculation
-    val contribution = Contribution(c.taxPeriodStart, c.taxPeriodEnd, Some(InputAmounts(0L,0L)))
-
-    val l = if (!isPeriod1) {
-      val v = basicCalculator().actualUnused(previousPeriods.drop(1), contribution).drop(1).slice(0,2)
-      v
-    } else {
-      val v = basicCalculator().actualUnused(previousPeriods.drop(1), contribution).drop(2).slice(0,2)
-      v
-    }
-
-    l.foldLeft(0L)(_+_._2)
-  }
-
-  def definedContribution(implicit contribution:Contribution): Long = contribution.amounts.getOrElse(InputAmounts()).moneyPurchase.getOrElse(0L)
-  
   def definedBenefit(): Long
   def chargableAmount(): Long
   def exceedingAllowance(): Long
@@ -109,91 +47,112 @@ trait PeriodCalculator {
   def acaCF() : Long = 0L
   def dcaCF() : Long = 0L
 
-  type FlatValues = (Int, Long, Long, Long, Long)
-  def extractFlatValues(implicit p:Seq[TaxYearResults], contribution: Contribution): List[FlatValues] = {
-    val previousPeriods = p.filterNot(_.input.isTriggered)
-    val prefix = if (contribution.isPeriod1()) {
-      List((20151, definedBenefit, annualAllowance, exceedingAllowance, unusedAllowance))
-    } else if (contribution.isPeriod2()) {
-      List((20152, definedBenefit, annualAllowance, exceedingAllowance, unusedAllowance))
-    } else {
-      List((contribution.taxPeriodStart.year, definedBenefit, annualAllowance, exceedingAllowance, unusedAllowance))
-    }
-    val list = (prefix ++
-      previousPeriods.map {
-        (result) =>
-          val amounts = result.input.amounts.getOrElse(InputAmounts())
-          val summary = result.summaryResult
-          if (result.input.isPeriod1) {
-            (20151, amounts.definedBenefit.getOrElse(0L), summary.availableAllowance, summary.exceedingAAAmount, summary.unusedAllowance)
-          } else if (result.input.isPeriod2) {
-            (20152, amounts.definedBenefit.getOrElse(0L), summary.availableAllowance, summary.exceedingAAAmount, summary.unusedAllowance)
-          } else {
-            (result.input.taxPeriodStart.year, amounts.definedBenefit.getOrElse(0L), summary.availableAllowance, summary.exceedingAAAmount, summary.unusedAllowance)
-          }
-      }.toList).reverse
-    list
+  def isTriggered(implicit contribution: Contribution): Boolean = contribution.isTriggered
+
+  def taxResultNotTriggered(tx: TaxYearResults): Boolean = (tx.input.isPeriod1 || tx.input.isPeriod2) && !tx.input.amounts.getOrElse(InputAmounts()).triggered.getOrElse(false)
+
+  def taxResultTriggered(tx: TaxYearResults): Boolean = (tx.input.isPeriod1 || tx.input.isPeriod2) && !taxResultNotTriggered(tx)
+
+  def maybeExtended(t: TaxYearResults): Option[ExtendedSummaryFields] = if (t.summaryResult.isInstanceOf[ExtendedSummaryFields]) Some(t.summaryResult.asInstanceOf[ExtendedSummaryFields]) else None
+
+  def notTriggered(implicit previousPeriods:Seq[TaxYearResults]): Option[TaxYearResults] = previousPeriods.find(taxResultNotTriggered)
+
+  def preTriggerFields(implicit previousPeriods:Seq[TaxYearResults]): Option[ExtendedSummaryFields] = notTriggered.flatMap(maybeExtended(_))
+
+  def preTriggerInputs(implicit previousPeriods:Seq[TaxYearResults]): Option[Contribution] = notTriggered.map(_.input)
+
+  def previous3YearsUnusedAllowance()(implicit previousPeriods:Seq[TaxYearResults], c: Contribution): Long = {
+    // we only want previous values so create dummy contribution which does not affect the calculation
+    val contribution = Contribution(c.taxPeriodStart, c.taxPeriodEnd, Some(InputAmounts(0L,0L)))
+    val pp = if (!previousPeriods.find(_.input.isPeriod1).isDefined) previousPeriods else previousPeriods.drop(1)
+    basicCalculator().actualUnused(pp, contribution).drop(1).slice(0,3).foldLeft(0L)(_+_._2)
   }
 
-  def useAllowances(execeeding: Long, thisYear: Int, thisYearAllowance: Long, thisYearUnused: Long, lst: List[FlatValues]): List[(Int,Long)] = {
-    val previousYearsAllowances = lst.slice(0,3).map((t)=>(t._1,t._5))
-    val allowances = (thisYear, thisYearAllowance) :: previousYearsAllowances
-
-    var i = 0
-    val l = allowances.reverse.foldLeft((execeeding,List[(Int,Long)]())) {
-      (pair,allowanceTuple)=>
-        i = i + 1
-        val currentExceeding = pair._1
-        if (allowanceTuple._1 == thisYear) {
-          (0, (allowanceTuple._1, thisYearUnused) :: pair._2)
-        } else if (currentExceeding <= 0) {
-          (0, allowanceTuple :: pair._2)
-        } else {
-          val ex = currentExceeding - allowanceTuple._2
-          if (ex < 0) {
-            if (thisYear < 2011 && allowanceTuple._1 < 2011) {
-              (ex, (allowanceTuple._1,allowanceTuple._2) :: pair._2)
-            } else {
-              (ex, (allowanceTuple._1,ex.abs) :: pair._2)
-            }
-          } else {
-            (ex, (allowanceTuple._1,0L) :: pair._2)
-          }
-        }
-    }._2
-
-    l
-  }
-
-  def calculate(values:List[FlatValues]): List[FlatValues] = {
-    val mostRecentYear = values.reverse.head._1
-    val isPrint = false
-    values.foldLeft(List[FlatValues]()) {
-      (lst,tuple)=>
-        val newLst = {
-          val execeeding = tuple._4
-          if (execeeding < 0) {
-            if (tuple._1 == 20151 && mostRecentYear == 20152) {
-              lst
-            } else {
-              tuple :: lst
-            }
-          } else {
-            val l = if (tuple._1 == 20152 && mostRecentYear == 20152) {
-              useAllowances(execeeding, tuple._1, tuple._3, tuple._5, lst.drop(1))
-            } else {
-              useAllowances(execeeding, tuple._1, tuple._3, tuple._5, lst)
-            }
-            val (before,after) = (tuple :: lst).splitAt(4)
-            val newBefore = l.zip(before).map((t)=>(t._2._1, t._2._2, t._2._3, t._2._4, t._1._2))
-            (newBefore ++ after)
-          }
-        }
-        newLst
-    }
-  }
-
+  // LN TODO simplify
   def actualUnused(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): List[(Int,Long)] = {
+    type FlatValues = (Int, Long, Long, Long, Long)
+    def extractFlatValues(implicit p:Seq[TaxYearResults], contribution: Contribution): List[FlatValues] = {
+      val previousPeriods = p.filterNot(_.input.isTriggered)
+      val prefix = if (contribution.isPeriod1()) {
+        List((20151, definedBenefit, annualAllowance, exceedingAllowance, unusedAllowance))
+      } else if (contribution.isPeriod2()) {
+        List((20152, definedBenefit, annualAllowance, exceedingAllowance, unusedAllowance))
+      } else {
+        List((contribution.taxPeriodStart.year, definedBenefit, annualAllowance, exceedingAllowance, unusedAllowance))
+      }
+      val list = (prefix ++
+        previousPeriods.map {
+          (result) =>
+            val amounts = result.input.amounts.getOrElse(InputAmounts())
+            val summary = result.summaryResult
+            if (result.input.isPeriod1) {
+              (20151, amounts.definedBenefit.getOrElse(0L), summary.availableAllowance, summary.exceedingAAAmount, summary.unusedAllowance)
+            } else if (result.input.isPeriod2) {
+              (20152, amounts.definedBenefit.getOrElse(0L), summary.availableAllowance, summary.exceedingAAAmount, summary.unusedAllowance)
+            } else {
+              (result.input.taxPeriodStart.year, amounts.definedBenefit.getOrElse(0L), summary.availableAllowance, summary.exceedingAAAmount, summary.unusedAllowance)
+            }
+        }.toList).reverse
+      list
+    }
+
+    def useAllowances(execeeding: Long, thisYear: Int, thisYearAllowance: Long, thisYearUnused: Long, lst: List[FlatValues]): List[(Int,Long)] = {
+      val previousYearsAllowances = lst.slice(0,3).map((t)=>(t._1,t._5))
+      val allowances = (thisYear, thisYearAllowance) :: previousYearsAllowances
+
+      var i = 0
+      val l = allowances.reverse.foldLeft((execeeding,List[(Int,Long)]())) {
+        (pair,allowanceTuple)=>
+          i = i + 1
+          val currentExceeding = pair._1
+          if (allowanceTuple._1 == thisYear) {
+            (0, (allowanceTuple._1, thisYearUnused) :: pair._2)
+          } else if (currentExceeding <= 0) {
+            (0, allowanceTuple :: pair._2)
+          } else {
+            val ex = currentExceeding - allowanceTuple._2
+            if (ex < 0) {
+              if (thisYear < 2011 && allowanceTuple._1 < 2011) {
+                (ex, (allowanceTuple._1,allowanceTuple._2) :: pair._2)
+              } else {
+                (ex, (allowanceTuple._1,ex.abs) :: pair._2)
+              }
+            } else {
+              (ex, (allowanceTuple._1,0L) :: pair._2)
+            }
+          }
+      }._2
+
+      l
+    }
+
+    def calculate(values:List[FlatValues]): List[FlatValues] = {
+      val mostRecentYear = values.reverse.head._1
+      val isPrint = false
+      values.foldLeft(List[FlatValues]()) {
+        (lst,tuple)=>
+          val newLst = {
+            val execeeding = tuple._4
+            if (execeeding < 0) {
+              if (tuple._1 == 20151 && mostRecentYear == 20152) {
+                lst
+              } else {
+                tuple :: lst
+              }
+            } else {
+              val l = if (tuple._1 == 20152 && mostRecentYear == 20152) {
+                useAllowances(execeeding, tuple._1, tuple._3, tuple._5, lst.drop(1))
+              } else {
+                useAllowances(execeeding, tuple._1, tuple._3, tuple._5, lst)
+              }
+              val (before,after) = (tuple :: lst).splitAt(4)
+              val newBefore = l.zip(before).map((t)=>(t._2._1, t._2._2, t._2._3, t._2._4, t._1._2))
+              (newBefore ++ after)
+            }
+          }
+          newLst
+      }
+    }
     calculate(extractFlatValues).map((tuple)=>(tuple._1, tuple._5))
   }
 }

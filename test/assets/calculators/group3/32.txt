@@ -1,0 +1,6 @@
+Simple miscellaneous test
+year     | Defined Benefit | Money Purchase  | Is Triggered | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward | MPAA 
+2014     | 190000          | 0               | false        | 150000              | 0                | 190000                     | 0            | 0                        | 0
+2015P1B  | 0               | 40000           | false        | 0                   | 0                | 80000                      | 40000        | 40000                    | 0
+2015P1A  | 0               | 10000           | true         | 0                   | 0                | 80000                      | 30000        | 30000                    | 10000
+2015P2A  | 20000           | 0               | true         | 0                   | 0                | 30000                      | 10000        | 10000                    | 0

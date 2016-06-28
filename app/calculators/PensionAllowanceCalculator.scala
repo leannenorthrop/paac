@@ -115,13 +115,13 @@ trait PensionAllowanceCalculator {
         val p1Triggered = fetchTriggered(period1Results).get.summaryResult.asInstanceOf[ExtendedSummaryFields]
         val p1NotTriggered = fetchNotTriggered(period1Results).get
         val tax = p1NotTriggered.summaryResult.chargableAmount+p1Triggered.chargableAmount
-        val newP1 = TaxYearResults(p1NotTriggered.input, p1Triggered.copy(chargableAmount=tax))
+        val newP1 = TaxYearResults(p1NotTriggered.input, p1Triggered)
         non2015Results ++ List(newP1) ++ List(fetchTriggered(period2Results).get)
       } else if (period2Results.size == 2) {
         val p2Triggered = fetchTriggered(period2Results).get.summaryResult.asInstanceOf[ExtendedSummaryFields]
         val p2NotTriggered = fetchNotTriggered(period2Results).get
         val tax = p2NotTriggered.summaryResult.chargableAmount+p2Triggered.chargableAmount
-        val newP2 = TaxYearResults(p2NotTriggered.input, p2Triggered.copy(chargableAmount=tax))
+        val newP2 = TaxYearResults(p2NotTriggered.input, p2Triggered)
         non2015Results ++ List(fetchNotTriggered(period1Results).get) ++ List(newP2)
       } else {
         r
