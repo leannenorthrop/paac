@@ -23,7 +23,8 @@ import org.scalatest.prop._
 import org.scalacheck.Gen
 import calculators.results.BasicCalculator
 
-class Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks {
+class Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks with PrivateMethodTester {
+
 
   trait TestFixture {
     val annualAllowance = 50000
@@ -34,31 +35,38 @@ class Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
   }
   
   "period1" should {
+    val period1Value = PrivateMethod[ExtendedSummaryFields]('period1)
     "return empty results if no previous periods" in new TestFixture {
-      Period2Calculator().period1 shouldBe ExtendedSummaryFields()
+      val result = Period2Calculator() invokePrivate period1Value()
+      result shouldBe ExtendedSummaryFields()
     }
     "return empty results if no previous period 1 periods" in new TestFixture {
       val p2 = Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, None)))
       previousPeriods = List(Contribution(2012,2),Contribution(2016,3),p2).map(TaxYearResults(_,SummaryResult()))
-      Period2Calculator().period1 shouldBe ExtendedSummaryFields()
+      val result = Period2Calculator() invokePrivate period1Value()
+      result shouldBe ExtendedSummaryFields()
     }
     "return period1 results if no previous period 1 periods" in new TestFixture {
       val p2 = Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, None)))
       val p1 = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(1324L), Some(2L), None, None)))
       previousPeriods = List(Contribution(2012,2),Contribution(2016,3),p2,p1).map((c)=>TaxYearResults(c,ExtendedSummaryFields(c.amounts.get.definedBenefit.get)))
-      Period2Calculator().period1 shouldBe ExtendedSummaryFields(1324L)
+      val result = Period2Calculator() invokePrivate period1Value()
+      result shouldBe ExtendedSummaryFields(1324L)
     }
   }
 
   "previous" should {
+    val previousValue = PrivateMethod[ExtendedSummaryFields]('previous)
     "return empty results if no previous periods" in new TestFixture {
-      Period2Calculator().previous shouldBe ExtendedSummaryFields()
+      val result = Period2Calculator() invokePrivate previousValue()
+      result shouldBe ExtendedSummaryFields()
     }
     "return results if previous periods" in new TestFixture {
       val p2 = Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, None)))
       val p1 = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(1324L), Some(2L), None, None)))
       previousPeriods = List(Contribution(2012,2),Contribution(2016,3),p2,p1).map((c)=>TaxYearResults(c,ExtendedSummaryFields(c.amounts.get.definedBenefit.get)))
-      Period2Calculator().previous shouldBe ExtendedSummaryFields(2L)
+      val result = Period2Calculator() invokePrivate previousValue()
+      result shouldBe ExtendedSummaryFields(2L)
     }
   }
 
@@ -113,12 +121,12 @@ class Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
     }
 
     "moneyPurchaseAA" should {
-      "return 0 if no previous periods supplied" in new TestFixture {
+      "return 10000" in new TestFixture {
         // test
         val result = Period2Calculator().moneyPurchaseAA
 
         // check
-        result shouldBe 0L
+        result shouldBe 1000000L
       }
     }
 
