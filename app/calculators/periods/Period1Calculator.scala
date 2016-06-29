@@ -29,7 +29,8 @@ case class Period1Calculator(implicit amountsCalculator: BasicCalculator,
   val AA = 80000 * 100L
   val MAX_CF = 4000000L
 
-  override def aaCCF(): Long = {
+  // Annual Allowance Cumulative Carry Forwards
+  protected lazy val _aaCCF = {
     if (!isTriggered) {
       actualUnused.slice(0, 4).map(_._2).foldLeft(0L)(_ + _)
     } else {
@@ -43,26 +44,44 @@ case class Period1Calculator(implicit amountsCalculator: BasicCalculator,
       }
     }
   }
+  override def aaCCF(): Long = _aaCCF
 
-  override def aaCF(): Long = if (!isTriggered) annualAllowance + previous.availableAAWithCCF else previous.availableAAWithCF
+  // Annual Allowance With Carry Forwards
+  protected lazy val _aaCF = if (!isTriggered) annualAllowance + previous.availableAAWithCCF else previous.availableAAWithCF
+  override def aaCF(): Long = _aaCF
 
-  override def acaCF() : Long = if (isTriggered) 0L else (AAA + previous3YearsUnusedAllowance) - preFlexiSavings
+  // Alternative Chargable Amount With Carry Forwards
+  protected lazy val _acaCF = if (isTriggered) 0L else (AAA + previous3YearsUnusedAllowance) - preFlexiSavings
+  override def acaCF() : Long = _acaCF
 
-  override def alternativeAA(): Long = if (isMPAAApplicable && isTriggered) AAA else 0L
+  // Alternative Annual Allowance
+  protected lazy val _alternativeAA = if (isMPAAApplicable && isTriggered) AAA else 0L
+  override def alternativeAA(): Long = _alternativeAA 
 
-  override def alternativeChargableAmount(): Long = if (isMPAAApplicable && isTriggered) mpist + dbist else 0L
+  // Alternative Chargable Amount
+  protected lazy val _alternativeChargableAmount = if (isMPAAApplicable && isTriggered) mpist + dbist else 0L
+  override def alternativeChargableAmount(): Long = _alternativeChargableAmount
 
-  override def annualAllowance(): Long = if (!isTriggered) AA else if (defaultChargableAmount >= alternativeChargableAmount) AA else AAA
+  // Annual Allowance
+  protected lazy val _annualAllowance = if (!isTriggered) AA else if (defaultChargableAmount >= alternativeChargableAmount) AA else AAA
+  override def annualAllowance(): Long = _annualAllowance
 
   def basicCalculator(): BasicCalculator = amountsCalculator
 
-  override def chargableAmount(): Long = if (!isTriggered) basicCalculator().chargableAmount else if (isMPAAApplicable) alternativeChargableAmount.max(defaultChargableAmount) else defaultChargableAmount
+  // Chargable Amount (tax due)
+  protected lazy val _chargableAmount = if (!isTriggered) basicCalculator().chargableAmount else if (isMPAAApplicable) alternativeChargableAmount.max(defaultChargableAmount) else defaultChargableAmount
+  override def chargableAmount(): Long = _chargableAmount
 
-  override def cumulativeDB(): Long = definedBenefit
+  // Cumulative Defined Benefit
+  protected lazy val _cumulativeDB = definedBenefit
+  override def cumulativeDB(): Long = _cumulativeDB
 
-  override def cumulativeMP(): Long = definedContribution
+  // Cumulative Money Purchase
+  protected lazy val _cumulativeMP = definedContribution
+  override def cumulativeMP(): Long = _cumulativeMP
   
-  override def dbist(): Long = {
+  // DBIST
+  protected lazy val _dbist = {
     def isBefore2015(taxYearResult: TaxYearResults): Boolean = !(taxYearResult.input.isPeriod1 || taxYearResult.input.isPeriod2) && taxYearResult.input.taxPeriodStart.year <= 2015
     val year2014CCF = previousPeriods.filter(isBefore2015).headOption.map(_.summaryResult).getOrElse(SummaryResult()).availableAAWithCCF
 
@@ -78,13 +97,19 @@ case class Period1Calculator(implicit amountsCalculator: BasicCalculator,
       (preTriggerSavings - year2014CCF).max(0)
     }
   }
+  override def dbist(): Long = _dbist
 
-  override def dcaCF() : Long = if (!isTriggered) 0L else (AA + previous3YearsUnusedAllowance) - postFlexiSavings
+  // Default Chargable Amount With Carry Forwards
+  protected lazy val _dcaCF = if (!isTriggered) 0L else (AA + previous3YearsUnusedAllowance) - postFlexiSavings
+  override def dcaCF() : Long = _dcaCF
 
+  // Defined Benefit
   // treat both money purchase and defined benefit as same prior to flexi access
-  override def definedBenefit(): Long = if (isTriggered) contribution.definedBenefit + preTriggerSavings else contribution.definedBenefit + contribution.moneyPurchase
+  protected lazy val _definedBenefit = if (isTriggered) contribution.definedBenefit + preTriggerSavings else contribution.definedBenefit + contribution.moneyPurchase
+  override def definedBenefit(): Long = _definedBenefit
 
-  override def defaultChargableAmount(): Long = {
+  // Default Chargable Amount
+  protected lazy val _defaultChargableAmount = {
     if (!isTriggered) {
       0L
     } else {
@@ -96,30 +121,52 @@ case class Period1Calculator(implicit amountsCalculator: BasicCalculator,
       }
     }
   }
+  override def defaultChargableAmount(): Long = _defaultChargableAmount
 
-  override def exceedingAAA(): Long = if (isMPAAApplicable) (definedBenefit - AAA).max(0) else 0L
+  // Exceeding Alternative Annual Allowance
+  protected lazy val _exceedingAAA = if (isMPAAApplicable) (definedBenefit - AAA).max(0) else 0L
+  override def exceedingAAA(): Long = _exceedingAAA
 
-  override def exceedingAllowance(): Long = if (isTriggered) ((definedBenefit + definedContribution) - AA).max(0) else basicCalculator().exceedingAllowance
+  // Exceeding Annual Allowance
+  protected lazy val _exceedingAllowance = if (isTriggered) ((definedBenefit + definedContribution) - AA).max(0) else basicCalculator().exceedingAllowance
+  override def exceedingAllowance(): Long = _exceedingAllowance
 
-  override def exceedingMPAA(): Long = if (isMPAAApplicable) definedContribution - MPA else 0L
+  // Exceeding Money Purchase Allowance
+  protected lazy val _exceedingMPAA = if (isMPAAApplicable) definedContribution - MPA else 0L
+  override def exceedingMPAA(): Long = _exceedingMPAA
 
-  override def isMPAAApplicable(): Boolean = definedContribution > MPA
+  // Is MPA Applicable
+  protected lazy val _isMPAAApplicable = definedContribution > MPA
+  override def isMPAAApplicable(): Boolean = _isMPAAApplicable
 
+  // Money Purchase Annual Allowance
   override def moneyPurchaseAA(): Long = MPA
 
-  override def mpist(): Long = if (isMPAAApplicable) definedContribution - MPA else definedContribution
+  // MPIST
+  protected lazy val _mpist = if (isMPAAApplicable) definedContribution - MPA else definedContribution
+  override def mpist(): Long = _mpist
 
-  override def preFlexiSavings() : Long = if (isTriggered) preTriggerSavings() else definedContribution + definedBenefit
+  // Pre-Flexi Access Savings
+  protected lazy val _preFlexiSavings = if (isTriggered) preTriggerSavings() else definedContribution + definedBenefit
+  override def preFlexiSavings() : Long = _preFlexiSavings
 
-  def preTriggerSavings(): Long = preTriggerInputs.map((c)=>c.definedBenefit+c.moneyPurchase).getOrElse(0L)
+  protected lazy val _preTriggerSavings = preTriggerInputs.map((c)=>c.definedBenefit+c.moneyPurchase).getOrElse(0L)
+  def preTriggerSavings(): Long = _preTriggerSavings
 
-  def previous(): Summary = previousPeriods.map(_.summaryResult).headOption.getOrElse(SummaryResult())
+  // Previous row results
+  protected lazy val _previous = previousPeriods.map(_.summaryResult).headOption.getOrElse(SummaryResult())
+  def previous(): Summary = _previous
 
-  override def postFlexiSavings() : Long = if (isTriggered) definedContribution + definedBenefit else 0L
+  // Post Flexi Access Savings
+  protected lazy val _postFlexiSavings = if (isTriggered) definedContribution + definedBenefit else 0L
+  override def postFlexiSavings() : Long = _postFlexiSavings
 
-  override def unusedAAA(): Long = if (isMPAAApplicable && isTriggered) (AAA - definedBenefit).min(P2AAA).max(0) else 0L
+  // Unused Alternative Annual Allowance
+  protected lazy val _unusedAAA = if (isMPAAApplicable && isTriggered) (AAA - definedBenefit).min(P2AAA).max(0) else 0L
+  override def unusedAAA(): Long = _unusedAAA
 
-  override def unusedAllowance(): Long = {
+  // Unused Annual Allowance
+  protected lazy val _unusedAllowance = {
     if (!isTriggered) {
       basicCalculator().unusedAllowance.min(MAX_CF)
     } else {
@@ -138,6 +185,9 @@ case class Period1Calculator(implicit amountsCalculator: BasicCalculator,
       }
     }
   }
+  override def unusedAllowance(): Long = _unusedAllowance
 
-  override def unusedMPAA(): Long = if (isTriggered && !isMPAAApplicable) if ((MPA - definedContribution) > P2MPA) P2MPA else MPA - definedContribution else 0L
+  // Unused Money Purchase Annual Allowance
+  protected lazy val _unusedMPAA = if (isTriggered && !isMPAAApplicable) if ((MPA - definedContribution) > P2MPA) P2MPA else MPA - definedContribution else 0L
+  override def unusedMPAA(): Long = _unusedMPAA
 }
