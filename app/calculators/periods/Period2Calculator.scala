@@ -276,10 +276,14 @@ case class Period2Calculator(implicit amountsCalculator: BasicCalculator,
         if (previous.unusedAAA > 0) {
           0L
         } else {
-          if (alternativeChargableAmount > defaultChargableAmount) {
-            period1.unusedAllowance
+          if (period1.cumulativeMP < P1MPA && definedContribution < MPA){
+            (previous.unusedAllowance - definedContribution).max(0)
           } else {
-            (period1.unusedAllowance - definedContribution).max(0)
+            if (alternativeChargableAmount > defaultChargableAmount) {
+              previous.unusedAllowance
+            } else {
+              (previous.unusedAllowance - definedContribution).max(0)
+            }
           }
         }
       }
