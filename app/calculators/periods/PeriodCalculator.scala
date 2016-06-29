@@ -63,96 +63,54 @@ trait PeriodCalculator {
 
   def previous3YearsUnusedAllowance()(implicit previousPeriods:Seq[TaxYearResults], c: Contribution): Long = {
     // we only want previous values so create dummy contribution which does not affect the calculation
+    // can't use period calculator's actual unused because of circular refeferences
     val contribution = Contribution(c.taxPeriodStart, c.taxPeriodEnd, Some(InputAmounts(0L,0L)))
     val pp = if (!previousPeriods.find(_.input.isPeriod1).isDefined) previousPeriods else previousPeriods.drop(1)
     basicCalculator().actualUnused(pp, contribution).drop(1).slice(0,3).foldLeft(0L)(_+_._2)
   }
 
-  // LN TODO simplify
   def actualUnused(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): List[(Int,Long)] = {
     type FlatValues = (Int, Long, Long, Long, Long)
+
+    // based on basic calculator extract values
     def extractFlatValues(implicit p:Seq[TaxYearResults], contribution: Contribution): List[FlatValues] = {
-      val previousPeriods = p.filterNot(_.input.isTriggered)
+      // handle period 1 and 2 separately so filter out of previous results
+      val previousPeriods = p.filterNot(_.input.isTriggered).filterNot((r)=>r.input.isPeriod1||r.input.isPeriod2)
+
+      // add back in either period 1 or 2 as the result for 2015
       val prefix = if (contribution.isPeriod1()) {
-        List((20151, definedBenefit, annualAllowance, exceedingAllowance, unusedAllowance))
+        List((2015, definedBenefit, annualAllowance, exceedingAllowance, unusedAllowance))
       } else if (contribution.isPeriod2()) {
-        List((20152, definedBenefit, annualAllowance, exceedingAllowance, unusedAllowance))
+        List((2015, definedBenefit, annualAllowance, exceedingAllowance, unusedAllowance))
       } else {
         List((contribution.taxPeriodStart.year, definedBenefit, annualAllowance, exceedingAllowance, unusedAllowance))
       }
+
+      // build list
       val list = (prefix ++
         previousPeriods.map {
           (result) =>
             val amounts = result.input.amounts.getOrElse(InputAmounts())
             val summary = result.summaryResult
-            if (result.input.isPeriod1) {
-              (20151, amounts.definedBenefit.getOrElse(0L), summary.availableAllowance, summary.exceedingAAAmount, summary.unusedAllowance)
-            } else if (result.input.isPeriod2) {
-              (20152, amounts.definedBenefit.getOrElse(0L), summary.availableAllowance, summary.exceedingAAAmount, summary.unusedAllowance)
-            } else {
-              (result.input.taxPeriodStart.year, amounts.definedBenefit.getOrElse(0L), summary.availableAllowance, summary.exceedingAAAmount, summary.unusedAllowance)
-            }
+            (result.input.taxPeriodStart.year, amounts.definedBenefit.getOrElse(0L), summary.availableAllowance, summary.exceedingAAAmount, summary.unusedAllowance)
         }.toList).reverse
-      list
+
+      // if period 2 or later there will be period 1 in the results so recalculate allowances when period 1 exceeds the allowance
+      p.find(_.input.isPeriod1).map{
+        (period1) =>
+        val sr = period1.summaryResult
+        if (sr.exceedingAAAmount > 0) {
+          val l = list.filter(_._1<2015).reverse
+          val newUnusedAllowances = basicCalculator.useAllowances(sr.exceedingAAAmount, 2015, 0, sr.unusedAllowance, l).drop(1).reverse
+          val (before,after) = l.reverse.splitAt(4)
+          val newAfter = newUnusedAllowances.zip(after).map((t)=>(t._2._1, t._2._2, t._2._3, t._2._4, t._1._2))
+          before ++ newAfter ++ list.filter(_._1>2014)
+        } else {
+          list
+        }
+      }.getOrElse(list)
     }
 
-    def useAllowances(execeeding: Long, thisYear: Int, thisYearAllowance: Long, thisYearUnused: Long, lst: List[FlatValues]): List[(Int,Long)] = {
-      val previousYearsAllowances = lst.slice(0,3).map((t)=>(t._1,t._5))
-      val allowances = (thisYear, thisYearAllowance) :: previousYearsAllowances
-
-      var i = 0
-      val l = allowances.reverse.foldLeft((execeeding,List[(Int,Long)]())) {
-        (pair,allowanceTuple)=>
-          i = i + 1
-          val currentExceeding = pair._1
-          if (allowanceTuple._1 == thisYear) {
-            (0, (allowanceTuple._1, thisYearUnused) :: pair._2)
-          } else if (currentExceeding <= 0) {
-            (0, allowanceTuple :: pair._2)
-          } else {
-            val ex = currentExceeding - allowanceTuple._2
-            if (ex < 0) {
-              if (thisYear < 2011 && allowanceTuple._1 < 2011) {
-                (ex, (allowanceTuple._1,allowanceTuple._2) :: pair._2)
-              } else {
-                (ex, (allowanceTuple._1,ex.abs) :: pair._2)
-              }
-            } else {
-              (ex, (allowanceTuple._1,0L) :: pair._2)
-            }
-          }
-      }._2
-
-      l
-    }
-
-    def calculate(values:List[FlatValues]): List[FlatValues] = {
-      val mostRecentYear = values.reverse.head._1
-      val isPrint = false
-      values.foldLeft(List[FlatValues]()) {
-        (lst,tuple)=>
-          val newLst = {
-            val execeeding = tuple._4
-            if (execeeding < 0) {
-              if (tuple._1 == 20151 && mostRecentYear == 20152) {
-                lst
-              } else {
-                tuple :: lst
-              }
-            } else {
-              val l = if (tuple._1 == 20152 && mostRecentYear == 20152) {
-                useAllowances(execeeding, tuple._1, tuple._3, tuple._5, lst.drop(1))
-              } else {
-                useAllowances(execeeding, tuple._1, tuple._3, tuple._5, lst)
-              }
-              val (before,after) = (tuple :: lst).splitAt(4)
-              val newBefore = l.zip(before).map((t)=>(t._2._1, t._2._2, t._2._3, t._2._4, t._1._2))
-              (newBefore ++ after)
-            }
-          }
-          newLst
-      }
-    }
-    calculate(extractFlatValues).map((tuple)=>(tuple._1, tuple._5))
+    basicCalculator.calculate(extractFlatValues).map((tuple)=>(tuple._1, tuple._5))
   }
 }

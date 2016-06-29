@@ -93,6 +93,7 @@ case class BasicCalculator(annualAllowanceInPounds: Long) extends calculators.Ca
   def useAllowances(execeeding: Long, thisYear: Int, thisYearAllowance: Long, thisYearUnused: Long, lst: List[FlatValues]): List[(Int,Long)] = {
     val previousYearsAllowances = lst.slice(0,3).map((t)=>(t._1,t._5))
     val allowances = (thisYear, thisYearAllowance) :: previousYearsAllowances
+    
     var i = 0
     val l = allowances.reverse.foldLeft((execeeding,List[(Int,Long)]())) {
       (pair,allowanceTuple)=>
