@@ -73,7 +73,7 @@ class Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
   "isMPAAApplicable" should {
     "return true if above MPA" in new TestFixture {
       // set up
-      contribution = period2Contribution.copy(amounts = Some(InputAmounts(Some(0L), Some(1200000L))))
+      contribution = period2Contribution.copy(amounts = Some(InputAmounts(Some(0L), Some(1200000L), None, Some(true))))
 
       // test
       val result = Period2Calculator().isMPAAApplicable
@@ -84,7 +84,7 @@ class Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
 
     "return true if below MPA " in new TestFixture {
       // set up
-      contribution = period2Contribution.copy(amounts = Some(InputAmounts(Some(0L), Some(1200L))))
+      contribution = period2Contribution.copy(amounts = Some(InputAmounts(Some(0L), Some(1200L), None, Some(true))))
 
       // test
       val result = Period2Calculator().isMPAAApplicable
@@ -122,6 +122,10 @@ class Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
 
     "moneyPurchaseAA" should {
       "return 10000" in new TestFixture {
+        // set up
+        val p1 = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(1324L), Some(2L), None, Some(true))))
+        previousPeriods = List[TaxYearResults](TaxYearResults(p1, ExtendedSummaryFields(unusedMPAA=1000000)))
+
         // test
         val result = Period2Calculator().moneyPurchaseAA
 
@@ -143,7 +147,7 @@ class Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
     "alternativeChargableAmount" should {
       "return defined contribution - period 2 MPA if no previous periods supplied" in new TestFixture {
         // set up
-        contribution = period2Contribution.copy(amounts = Some(InputAmounts(Some(0L), Some(1200000L))))
+        contribution = period2Contribution.copy(amounts = Some(InputAmounts(Some(0L), Some(1200000L), None, Some(true))))
 
         // test
         val result = Period2Calculator().alternativeChargableAmount

@@ -187,7 +187,7 @@ case class Period2Calculator(implicit amountsCalculator: BasicCalculator,
   protected lazy val isGroup3: Boolean = contribution.isGroup3
 
   // Is MPA Applicable
-  protected lazy val _isMPAAApplicable = if (isGroup3 || isGroup2)
+  protected lazy val _isMPAAApplicable = if ((isGroup3 || isGroup2) && isTriggered)
                                                (definedContribution > MPA) || period1.isMPA || period1.cumulativeMP >= P1MPA || (previous.unusedMPAA < definedContribution)
                                              else false
   override def isMPAAApplicable(): Boolean = _isMPAAApplicable
@@ -197,8 +197,8 @@ case class Period2Calculator(implicit amountsCalculator: BasicCalculator,
   protected lazy val isPeriod2Triggered: Boolean = isTriggered && !isPeriod1Triggered
 
   // Money Purchase Annual Allowance
-  protected lazy val _moneyPurchaseAA = if (isGroup3) period1.unusedMPAA else if (isGroup2) previous.unusedMPAA else 1L
-  override def moneyPurchaseAA(): Long = P2MPA
+  protected lazy val _moneyPurchaseAA = period1.unusedMPAA
+  override def moneyPurchaseAA(): Long = _moneyPurchaseAA
 
   // MPIST
   protected lazy val _mpist = {
