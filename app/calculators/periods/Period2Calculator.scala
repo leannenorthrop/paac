@@ -147,7 +147,7 @@ case class Period2Calculator(implicit amountsCalculator: BasicCalculator,
         if (isPeriod1Triggered) {
           (mpist - (previous.unusedAllowance + previous.availableAAWithCCF)).max(0)
         } else {
-          ((mpist + previous.mpist) - (previous.unusedAllowance + previous.availableAAWithCCF)).max(0)
+          ((mpist + previous.mpist) - (period1.unusedAllowance + previous.availableAAWithCCF)).max(0)
         }
       }
     } else {
