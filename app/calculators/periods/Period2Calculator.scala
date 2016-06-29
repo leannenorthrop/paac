@@ -82,7 +82,7 @@ case class Period2Calculator(implicit amountsCalculator: BasicCalculator,
   override def alternativeChargableAmount(): Long = _alternativeChargableAmount
 
   // Annual Allowance
-  protected lazy val _annualAllowance = previous.unusedAllowance
+  protected lazy val _annualAllowance = period1.unusedAllowance
   override def annualAllowance(): Long = _annualAllowance
 
   def basicCalculator(): BasicCalculator = amountsCalculator
@@ -197,8 +197,8 @@ case class Period2Calculator(implicit amountsCalculator: BasicCalculator,
   protected lazy val isPeriod2Triggered: Boolean = isTriggered && !isPeriod1Triggered
 
   // Money Purchase Annual Allowance
-  protected lazy val _moneyPurchaseAA = if (isGroup3) period1.unusedMPAA else if (isGroup2 && isTriggered) previous.unusedMPAA else 0L
-  override def moneyPurchaseAA(): Long = _moneyPurchaseAA
+  protected lazy val _moneyPurchaseAA = if (isGroup3) period1.unusedMPAA else if (isGroup2) previous.unusedMPAA else 1L
+  override def moneyPurchaseAA(): Long = P2MPA
 
   // MPIST
   protected lazy val _mpist = {
@@ -276,14 +276,10 @@ case class Period2Calculator(implicit amountsCalculator: BasicCalculator,
         if (previous.unusedAAA > 0) {
           0L
         } else {
-          if (period1.cumulativeMP < P1MPA && definedContribution < MPA){
-            (annualAllowance - definedContribution).max(0)
+          if (alternativeChargableAmount > defaultChargableAmount) {
+            period1.unusedAllowance
           } else {
-            if (alternativeChargableAmount > defaultChargableAmount) {
-              annualAllowance
-            } else {
-              (annualAllowance - definedContribution).max(0)
-            }
+            (period1.unusedAllowance - definedContribution).max(0)
           }
         }
       }

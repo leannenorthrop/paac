@@ -121,12 +121,12 @@ class Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
     }
 
     "moneyPurchaseAA" should {
-      "return 0 if no previous periods supplied" in new TestFixture {
+      "return 10000" in new TestFixture {
         // test
         val result = Period2Calculator().moneyPurchaseAA
 
         // check
-        result shouldBe 0L
+        result shouldBe 1000000L
       }
     }
 
