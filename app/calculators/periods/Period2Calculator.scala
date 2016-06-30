@@ -229,6 +229,7 @@ case class Period2Calculator(implicit amountsCalculator: BasicCalculator,
   
   protected lazy val previous2YearsUnusedAllowance: Long = {
     // we only want previous values so create dummy contribution which does not affect the calculation
+    // can't use period calculator's actual unused because of circular refeferences
     val c = Contribution(contribution.taxPeriodStart, contribution.taxPeriodEnd, Some(InputAmounts(0L,0L)))
     val actualUnused = basicCalculator().actualUnused(previousPeriods.drop(1), c)
     val noOfRows = if (!previousPeriods.find(_.input.isPeriod1).isDefined) 1 else 2
