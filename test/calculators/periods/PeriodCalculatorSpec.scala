@@ -18,6 +18,7 @@ package calculators.periods
 
 import uk.gov.hmrc.play.test.UnitSpec
 import models._
+import calculators.periods.Utilities._
 
 class PeriodCalculatorSpec extends UnitSpec {
   trait TestFixture {
@@ -36,49 +37,51 @@ class PeriodCalculatorSpec extends UnitSpec {
     }
   }
 
-  "isTriggered" should {
-    "return true if triggered" in new TestFixture {
-      PeriodCalculator.isTriggered shouldBe true
+  "package functions" can {
+    "isTriggered" should {
+      "return true if triggered" in new TestFixture {
+        isTriggered shouldBe true
+      }
+
+      "return false if not triggered" in new TestFixture {
+        contribution = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, Some(false))))
+        isTriggered shouldBe false
+        contribution = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, None)))
+        isTriggered shouldBe false
+        contribution = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, None)
+        isTriggered shouldBe false
+      }
     }
 
-    "return false if not triggered" in new TestFixture {
-      contribution = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, Some(false))))
-      PeriodCalculator.isTriggered shouldBe false
-      contribution = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, None)))
-      PeriodCalculator.isTriggered shouldBe false
-      contribution = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, None)
-      PeriodCalculator.isTriggered shouldBe false
-    }
-  }
+    "taxResultNotTriggered" should {
+      "return true when not triggered" in new TestFixture {
+        val c = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, Some(false))))
+        val tr = TaxYearResults(c,SummaryResult())
+        taxResultNotTriggered(tr) shouldBe true
+        val c2 = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, None)
+        val tr2 = TaxYearResults(c2,SummaryResult())
+        taxResultNotTriggered(tr2) shouldBe true
+      }
 
-  "taxResultNotTriggered" should {
-    "return true when not triggered" in new TestFixture {
-      val c = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, Some(false))))
-      val tr = TaxYearResults(c,SummaryResult())
-      PeriodCalculator.taxResultNotTriggered(tr) shouldBe true
-      val c2 = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, None)
-      val tr2 = TaxYearResults(c2,SummaryResult())
-      PeriodCalculator.taxResultNotTriggered(tr2) shouldBe true
+      "return false when triggered" in new TestFixture {
+        val c = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, Some(true))))
+        val tr = TaxYearResults(c,SummaryResult())
+        taxResultNotTriggered(tr) shouldBe false
+      }
     }
 
-    "return false when triggered" in new TestFixture {
-      val c = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, Some(true))))
-      val tr = TaxYearResults(c,SummaryResult())
-      PeriodCalculator.taxResultNotTriggered(tr) shouldBe false
-    }
-  }
+    "taxResultTriggered" should {
+      "return false when not triggered" in new TestFixture {
+        val c = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, Some(false))))
+        val tr = TaxYearResults(c,SummaryResult())
+        taxResultTriggered(tr) shouldBe false
+      }
 
-  "taxResultTriggered" should {
-    "return false when not triggered" in new TestFixture {
-      val c = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, Some(false))))
-      val tr = TaxYearResults(c,SummaryResult())
-      PeriodCalculator.taxResultTriggered(tr) shouldBe false
-    }
-
-    "return true when triggered" in new TestFixture {
-      val c = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, Some(true))))
-      val tr = TaxYearResults(c,SummaryResult())
-      PeriodCalculator.taxResultTriggered(tr) shouldBe true
+      "return true when triggered" in new TestFixture {
+        val c = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, Some(true))))
+        val tr = TaxYearResults(c,SummaryResult())
+        taxResultTriggered(tr) shouldBe true
+      }
     }
   }
 }

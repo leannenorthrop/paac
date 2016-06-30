@@ -18,6 +18,7 @@ package calculators.periods
 
 import models._
 import calculators.results.BasicCalculator
+import calculators.periods.Utilities._
 
 case class Period2Calculator(implicit amountsCalculator: BasicCalculator,
                                       previousPeriods:Seq[TaxYearResults], 

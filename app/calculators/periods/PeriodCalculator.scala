@@ -17,10 +17,11 @@
 package calculators.periods
 
 import models._
+import calculators.periods.Utilities._
+import calculators.results.Utilities._
 
 trait PeriodCalculator {
   def definedContribution(implicit contribution:Contribution): Long = contribution.amounts.getOrElse(InputAmounts()).moneyPurchase.getOrElse(0L)
-
   def basicCalculator(): calculators.results.BasicCalculator
   def definedBenefit(): Long
   def chargableAmount(): Long
@@ -47,70 +48,17 @@ trait PeriodCalculator {
   def acaCF() : Long = 0L
   def dcaCF() : Long = 0L
 
-  def isTriggered(implicit contribution: Contribution): Boolean = contribution.isTriggered
-
-  def taxResultNotTriggered(tx: TaxYearResults): Boolean = (tx.input.isPeriod1 || tx.input.isPeriod2) && !tx.input.amounts.getOrElse(InputAmounts()).triggered.getOrElse(false)
-
-  def taxResultTriggered(tx: TaxYearResults): Boolean = (tx.input.isPeriod1 || tx.input.isPeriod2) && !taxResultNotTriggered(tx)
-
-  def maybeExtended(t: TaxYearResults): Option[ExtendedSummaryFields] = if (t.summaryResult.isInstanceOf[ExtendedSummaryFields]) Some(t.summaryResult.asInstanceOf[ExtendedSummaryFields]) else None
-
-  def notTriggered(implicit previousPeriods:Seq[TaxYearResults]): Option[TaxYearResults] = previousPeriods.find(taxResultNotTriggered)
-
-  def preTriggerFields(implicit previousPeriods:Seq[TaxYearResults]): Option[ExtendedSummaryFields] = notTriggered.flatMap(maybeExtended(_))
-
-  def preTriggerInputs(implicit previousPeriods:Seq[TaxYearResults]): Option[Contribution] = notTriggered.map(_.input)
-
-  def previous3YearsUnusedAllowance()(implicit previousPeriods:Seq[TaxYearResults], c: Contribution): Long = {
-    // we only want previous values so create dummy contribution which does not affect the calculation
-    // can't use period calculator's actual unused because of circular refeferences
-    val contribution = Contribution(c.taxPeriodStart, c.taxPeriodEnd, Some(InputAmounts(0L,0L)))
-    val pp = if (!previousPeriods.find(_.input.isPeriod1).isDefined) previousPeriods else previousPeriods.drop(1)
-    basicCalculator().actualUnused(pp, contribution).drop(1).slice(0,3).foldLeft(0L)(_+_._2)
+  def previous3YearsUnusedAllowance(implicit previous:Seq[TaxYearResults]): Long = {
+    val previousPeriods = previous.filterNot((r)=>r.input.isPeriod1||r.input.isPeriod2)
+    previousPeriods.headOption.map {
+      (row)=>
+      val pensionPeriod = row.input.taxPeriodStart.copy(year=row.input.taxPeriodStart.year+1)
+      val contribution = Contribution(pensionPeriod, pensionPeriod, Some(InputAmounts(0L,0L)))
+      // unlike in actual unused method below we use simple basic extractor since period 1 and 2 are removed above and only dealing with years prior to 2015
+      val actualUnusedLst = calculateActualUnused(toSummaryResultsTuple(basicCalculator))(previousPeriods, contribution).drop(1)
+      actualUnusedAllowance(actualUnusedLst)(3)
+    }.getOrElse(0L)
   }
 
-  def actualUnused(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): List[(Int,Long)] = {
-    type FlatValues = (Int, Long, Long, Long, Long)
-
-    // based on basic calculator extract values
-    def extractFlatValues(implicit p:Seq[TaxYearResults], contribution: Contribution): List[FlatValues] = {
-      // handle period 1 and 2 separately so filter out of previous results
-      val previousPeriods = p.filterNot(_.input.isTriggered).filterNot((r)=>r.input.isPeriod1||r.input.isPeriod2)
-
-      // add back in either period 1 or 2 as the result for 2015
-      val prefix = if (contribution.isPeriod1()) {
-        List((2015, definedBenefit, annualAllowance, exceedingAllowance, unusedAllowance))
-      } else if (contribution.isPeriod2()) {
-        List((2015, definedBenefit, annualAllowance, exceedingAllowance, unusedAllowance))
-      } else {
-        List((contribution.taxPeriodStart.year, definedBenefit, annualAllowance, exceedingAllowance, unusedAllowance))
-      }
-
-      // build list
-      val list = (prefix ++
-        previousPeriods.map {
-          (result) =>
-            val amounts = result.input.amounts.getOrElse(InputAmounts())
-            val summary = result.summaryResult
-            (result.input.taxPeriodStart.year, amounts.definedBenefit.getOrElse(0L), summary.availableAllowance, summary.exceedingAAAmount, summary.unusedAllowance)
-        }.toList).reverse
-
-      // if period 2 or later there will be period 1 in the results so recalculate allowances when period 1 exceeds the allowance
-      p.find(_.input.isPeriod1).map{
-        (period1) =>
-        val sr = period1.summaryResult
-        if (sr.exceedingAAAmount > 0) {
-          val l = list.filter(_._1<2015).reverse
-          val newUnusedAllowances = basicCalculator.useAllowances(sr.exceedingAAAmount, 2015, 0, sr.unusedAllowance, l).drop(1).reverse
-          val (before,after) = l.reverse.splitAt(4)
-          val newAfter = newUnusedAllowances.zip(after).map((t)=>(t._2._1, t._2._2, t._2._3, t._2._4, t._1._2))
-          before ++ newAfter ++ list.filter(_._1>2014)
-        } else {
-          list
-        }
-      }.getOrElse(list)
-    }
-
-    basicCalculator.calculate(extractFlatValues).map((tuple)=>(tuple._1, tuple._5))
-  }
+  def actualUnused(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): List[(Int,Long)] = calculateActualUnused(extractValues(this))(previousPeriods, contribution)
 }

@@ -18,6 +18,7 @@ package calculators.periods
 
 import models._
 import calculators.results.BasicCalculator
+import calculators.periods.Utilities._
 
 case class Period1Calculator(implicit amountsCalculator: BasicCalculator,
                                       previousPeriods:Seq[TaxYearResults], 
@@ -82,7 +83,6 @@ case class Period1Calculator(implicit amountsCalculator: BasicCalculator,
   
   // DBIST
   protected lazy val _dbist = {
-    def isBefore2015(taxYearResult: TaxYearResults): Boolean = !(taxYearResult.input.isPeriod1 || taxYearResult.input.isPeriod2) && taxYearResult.input.taxPeriodStart.year <= 2015
     val year2014CCF = previousPeriods.filter(isBefore2015).headOption.map(_.summaryResult).getOrElse(SummaryResult()).availableAAWithCCF
 
     if (isTriggered) {
