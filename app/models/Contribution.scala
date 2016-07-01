@@ -197,6 +197,8 @@ object InputAmounts {
 }
 
 object Contribution {
+  import calculators.results.Utilities._
+
   implicit val contributionWrites: Writes[Contribution] = (
     (JsPath \ "taxPeriodStart").write[PensionPeriod] and
     (JsPath \ "taxPeriodEnd").write[PensionPeriod] and
@@ -208,6 +210,14 @@ object Contribution {
     (JsPath \ "taxPeriodEnd").read[PensionPeriod] and
     (JsPath \ "amounts").readNullable[InputAmounts]
   )(Contribution.apply(_:PensionPeriod, _:PensionPeriod, _:Option[InputAmounts]))
+
+  implicit def convert(c: Contribution)(implicit calculator:calculators.periods.PeriodCalculator): SummaryResultsTuple = {
+    implicit val contribution = c
+    c match {
+      case _ if c.isPeriod1 || c.isPeriod2 => (2015, calculator.definedBenefit, calculator.annualAllowance, calculator.exceedingAllowance, calculator.unusedAllowance)
+      case _ => (contribution.taxPeriodStart.year, calculator.definedBenefit, calculator.annualAllowance, calculator.exceedingAllowance, calculator.unusedAllowance)
+    }
+  }
 
   def apply(year: Int, definedBenefit: Long) : Contribution = {
     // month is 0 based

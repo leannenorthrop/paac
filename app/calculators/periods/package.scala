@@ -42,42 +42,38 @@ package object Utilities {
   * Helper method to convert list of tax year results into a simplified tuple list in forward order (e.g. 2008, 2009, 2010) 
   * taking into consideration if the contribution is period 1 or 2
   */
-  def extractValues(calculator:calculators.periods.PeriodCalculator)(p:Seq[TaxYearResults], c: Contribution): List[SummaryResultsTuple] = {
+  def extractValues(calc:PeriodCalculator)(p:Seq[TaxYearResults], c: Contribution): List[SummaryResultsTuple] = {
     implicit val contribution = c
+    implicit val calculator = calc
+
     // handle period 1 and 2 separately so filter out of previous results
-    val previousPeriods = p.filterNot(_.input.isTriggered).filterNot((r)=>r.input.isPeriod1||r.input.isPeriod2)
+    val previousPeriods: Seq[TaxYearResults] = p.filterNot(_.input.isTriggered).filterNot((r)=>r.input.isPeriod1||r.input.isPeriod2)
 
     // add back in either period 1 or 2 as the result for 2015
-    val prefix = if (contribution.isPeriod1()) {
-      List((2015, calculator.definedBenefit, calculator.annualAllowance, calculator.exceedingAllowance, calculator.unusedAllowance))
-    } else if (contribution.isPeriod2()) {
-      List((2015, calculator.definedBenefit, calculator.annualAllowance, calculator.exceedingAllowance, calculator.unusedAllowance))
-    } else {
-      List((contribution.taxPeriodStart.year, calculator.definedBenefit, calculator.annualAllowance, calculator.exceedingAllowance, calculator.unusedAllowance))
-    }
+    val list: List[SummaryResultsTuple] = (List[SummaryResultsTuple](contribution) ++ List[SummaryResultsTuple](previousPeriods:_*)).reverse
 
-    // build list
-    val list = (prefix ++
-      previousPeriods.map {
-        (result) =>
-          val amounts = result.input.amounts.getOrElse(InputAmounts())
-          val summary = result.summaryResult
-          (result.input.taxPeriodStart.year, amounts.definedBenefit.getOrElse(0L), summary.availableAllowance, summary.exceedingAAAmount, summary.unusedAllowance)
-      }.toList).reverse
+    // does period 1 exist?
+    p.find(_.input.isPeriod1) match {
+      case Some(period1) => period1 match {
+        // yes, did period 1 exceed allowance?
+        case TaxYearResults(_, sr) if period1.summaryResult.exceedingAAAmount > 0 => {
+          // yes, get pre 2015 results
+          val pre2015Results = list.filter(_._1<2015).reverse
 
-    // if period 2 or later there will be period 1 in the results so recalculate allowances when period 1 exceeds the allowance
-    p.find(_.input.isPeriod1).map{
-      (period1) =>
-      val sr = period1.summaryResult
-      if (sr.exceedingAAAmount > 0) {
-        val l = list.filter(_._1<2015).reverse
-        val newUnusedAllowances = useAllowances(sr.exceedingAAAmount, 2015, 0, sr.unusedAllowance, l).drop(1).reverse
-        val (before,after) = l.reverse.splitAt(4)
-        val newAfter = newUnusedAllowances.zip(after).map((t)=>(t._2._1, t._2._2, t._2._3, t._2._4, t._1._2))
-        before ++ newAfter ++ list.filter(_._1>2014)
-      } else {
-        list
+          // deduct exceeding amount from previously unused allowances giving new list of unused allowances
+          // dropping the 2015 result from the list
+          val newUnusedAllowances = useAllowances(sr.exceedingAAAmount, 2015, 0, sr.unusedAllowance, pre2015Results).drop(1).reverse
+
+          // splice in new list of unused allowances to build new complete list of unused allowances
+          val (before,after) = pre2015Results.reverse.splitAt(4)
+          val newAfter = newUnusedAllowances.zip(after).map((t)=>(t._2._1, t._2._2, t._2._3, t._2._4, t._1._2))
+          before ++ newAfter ++ list.filter(_._1>2014)
+        }
+        // no, simply return basic list
+        case _ => list
       }
-    }.getOrElse(list)
+      // no, simply return basic list
+      case _ => list
+    }
   }
 }

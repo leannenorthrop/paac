@@ -144,6 +144,8 @@ object Summary {
 }
 
 object TaxYearResults {
+  import calculators.results.Utilities._
+
   implicit val summaryWrites: Writes[TaxYearResults] = (
     (JsPath \ "input").write[Contribution] and
     (JsPath \ "summaryResult").write[Summary] 
@@ -153,4 +155,17 @@ object TaxYearResults {
     (JsPath \ "input").read[Contribution] and
     (JsPath \ "summaryResult").read[Summary]
   )(TaxYearResults.apply _)
+
+  implicit def convert(result: TaxYearResults): SummaryResultsTuple = {
+    result match {
+      case TaxYearResults(input, summary) => {
+        input match {
+          case Contribution(_, _, Some(amounts)) => (result.input.taxPeriodStart.year, amounts.definedBenefit.getOrElse(0L), summary.availableAllowance, summary.exceedingAAAmount, summary.unusedAllowance)
+          case Contribution(_,_,None) => (result.input.taxPeriodStart.year, 0, summary.availableAllowance, summary.exceedingAAAmount, summary.unusedAllowance)
+        }
+      }
+    }
+  }
+
+  implicit def convert(p:Seq[TaxYearResults]): List[SummaryResultsTuple] = p map { a => a: SummaryResultsTuple } toList
 }

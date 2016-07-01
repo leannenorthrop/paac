@@ -28,15 +28,9 @@ package object Utilities {
   /**
   * Helper method to convert list of tax year results into a simplified tuple list in forward order (e.g. 2008, 2009, 2010)
   */
-  def toSummaryResultsTuple(b: BasicCalculator)(previousPeriods:Seq[TaxYearResults], c: Contribution): List[SummaryResultsTuple] = {
-    implicit val contribution = c
-    (List((contribution.taxPeriodStart.year, b.definedBenefit, b.annualAllowance, b.exceedingAllowance, b.unusedAllowance)) ++ 
-    previousPeriods.map {
-      (result) =>
-      val amounts = result.input.amounts.getOrElse(InputAmounts())
-      val summary = result.summaryResult
-      (result.input.taxPeriodStart.year, amounts.definedBenefit.getOrElse(0L), summary.availableAllowance, summary.exceedingAAAmount, summary.unusedAllowance)
-    }.toList).reverse
+  def toSummaryResultsTuple(b: BasicCalculator)(p:Seq[TaxYearResults], c: Contribution): List[SummaryResultsTuple] = {
+    implicit val calculator = calculators.periods.PeriodCalculator(b.annualAllowanceInPounds)(p,c).get
+    (List[SummaryResultsTuple](c) ++ List[SummaryResultsTuple](p:_*)).reverse
   }
 
   /**

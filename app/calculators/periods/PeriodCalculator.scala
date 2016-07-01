@@ -71,7 +71,16 @@ object PeriodCalculator {
     } else if (contribution.isPeriod2) {
       Some(Period2Calculator())
     } else {
-      None
+      Some(new PeriodCalculator() {
+        def basicCalculator(): calculators.results.BasicCalculator = amountsCalculator
+        def definedBenefit(): Long = amountsCalculator.definedBenefit
+        def chargableAmount(): Long = amountsCalculator.chargableAmount
+        def exceedingAllowance(): Long = amountsCalculator.exceedingAllowance
+        def annualAllowance(): Long = amountsCalculator.annualAllowance
+        def unusedAllowance(): Long = amountsCalculator.unusedAllowance
+        def aaCF(): Long = amountsCalculator.annualAllowanceCF
+        def aaCCF(): Long = amountsCalculator.annualAllowanceCCF
+      })
     }
   }
 }
