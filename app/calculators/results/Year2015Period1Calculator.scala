@@ -28,7 +28,7 @@ object Year2015Period1Calculator extends calculators.AllowanceCalculator {
 
   def summary(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Option[Summary] = {
     if (isSupported(contribution)) {
-      val maybeCalculator = PeriodCalculatorFactory.get(getAnnualAllowanceInPounds)
+      val maybeCalculator = PeriodCalculator(getAnnualAllowanceInPounds)
       maybeCalculator.map {
         (calculator) =>
         ExtendedSummaryFields(calculator.chargableAmount,

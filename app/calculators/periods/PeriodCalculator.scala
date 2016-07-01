@@ -62,3 +62,16 @@ trait PeriodCalculator {
 
   def actualUnused(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): List[(Int,Long)] = calculateActualUnused(extractValues(this))(previousPeriods, contribution)
 }
+
+object PeriodCalculator {
+  def apply(allowanceInPounds: Long)(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Option[PeriodCalculator] = {
+    implicit val amountsCalculator = calculators.results.BasicCalculator(allowanceInPounds)
+    if (contribution.isPeriod1) {
+      Some(Period1Calculator())
+    } else if (contribution.isPeriod2) {
+      Some(Period2Calculator())
+    } else {
+      None
+    }
+  }
+}
