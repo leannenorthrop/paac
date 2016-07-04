@@ -36,7 +36,7 @@ package object Utilities {
 
   def preTriggerInputs(implicit previousPeriods:Seq[TaxYearResults]): Option[Contribution] = notTriggered.map(_.input)
 
-  def actualUnusedAllowance(list: List[(Int,Long)])(noOfYears: Int): Long = list.slice(0,noOfYears).foldLeft(0L)(_+_._2)
+  def actualUnusedAllowance(list: List[YearActualUnusedPair])(noOfYears: Int): Long = list.slice(0,noOfYears).foldLeft(0L)(_+_._2)
 
   /**
   * Helper method to convert list of tax year results into a simplified tuple list in forward order (e.g. 2008, 2009, 2010) 

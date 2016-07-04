@@ -29,7 +29,7 @@ package object Utilities {
   * Helper method to convert list of tax year results into a simplified tuple list in forward order (e.g. 2008, 2009, 2010)
   */
   def toSummaryResultsTuple(b: BasicCalculator)(p:Seq[TaxYearResults], c: Contribution): List[SummaryResultsTuple] = {
-    implicit val calculator = calculators.periods.PeriodCalculator(b.annualAllowanceInPounds)(p,c).get
+    implicit val calculator = calculators.periods.PeriodCalculator(b.annualAllowanceInPounds)(p,c)
     (List[SummaryResultsTuple](c) ++ List[SummaryResultsTuple](p:_*)).reverse
   }
 

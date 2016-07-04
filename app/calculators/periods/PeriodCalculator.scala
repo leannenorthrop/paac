@@ -60,18 +60,18 @@ trait PeriodCalculator {
     }.getOrElse(0L)
   }
 
-  def actualUnused(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): List[(Int,Long)] = calculateActualUnused(extractValues(this))(previousPeriods, contribution)
+  def actualUnused(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): List[YearActualUnusedPair] = calculateActualUnused(extractValues(this))(previousPeriods, contribution)
 }
 
 object PeriodCalculator {
-  def apply(allowanceInPounds: Long)(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Option[PeriodCalculator] = {
+  def apply(allowanceInPounds: Long)(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): PeriodCalculator = {
     implicit val amountsCalculator = calculators.results.BasicCalculator(allowanceInPounds)
     if (contribution.isPeriod1) {
-      Some(Period1Calculator())
+      Period1Calculator()
     } else if (contribution.isPeriod2) {
-      Some(Period2Calculator())
+      Period2Calculator()
     } else {
-      Some(new PeriodCalculator() {
+      new PeriodCalculator() {
         def basicCalculator(): calculators.results.BasicCalculator = amountsCalculator
         def definedBenefit(): Long = amountsCalculator.definedBenefit
         def chargableAmount(): Long = amountsCalculator.chargableAmount
@@ -80,7 +80,7 @@ object PeriodCalculator {
         def unusedAllowance(): Long = amountsCalculator.unusedAllowance
         def aaCF(): Long = amountsCalculator.annualAllowanceCF
         def aaCCF(): Long = amountsCalculator.annualAllowanceCCF
-      })
+      }
     }
   }
 }
