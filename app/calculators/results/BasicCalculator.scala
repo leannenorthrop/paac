@@ -51,30 +51,26 @@ case class BasicCalculator(annualAllowanceInPounds: Long) extends calculators.Ca
   }
 
   // cumulative carry forwards is 2 previous years plus current year's annual allowance - used allowance
+  val previous3YearsActualUnused = basicActualUnused(this)(3)
   def annualAllowanceCCF(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Long = {
     val execeeding = calc.exceedingAllowance
+    val previous3YearsUnused = previous3YearsActualUnused(previousPeriods,contribution)
     if (contribution.taxPeriodStart.year < 2011) {
       // Prior to 2011 nothing was liable for tax charge and carry forwards are allowed
-      val unusedAllowanceList = actualUnused.slice(0,3).map(_._2)
-      val aacf = unusedAllowanceList.foldLeft(0L)(_+_)
-      aacf
+      previous3YearsUnused
     } else {
       if (execeeding > 0) {
         val previousResults = previousPeriods.map(_.summaryResult).headOption.getOrElse(SummaryResult())
         if (execeeding >= previousResults.availableAAWithCCF){
           0L
         } else {
-          val unusedAllowanceList = actualUnused.slice(0,3).map(_._2)
-          unusedAllowanceList.foldLeft(0L)(_+_)
+          previous3YearsUnused
         }
       } else {
-        val unusedAllowanceList = actualUnused.slice(0,3).map(_._2)
-        unusedAllowanceList.foldLeft(0L)(_+_)
+        previous3YearsUnused
       }
     }
   }
-
-  def actualUnused(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): List[YearActualUnusedPair] = calculateActualUnused(toSummaryResultsTuple(this))(previousPeriods, contribution)
 
   def chargableAmount(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Long = {
     if (contribution.taxPeriodStart.year < 2011) -1 else {

@@ -19,6 +19,7 @@ package calculators.periods
 import models._
 import calculators.periods.Utilities._
 import calculators.results.Utilities._
+import calculators.Utilities._
 
 trait PeriodCalculator {
   def definedContribution(implicit contribution:Contribution): Long = contribution.amounts.getOrElse(InputAmounts()).moneyPurchase.getOrElse(0L)
@@ -56,12 +57,10 @@ trait PeriodCalculator {
       val pensionPeriod = row.input.taxPeriodStart.copy(year=row.input.taxPeriodStart.year+1)
       val contribution = Contribution(pensionPeriod, pensionPeriod, Some(InputAmounts(0L,0L)))
       // unlike in actual unused method below we use simple basic extractor since period 1 and 2 are removed above and only dealing with years prior to 2015
-      val actualUnusedLst = calculateActualUnused(toSummaryResultsTuple(basicCalculator))(previousPeriods, contribution).drop(1)
+      val actualUnusedLst = actualUnusedAllowancesFn(extractor(basicCalculator))(previousPeriods, contribution).drop(1)
       actualUnusedAllowance(actualUnusedLst)
     }.getOrElse(0L)
   }
-
-  def actualUnused(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): List[YearActualUnusedPair] = calculateActualUnused(extractValues(this))(previousPeriods, contribution)
 }
 
 object PeriodCalculator {

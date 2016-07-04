@@ -19,6 +19,7 @@ package calculators.periods
 import models._
 import calculators.results.BasicCalculator
 import calculators.periods.Utilities._
+import calculators.Utilities._
 
 case class Period1Calculator(implicit amountsCalculator: BasicCalculator,
                                       previousPeriods:Seq[TaxYearResults], 
@@ -33,7 +34,7 @@ case class Period1Calculator(implicit amountsCalculator: BasicCalculator,
   // Annual Allowance Cumulative Carry Forwards
   protected lazy val _aaCCF = {
     if (!isTriggered) {
-      actualUnused.slice(0, 4).map(_._2).foldLeft(0L)(_ + _)
+      actualUnused(extractValues(this))(4)(previousPeriods,contribution)
     } else {
       if (isMPAAApplicable) {
         val aaa = (AAA + previous3YearsUnusedAllowance - preTriggerSavings)

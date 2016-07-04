@@ -19,6 +19,8 @@ package calculators.periods
 import models._
 import calculators.results.BasicCalculator
 import calculators.periods.Utilities._
+import calculators.Utilities._
+import calculators.results.Utilities._
 
 case class Period2Calculator(implicit amountsCalculator: BasicCalculator,
                                       previousPeriods:Seq[TaxYearResults], 
@@ -36,7 +38,7 @@ case class Period2Calculator(implicit amountsCalculator: BasicCalculator,
   // Annual Allowance With Carry Forwards
   protected lazy val _aaCCF = {
     if (!isTriggered) {
-      actualUnused.slice(0, 3).map(_._2).foldLeft(0L)(_ + _)
+      actualUnused(extractValues(this))(3)(previousPeriods,contribution)
     } else {
       if (previous.unusedAAA > 0) {
         if (contribution.isGroup3)
@@ -232,7 +234,7 @@ case class Period2Calculator(implicit amountsCalculator: BasicCalculator,
     // we only want previous values so create dummy contribution which does not affect the calculation
     // can't use period calculator's actual unused because of circular refeferences
     val c = Contribution(contribution.taxPeriodStart, contribution.taxPeriodEnd, Some(InputAmounts(0L,0L)))
-    val actualUnused = basicCalculator().actualUnused(previousPeriods.drop(1), c)
+    val actualUnused = actualUnusedAllowancesFn(extractor(basicCalculator))(previousPeriods.drop(1), c)
     val noOfRows = if (!previousPeriods.find(_.input.isPeriod1).isDefined) 1 else 2
     actualUnused.drop(noOfRows).slice(0,2).foldLeft(0L)(_+_._2)
   }

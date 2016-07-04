@@ -197,7 +197,7 @@ object InputAmounts {
 }
 
 object Contribution {
-  import calculators.results.Utilities._
+  import calculators.Utilities._
 
   implicit val contributionWrites: Writes[Contribution] = (
     (JsPath \ "taxPeriodStart").write[PensionPeriod] and

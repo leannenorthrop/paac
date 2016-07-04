@@ -19,6 +19,7 @@ package calculators.periods
 import uk.gov.hmrc.play.test.UnitSpec
 import models._
 import calculators.periods.Utilities._
+import calculators.Utilities._
 
 class PeriodCalculatorSpec extends UnitSpec {
   trait TestFixture {

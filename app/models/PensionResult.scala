@@ -144,7 +144,7 @@ object Summary {
 }
 
 object TaxYearResults {
-  import calculators.results.Utilities._
+  import calculators.Utilities._
 
   implicit val summaryWrites: Writes[TaxYearResults] = (
     (JsPath \ "input").write[Contribution] and

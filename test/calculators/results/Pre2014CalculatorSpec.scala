@@ -61,7 +61,7 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
         val calculator = calculators.results.BasicCalculator(50000L)
 
         // test
-        val results = calculator.actualUnused(previous, contribution)
+        val results = calculators.Utilities.actualUnusedAllowancesFn(calculators.results.Utilities.extractor(calculator))(previous, contribution)
 
         // check
         results.length shouldBe 5
@@ -333,7 +333,9 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
                                    availableAAWithCCF = 4500000)
       val previous = Seq[TaxYearResults](TaxYearResults(Contribution(PensionPeriod.EARLIEST_YEAR_SUPPORTED,500000L),starting))
       val result = Pre2014Calculator.summary(previous, contribution1).get
-      info(BasicCalculator(50000L).actualUnused(previous, contribution1).mkString(","))
+
+      val actualUnused = calculators.Utilities.actualUnusedAllowancesFn(calculators.results.Utilities.extractor(BasicCalculator(50000L)))(previous, contribution1)
+      info(actualUnused.mkString(","))
 
       // check it
       result.chargableAmount shouldBe -1
