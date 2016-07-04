@@ -61,7 +61,7 @@ package object Utilities {
           val pre2015Results = list.filter { case(year,_,_) => year < 2015 }.reverse
 
           // deduct exceeding amount from previously unused allowances giving new list of unused allowances
-          // dropping the 2015 result from the list
+          // dropping the period 1 2015 result from the list
           val current: SummaryResultsTuple = (2015, 0, sr.unusedAllowance)
           val newUnusedAllowances = useAllowances(sr.exceedingAAAmount, current::pre2015Results).drop(1).reverse
 

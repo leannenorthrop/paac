@@ -74,7 +74,7 @@ case class BasicCalculator(annualAllowanceInPounds: Long) extends calculators.Ca
     }
   }
 
-  def actualUnused(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): List[ActualUnusedAllowanceTuple] = calculateActualUnused(toSummaryResultsTuple(this))(previousPeriods, contribution)
+  def actualUnused(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): List[YearActualUnusedPair] = calculateActualUnused(toSummaryResultsTuple(this))(previousPeriods, contribution)
 
   def chargableAmount(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Long = {
     if (contribution.taxPeriodStart.year < 2011) -1 else {

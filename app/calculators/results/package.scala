@@ -21,7 +21,7 @@ import models._
 package object Utilities {
   type SummaryResultsTuple = (Int, Long, Long)
 
-  type ActualUnusedAllowanceTuple = (Int,Long)
+  type YearActualUnusedPair= (Int,Long)
 
   type ToTupleFn = (Seq[TaxYearResults], Contribution) => List[SummaryResultsTuple]
 
@@ -37,13 +37,13 @@ package object Utilities {
   * Use allowances by building new list of 4 years of unused allowances (current year + previous 3 years) for the current year
   * after deducting the exceeding ammount from the allowance list passed in.
   */
-  def useAllowances(execeeding: Long, unusedAllowances: List[SummaryResultsTuple]): List[ActualUnusedAllowanceTuple] = {
+  def useAllowances(execeeding: Long, unusedAllowances: List[SummaryResultsTuple]): List[YearActualUnusedPair] = {
     val (thisYear,_,thisYearUnused) = unusedAllowances.head
     val allowances = unusedAllowances.slice(0,4).map { case(year, _, unusedAllowance) => (year,unusedAllowance) }
     
     // walk through 'this' year and previous 3 years unused allowances, deducting 
     // exceeding allowance, and creating new list of *actual* unused allowances
-    allowances.reverse.foldLeft((execeeding,List[(Int,Long)]())) {
+    allowances.reverse.foldLeft((execeeding,List[YearActualUnusedPair]())) {
       (pair,allowanceTuple)=>
       val (currentExceeding, yearUnusedTupleLst) = pair
       allowanceTuple match {
@@ -76,7 +76,7 @@ package object Utilities {
     }._2
   }
 
-  def calculateActualUnused(extract: ToTupleFn)(previousPeriods:Seq[TaxYearResults], contribution: Contribution): List[ActualUnusedAllowanceTuple] = {
+  def calculateActualUnused(extract: ToTupleFn)(previousPeriods:Seq[TaxYearResults], contribution: Contribution): List[YearActualUnusedPair] = {
     def calculate(values:List[SummaryResultsTuple]): List[SummaryResultsTuple] = {
       // walk list of year/exceeding/unused allowance building list of actual unused allowance for each year
       values.foldLeft(List[SummaryResultsTuple]()) {
