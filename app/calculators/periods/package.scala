@@ -23,12 +23,16 @@ import calculators.Utilities._
 package object Utilities {
   type ResultsFilter = TaxYearResults => Boolean
 
+  val yearConstraint: SizeConstraint => ResultsFilter = constraint => taxYearResult => constraint(taxYearResult.input.taxPeriodStart.year)
+  val afterYear: Int => ResultsFilter = year => yearConstraint(_ >= year)
+  val beforeYear: Int => ResultsFilter = year => yearConstraint(_ <= year)
+  val isYear: Int => ResultsFilter = year => yearConstraint(_ == year)
+
   def isPeriod1(taxYearResult: TaxYearResults): Boolean = taxYearResult.input.isPeriod1 
   def isPeriod2(taxYearResult: TaxYearResults): Boolean = taxYearResult.input.isPeriod2
-  def isBefore(n:Int)(taxYearResult: TaxYearResults): Boolean = taxYearResult.input.taxPeriodStart.year <= n
   def isTriggered(implicit contribution: Contribution): Boolean = contribution.isTriggered
   def isTriggered(taxYearResult: TaxYearResults): Boolean = isTriggered(taxYearResult.input)
-  def isBefore2015(taxYearResult: TaxYearResults): Boolean = every(complement(any(isPeriod1,isPeriod2)), isBefore(2015))(taxYearResult)
+  def isBefore2015(taxYearResult: TaxYearResults): Boolean = every(complement(any(isPeriod1,isPeriod2)), afterYear(2015))(taxYearResult)
   def taxResultNotTriggered(tx: TaxYearResults): Boolean = complement(taxResultTriggered)(tx)
   def taxResultTriggered(tx: TaxYearResults): Boolean = every(any(isPeriod1,isPeriod2), isTriggered)(tx)
 
@@ -40,7 +44,7 @@ package object Utilities {
 
   def preTriggerInputs(implicit previousPeriods:Seq[TaxYearResults]): Option[Contribution] = notTriggered.map(_.input)
 
-  def actualUnusedAllowance(list: List[YearActualUnusedPair])(noOfYears: Int): Long = list.slice(0,noOfYears).foldLeft(0L)(_+_._2)
+  val actualUnusedFn: Int => List[YearActualUnusedPair] => Long = noOfYears => unusedAllowancesLst => unusedAllowancesLst.slice(0,noOfYears).foldLeft(0L)(_+_._2)
 
   /**
   * Helper method to convert list of tax year results into a simplified tuple list in forward order (e.g. 2008, 2009, 2010) 

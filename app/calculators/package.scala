@@ -17,6 +17,7 @@
 package calculators
 
 package object Utilities {
+  type SizeConstraint = Int => Boolean
   def complement[A](predicate: A => Boolean) = (a: A) => !predicate(a)
   def any[A](predicates: (A => Boolean)*): A => Boolean = a => predicates.exists(pred => pred(a))
   def none[A](predicates: (A => Boolean)*) = complement(any(predicates: _*))
