@@ -18,15 +18,19 @@ package calculators.periods
 
 import models._
 import calculators.results.Utilities._
+import calculators.Utilities._
 
 package object Utilities {
-  def isBefore2015(taxYearResult: TaxYearResults): Boolean = !(taxYearResult.input.isPeriod1 || taxYearResult.input.isPeriod2) && taxYearResult.input.taxPeriodStart.year <= 2015
-    
+  type ResultsFilter = TaxYearResults => Boolean
+
+  def isPeriod1(taxYearResult: TaxYearResults): Boolean = taxYearResult.input.isPeriod1 
+  def isPeriod2(taxYearResult: TaxYearResults): Boolean = taxYearResult.input.isPeriod2
+  def isBefore(n:Int)(taxYearResult: TaxYearResults): Boolean = taxYearResult.input.taxPeriodStart.year <= n
   def isTriggered(implicit contribution: Contribution): Boolean = contribution.isTriggered
-
-  def taxResultNotTriggered(tx: TaxYearResults): Boolean = (tx.input.isPeriod1 || tx.input.isPeriod2) && !tx.input.amounts.getOrElse(InputAmounts()).triggered.getOrElse(false)
-
-  def taxResultTriggered(tx: TaxYearResults): Boolean = (tx.input.isPeriod1 || tx.input.isPeriod2) && !taxResultNotTriggered(tx)
+  def isTriggered(taxYearResult: TaxYearResults): Boolean = isTriggered(taxYearResult.input)
+  def isBefore2015(taxYearResult: TaxYearResults): Boolean = every(complement(any(isPeriod1,isPeriod2)), isBefore(2015))(taxYearResult)
+  def taxResultNotTriggered(tx: TaxYearResults): Boolean = complement(taxResultTriggered)(tx)
+  def taxResultTriggered(tx: TaxYearResults): Boolean = every(any(isPeriod1,isPeriod2), isTriggered)(tx)
 
   def maybeExtended(t: TaxYearResults): Option[ExtendedSummaryFields] = if (t.summaryResult.isInstanceOf[ExtendedSummaryFields]) Some(t.summaryResult.asInstanceOf[ExtendedSummaryFields]) else None
 
