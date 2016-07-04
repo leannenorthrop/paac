@@ -62,7 +62,8 @@ package object Utilities {
 
           // deduct exceeding amount from previously unused allowances giving new list of unused allowances
           // dropping the 2015 result from the list
-          val newUnusedAllowances = useAllowances(sr.exceedingAAAmount, 2015, 0, sr.unusedAllowance, pre2015Results).drop(1).reverse
+          val current: SummaryResultsTuple = (2015, 0, 0, 0, sr.unusedAllowance)
+          val newUnusedAllowances = useAllowances(sr.exceedingAAAmount, current::pre2015Results).drop(1).reverse
 
           // splice in new list of unused allowances to build new complete list of unused allowances
           val (before,after) = pre2015Results.reverse.splitAt(4)

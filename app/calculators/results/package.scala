@@ -34,54 +34,66 @@ package object Utilities {
   }
 
   /**
-  * Helper function to build new list of unused allowances after deducting the exceeding ammount from the allowance list passed in.
+  * Use allowances by building new list of 4 years of unused allowances (current year + previous 3 years) for the current year
+  * after deducting the exceeding ammount from the allowance list passed in.
   */
-  def useAllowances(execeeding: Long, thisYear: Int, thisYearAllowance: Long, thisYearUnused: Long, lst: List[SummaryResultsTuple]): List[ActualUnusedAllowanceTuple] = {
-    val previousYearsAllowances = lst.slice(0,3).map((t)=>(t._1,t._5))
-    val allowances = (thisYear, thisYearAllowance) :: previousYearsAllowances
+  def useAllowances(execeeding: Long, unusedAllowances: List[SummaryResultsTuple]): List[ActualUnusedAllowanceTuple] = {
+    val (thisYear,_,_,_,thisYearUnused) = unusedAllowances.head
+    val allowances = unusedAllowances.slice(0,4).map((t)=>(t._1,t._5))
     
-    var i = 0
-    val l = allowances.reverse.foldLeft((execeeding,List[(Int,Long)]())) {
+    // walk through 'this' year and previous 3 years unused allowance deducting 
+    // exceeding allowance creating new list of *actual* unused allowances
+    allowances.reverse.foldLeft((execeeding,List[(Int,Long)]())) {
       (pair,allowanceTuple)=>
-      i = i + 1
-      val currentExceeding = pair._1
-      if (allowanceTuple._1 == thisYear) {
-        (0, (allowanceTuple._1, thisYearUnused) :: pair._2)
-      } else if (currentExceeding <= 0) {
-        (0, allowanceTuple :: pair._2)
-      } else {
-        val ex = currentExceeding - allowanceTuple._2
-        if (ex < 0) {
-          if (thisYear < 2011 && allowanceTuple._1 < 2011) {
-            (ex, (allowanceTuple._1,allowanceTuple._2) :: pair._2)
+      val (currentExceeding, yearUnusedTupleLst) = pair
+      allowanceTuple match {
+        // have we reached the end of the allowances list? 
+        //   yes, so add this year and year's unsed allowance to end of lst
+        case (year, _) if year == thisYear => (currentExceeding, (year, thisYearUnused) :: yearUnusedTupleLst)
+        //   no, so have we reached exceeding of 0?
+        //     yes, so simply copy tuple into list
+        case (year, _) if currentExceeding <= 0 => (currentExceeding, allowanceTuple :: yearUnusedTupleLst)
+        //     no. We still have exceeding so calculate new unused allowance
+        case (year, unusedAllowance) => {
+          // calculate new exceeding by deducting unused allowance for the year
+          val ex = currentExceeding - unusedAllowance
+          // is new exceeding now 0?
+          if (ex < 0) {
+            // yes, then is it before 2011?
+            if (thisYear < 2011 && year < 2011) {
+              // yes, then allowed unlimited use of allowances so simply copy allowance into list
+              (ex, (year,unusedAllowance) :: yearUnusedTupleLst)
+            } else {
+              // no, then put new unused allowance for the year
+              (ex, (year,ex.abs) :: yearUnusedTupleLst)
+            }
           } else {
-            (ex, (allowanceTuple._1,ex.abs) :: pair._2)
+            // no, so 'use up' unused allowance setting it to 0
+            (ex, (year,0L) :: yearUnusedTupleLst)
           }
-        } else {
-          (ex, (allowanceTuple._1,0L) :: pair._2)
         }
       }
     }._2
-    l
   }
 
   def calculateActualUnused(extract: ToTupleFn)(previousPeriods:Seq[TaxYearResults], contribution: Contribution): List[ActualUnusedAllowanceTuple] = {
     def calculate(values:List[SummaryResultsTuple]): List[SummaryResultsTuple] = {
-      // walk results building list of actual unused allowance
+      // walk list of year/exceeding/unused allowance building list of actual unused allowance for each year
       values.foldLeft(List[SummaryResultsTuple]()) {
         (lst,tuple)=>
         val execeeding = tuple._4
         // Did the year exceed the allowance?
         if (execeeding < 0) {
-          // no - simply copy tuple into result
+          // no - simply copy tuple into actual unused allowance list
           tuple :: lst
         } else {
           // yes - so re-calculate unused allowances 
           // deducting the exceeding from 3rd year ago, then 2nd year ago, then a year ago as appropriate
-          val newUnusedAllowances = useAllowances(execeeding, tuple._1, tuple._3, tuple._5, lst)
+          val unusedAllowances = tuple :: lst
+          val newUnusedAllowances = useAllowances(execeeding, unusedAllowances)
 
-          // rebuild the result list based on new unused allowances
-          val (before,after) = (tuple :: lst).splitAt(4)
+          // rebuild the actual unused allowance list based on new unused allowances
+          val (before,after) = unusedAllowances.splitAt(4)
           val newBefore = newUnusedAllowances.zip(before).map((t)=>(t._2._1, t._2._2, t._2._3, t._2._4, t._1._2))
           newBefore ++ after
         }
