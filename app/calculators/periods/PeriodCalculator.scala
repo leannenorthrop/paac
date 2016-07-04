@@ -22,7 +22,7 @@ import calculators.results.Utilities._
 import calculators.Utilities._
 
 trait PeriodCalculator {
-  def definedContribution(implicit contribution:Contribution): Long = contribution.amounts.getOrElse(InputAmounts()).moneyPurchase.getOrElse(0L)
+  def definedContribution(implicit contribution:Contribution): Long = basicCalculator.definedContribution
   def basicCalculator(): calculators.results.BasicCalculator
   def definedBenefit(): Long
   def chargableAmount(): Long

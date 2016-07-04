@@ -38,7 +38,7 @@ case class Period2Calculator(implicit amountsCalculator: BasicCalculator,
   // Annual Allowance With Carry Forwards
   protected lazy val _aaCCF = {
     if (!isTriggered) {
-      actualUnused(extractValues(this))(3)(previousPeriods,contribution)
+      actualUnused(periodExtractor(this))(3)(previousPeriods,contribution)
     } else {
       if (previous.unusedAAA > 0) {
         if (contribution.isGroup3)
@@ -195,7 +195,7 @@ case class Period2Calculator(implicit amountsCalculator: BasicCalculator,
                                              else false
   override def isMPAAApplicable(): Boolean = _isMPAAApplicable
 
-  protected lazy val isPeriod1Triggered: Boolean = previousPeriods.find(taxResultTriggered).find(_.input.isPeriod1).isDefined
+  protected lazy val isPeriod1Triggered: Boolean = previousPeriods.find(isTaxResultTriggered).find(_.input.isPeriod1).isDefined
 
   protected lazy val isPeriod2Triggered: Boolean = isTriggered && !isPeriod1Triggered
 

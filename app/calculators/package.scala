@@ -38,6 +38,8 @@ package object Utilities {
   def isTriggered(implicit contribution: Contribution): Boolean = contribution.isTriggered
   def isTriggered(taxYearResult: TaxYearResults): Boolean = isTriggered(taxYearResult.input)
 
+  def maybeExtended(t: TaxYearResults): Option[ExtendedSummaryFields] = if (t.summaryResult.isInstanceOf[ExtendedSummaryFields]) Some(t.summaryResult.asInstanceOf[ExtendedSummaryFields]) else None
+  
   /**
   * Use allowances by building new list of 4 years of unused allowances (current year + previous 3 years) for the current year
   * after deducting the exceeding ammount from the allowance list passed in.
