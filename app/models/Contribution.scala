@@ -214,8 +214,8 @@ object Contribution {
   implicit def convert(c: Contribution)(implicit calculator:calculators.periods.PeriodCalculator): SummaryResultsTuple = {
     implicit val contribution = c
     c match {
-      case _ if c.isPeriod1 || c.isPeriod2 => (2015, calculator.definedBenefit, calculator.annualAllowance, calculator.exceedingAllowance, calculator.unusedAllowance)
-      case _ => (contribution.taxPeriodStart.year, calculator.definedBenefit, calculator.annualAllowance, calculator.exceedingAllowance, calculator.unusedAllowance)
+      case _ if c.isPeriod1 || c.isPeriod2 => (2015, calculator.exceedingAllowance, calculator.unusedAllowance)
+      case _ => (contribution.taxPeriodStart.year, calculator.exceedingAllowance, calculator.unusedAllowance)
     }
   }
 

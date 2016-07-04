@@ -58,17 +58,17 @@ package object Utilities {
         // yes, did period 1 exceed allowance?
         case TaxYearResults(_, sr) if period1.summaryResult.exceedingAAAmount > 0 => {
           // yes, get pre 2015 results
-          val pre2015Results = list.filter(_._1<2015).reverse
+          val pre2015Results = list.filter { case(year,_,_) => year < 2015 }.reverse
 
           // deduct exceeding amount from previously unused allowances giving new list of unused allowances
           // dropping the 2015 result from the list
-          val current: SummaryResultsTuple = (2015, 0, 0, 0, sr.unusedAllowance)
+          val current: SummaryResultsTuple = (2015, 0, sr.unusedAllowance)
           val newUnusedAllowances = useAllowances(sr.exceedingAAAmount, current::pre2015Results).drop(1).reverse
 
           // splice in new list of unused allowances to build new complete list of unused allowances
           val (before,after) = pre2015Results.reverse.splitAt(4)
-          val newAfter = newUnusedAllowances.zip(after).map((t)=>(t._2._1, t._2._2, t._2._3, t._2._4, t._1._2))
-          before ++ newAfter ++ list.filter(_._1>2014)
+          val newAfter = newUnusedAllowances.zip(after).map { case ((_,actualUnused), (year,exceeding,_)) => (year, exceeding, actualUnused) }
+          before ++ newAfter ++ list.filter { case(year,_,_) => year > 2014 }
         }
         // no, simply return basic list
         case _ => list

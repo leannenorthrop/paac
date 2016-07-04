@@ -158,12 +158,7 @@ object TaxYearResults {
 
   implicit def convert(result: TaxYearResults): SummaryResultsTuple = {
     result match {
-      case TaxYearResults(input, summary) => {
-        input match {
-          case Contribution(_, _, Some(amounts)) => (result.input.taxPeriodStart.year, amounts.definedBenefit.getOrElse(0L), summary.availableAllowance, summary.exceedingAAAmount, summary.unusedAllowance)
-          case Contribution(_,_,None) => (result.input.taxPeriodStart.year, 0, summary.availableAllowance, summary.exceedingAAAmount, summary.unusedAllowance)
-        }
-      }
+      case TaxYearResults(input, summary) => (result.input.taxPeriodStart.year, summary.exceedingAAAmount, summary.unusedAllowance)
     }
   }
 
