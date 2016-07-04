@@ -25,7 +25,7 @@ class PeriodCalculatorSpec extends UnitSpec {
   trait TestFixture {
     implicit var contribution = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, Some(true))))
     implicit var previousPeriods = List[TaxYearResults]()
-
+    implicit val amountsCalculator = calculators.results.BasicCalculator(5000000L, previousPeriods, contribution)
     object PeriodCalculator extends PeriodCalculator {
       def definedBenefit(): Long = 0L
       def chargableAmount(): Long = 0L
@@ -34,7 +34,7 @@ class PeriodCalculatorSpec extends UnitSpec {
       def unusedAllowance(): Long = 0L
       def aaCF(): Long = 0L
       def aaCCF(): Long = 0L
-      def basicCalculator(): calculators.results.BasicCalculator = calculators.results.BasicCalculator(5000000L)
+      def basicCalculator(): calculators.results.BasicCalculator = amountsCalculator
     }
   }
 

@@ -47,7 +47,7 @@ package object Utilities {
   }
 
   /**
-  * Helper method to convert list of tax year results into a simplified tuple list in forward order (e.g. 2008, 2009, 2010) 
+  * Extractor to convert list of tax year results into a simplified tuple list in forward order (e.g. 2008, 2009, 2010) 
   * taking into consideration if the contribution is period 1 or 2
   */
   val periodExtractor: PeriodCalculator => ToTupleFn = calc => (p,c) => {

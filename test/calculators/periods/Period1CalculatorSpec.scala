@@ -27,7 +27,6 @@ class Period1CalculatorSpec extends UnitSpec {
 
   trait TestFixture {
     val annualAllowance = 80000L
-    implicit val amountsCalculator = BasicCalculator(annualAllowance)
   }
 
   "dbist" should {
@@ -35,6 +34,7 @@ class Period1CalculatorSpec extends UnitSpec {
       // set up
       implicit val previousPeriods = List[TaxYearResults](TaxYearResults(Contribution(2015,0), ExtendedSummaryFields(availableAAWithCCF=123L)))
       implicit val contribution = Contribution(2015, 0L).copy(amounts=Some(InputAmounts(triggered=Some(true))))
+      implicit val amountsCalculator = BasicCalculator(annualAllowance, previousPeriods, contribution)
 
       // test
       val result = Period1Calculator().dbist
@@ -49,6 +49,7 @@ class Period1CalculatorSpec extends UnitSpec {
       // set up
       implicit val previousPeriods = List[TaxYearResults]()
       implicit val contribution = Contribution(2015, 0L).copy(amounts=Some(InputAmounts(triggered=Some(true),moneyPurchase=Some(2100000))))
+      implicit val amountsCalculator = BasicCalculator(annualAllowance, previousPeriods, contribution)
 
       // test
       val result = Period1Calculator().exceedingAllowance
@@ -63,6 +64,7 @@ class Period1CalculatorSpec extends UnitSpec {
       // set up
       implicit val previousPeriods = List[TaxYearResults]()
       implicit val contribution = Contribution(2015, 0L)
+      implicit val amountsCalculator = BasicCalculator(annualAllowance, previousPeriods, contribution)
 
       // test
       val result = Period1Calculator().preFlexiSavings
@@ -77,6 +79,7 @@ class Period1CalculatorSpec extends UnitSpec {
       // set up
       implicit val previousPeriods = List[TaxYearResults]()
       implicit val contribution = Contribution(2015, 0L).copy(amounts=Some(InputAmounts(triggered=Some(true),moneyPurchase=Some(2100000))))
+      implicit val amountsCalculator = BasicCalculator(annualAllowance, previousPeriods, contribution)
 
       // test
       val result = Period1Calculator().unusedAAA
@@ -91,6 +94,7 @@ class Period1CalculatorSpec extends UnitSpec {
       // set up
       implicit val previousPeriods = List[TaxYearResults]()
       implicit val contribution = Contribution(2015, 0L).copy(amounts=Some(InputAmounts(triggered=Some(true),definedBenefit=Some(1),moneyPurchase=Some(1))))
+      implicit val amountsCalculator = BasicCalculator(annualAllowance, previousPeriods, contribution)
 
       // test
       val result = Period1Calculator().preFlexiSavings
@@ -105,7 +109,8 @@ class Period1CalculatorSpec extends UnitSpec {
       // set up
       implicit val previousPeriods = List[TaxYearResults]()
       implicit val contribution = Contribution(2015, 0L).copy(amounts=Some(InputAmounts(triggered=Some(true),moneyPurchase=Some(2100000))))
-
+      implicit val amountsCalculator = BasicCalculator(annualAllowance, previousPeriods, contribution)
+      
       // test
       val result = Period1Calculator().aaCCF
 

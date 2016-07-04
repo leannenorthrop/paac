@@ -49,23 +49,22 @@ trait PeriodCalculator {
   def acaCF() : Long = 0L
   def dcaCF() : Long = 0L
 
-  val actualUnusedAllowance = actualUnusedFn(3)
   def previous3YearsUnusedAllowance(implicit previous:Seq[TaxYearResults]): Long = {
     val previousPeriods = previous.filterNot((r)=>r.input.isPeriod1||r.input.isPeriod2)
     previousPeriods.headOption.map {
       (row)=>
       val pensionPeriod = row.input.taxPeriodStart.copy(year=row.input.taxPeriodStart.year+1)
       val contribution = Contribution(pensionPeriod, pensionPeriod, Some(InputAmounts(0L,0L)))
-      // unlike in actual unused method below we use simple basic extractor since period 1 and 2 are removed above and only dealing with years prior to 2015
+      // use simple basic extractor since period 1 and 2 are removed above and only dealing with years prior to 2015
       val actualUnusedLst = actualUnusedAllowancesFn(extractor(basicCalculator))(previousPeriods, contribution).drop(1)
-      actualUnusedAllowance(actualUnusedLst)
+      actualUnusedFn(3)(actualUnusedLst)
     }.getOrElse(0L)
   }
 }
 
 object PeriodCalculator {
   def apply(allowanceInPounds: Long)(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): PeriodCalculator = {
-    implicit val amountsCalculator = calculators.results.BasicCalculator(allowanceInPounds)
+    implicit val amountsCalculator = calculators.results.BasicCalculator(allowanceInPounds, previousPeriods, contribution)
     if (contribution.isPeriod1) {
       Period1Calculator()
     } else if (contribution.isPeriod2) {

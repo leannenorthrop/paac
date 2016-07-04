@@ -35,18 +35,30 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
 
   "BasicCalculator" should {
     "return None when no amounts given" in {
-      val calculator = calculators.results.BasicCalculator(100)
-      calculator.summary(Seq[TaxYearResults](), Contribution(PensionPeriod(2014,4,5), PensionPeriod(2015,4,6), None)) shouldBe None
+      // set up
+      val contribution = Contribution(PensionPeriod(2014,4,5), PensionPeriod(2015,4,6), None)
+      val calculator = calculators.results.BasicCalculator(100, Seq[TaxYearResults](), contribution)
+
+      // check
+      calculator.summary shouldBe None
     }
 
     "return 0 for defined benefit if no amounts given" in {
-      val calculator = calculators.results.BasicCalculator(100)
-      calculator.definedBenefit(Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, None)) shouldBe 0L
+      // set up
+      val contribution = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, None)
+      val calculator = calculators.results.BasicCalculator(100, Seq[TaxYearResults](), contribution)
+
+      // check
+      calculator.definedBenefit shouldBe 0L
     }
 
     "return 0 for defined contribution if no amounts given" in {
-      val calculator = calculators.results.BasicCalculator(100)
-      calculator.definedContribution(Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, None)) shouldBe 0L
+      // set up
+      val contribution = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, None)
+      val calculator = calculators.results.BasicCalculator(100, Seq[TaxYearResults](), contribution)
+
+      // check
+      calculator.definedContribution shouldBe 0L
     }
 
     "actualUnused" should {
@@ -58,7 +70,7 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
         val tr4 = TaxYearResults(Contribution(2011, 1000000L), SummaryResult(unusedAllowance=4000000L,availableAllowance=5000000L))
         val previous = Seq(tr4, tr3, tr2, tr1)
         val contribution = Contribution(2012, 5000000L)
-        val calculator = calculators.results.BasicCalculator(50000L)
+        val calculator = calculators.results.BasicCalculator(50000L, previous, contribution)
 
         // test
         val results = calculators.Utilities.actualUnusedAllowancesFn(calculators.results.Utilities.extractor(calculator))(previous, contribution)
@@ -81,10 +93,10 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
         val tr2 = TaxYearResults(Contribution(2009, 0L), SummaryResult(unusedAllowance=5000000L,availableAllowance=5000000L,exceedingAAAmount=0L))
         val previous = Seq(tr1, tr2)
         val contribution = Contribution(2010, 0L)
-        val calculator = calculators.results.BasicCalculator(50000L)
+        val calculator = calculators.results.BasicCalculator(50000L, previous, contribution)
 
         // test
-        val results = calculator.annualAllowanceCCF(previous, contribution)
+        val results = calculator.annualAllowanceCCF
 
         // check
         results shouldBe 15000000L
@@ -97,10 +109,10 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
         val tr3 = TaxYearResults(Contribution(2010, 0L), SummaryResult(unusedAllowance=5000000L,availableAllowance=5000000L,exceedingAAAmount=0L))
         val previous = Seq(tr1, tr2)
         val contribution = Contribution(2011, 0L)
-        val calculator = calculators.results.BasicCalculator(50000L)
+        val calculator = calculators.results.BasicCalculator(50000L, previous, contribution)
 
         // test
-        val results = calculator.annualAllowanceCCF(previous, contribution)
+        val results = calculator.annualAllowanceCCF
 
         // check
         results shouldBe 15000000L
@@ -334,7 +346,7 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
       val previous = Seq[TaxYearResults](TaxYearResults(Contribution(PensionPeriod.EARLIEST_YEAR_SUPPORTED,500000L),starting))
       val result = Pre2014Calculator.summary(previous, contribution1).get
 
-      val actualUnused = calculators.Utilities.actualUnusedAllowancesFn(calculators.results.Utilities.extractor(BasicCalculator(50000L)))(previous, contribution1)
+      val actualUnused = calculators.Utilities.actualUnusedAllowancesFn(calculators.results.Utilities.extractor(BasicCalculator(50000L, previous, contribution1)))(previous, contribution1)
       info(actualUnused.mkString(","))
 
       // check it

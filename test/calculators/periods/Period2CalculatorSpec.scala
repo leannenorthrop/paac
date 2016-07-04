@@ -28,9 +28,9 @@ class Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
 
   trait TestFixture {
     val annualAllowance = 50000
-    implicit val amountsCalculator = BasicCalculator(annualAllowance)
     implicit var previousPeriods = List[TaxYearResults]()
     implicit var contribution = Contribution(2015, 0)
+    implicit val amountsCalculator = BasicCalculator(annualAllowance, previousPeriods, contribution)
     val period2Contribution = Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, None)
   }
   
@@ -74,6 +74,7 @@ class Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
     "return true if above MPA" in new TestFixture {
       // set up
       contribution = period2Contribution.copy(amounts = Some(InputAmounts(Some(0L), Some(1200000L), None, Some(true))))
+      override implicit val amountsCalculator = BasicCalculator(annualAllowance, previousPeriods, contribution)
 
       // test
       val result = Period2Calculator().isMPAAApplicable
@@ -85,6 +86,7 @@ class Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
     "return true if below MPA " in new TestFixture {
       // set up
       contribution = period2Contribution.copy(amounts = Some(InputAmounts(Some(0L), Some(1200L), None, Some(true))))
+      override implicit val amountsCalculator = BasicCalculator(annualAllowance, previousPeriods, contribution)
 
       // test
       val result = Period2Calculator().isMPAAApplicable
@@ -112,6 +114,7 @@ class Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
     "mpist is equal to defined contribution" in new TestFixture {
       // set up
       contribution = period2Contribution.copy(amounts = Some(InputAmounts(Some(0L), Some(1200L))))
+      override implicit val amountsCalculator = BasicCalculator(annualAllowance, previousPeriods, contribution)
 
       // test
       val result = Period2Calculator().mpist
@@ -148,6 +151,7 @@ class Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
       "return defined contribution - period 2 MPA if no previous periods supplied" in new TestFixture {
         // set up
         contribution = period2Contribution.copy(amounts = Some(InputAmounts(Some(0L), Some(1200000L), None, Some(true))))
+        override implicit val amountsCalculator = BasicCalculator(annualAllowance, previousPeriods, contribution)
 
         // test
         val result = Period2Calculator().alternativeChargableAmount
@@ -203,7 +207,8 @@ class Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
       "return defined contribution if no previous periods supplied" in new TestFixture {
         // set up
         contribution = period2Contribution.copy(amounts = Some(InputAmounts(Some(0L), Some(1200000L))))
-
+        override implicit val amountsCalculator = BasicCalculator(annualAllowance, previousPeriods, contribution)
+        
         // test
         val result = Period2Calculator().cumulativeMP
 
