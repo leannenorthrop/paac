@@ -240,9 +240,9 @@ object Contribution {
     Contribution(start, end, db, dc, false)
   }
 
-  def periodAllowance(isP1:Boolean):Long = calculators.CalculatorFactory.get(Contribution(isP1, 0, 0)).map(_.allowance).getOrElse(0L)
+  def periodAllowance(isP1:Boolean):Long = calculators.Calculator(Contribution(isP1, 0, 0)).allowance
 
-  def allowance(year:Int):Long = if (year == 20151) periodAllowance(true) else if (year == 20152) periodAllowance(false) else calculators.CalculatorFactory.get(Contribution(year,0L)).map(_.allowance).getOrElse(0L)
+  def allowance(year:Int):Long = if (year == 20151) periodAllowance(true) else if (year == 20152) periodAllowance(false) else calculators.Calculator(Contribution(year,0L)).allowance
 
   def sortByYearAndPeriod(left: Contribution, right: Contribution): Boolean = {
     if (left.taxPeriodStart.year == right.taxPeriodStart.year &&

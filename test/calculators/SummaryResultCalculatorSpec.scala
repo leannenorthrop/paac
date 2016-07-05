@@ -21,7 +21,6 @@ import models._
 import org.scalatest._
 import org.scalatest.prop._
 import org.scalacheck.Gen
-import calculators.SummaryResultCalculator
 
 class SummaryResultCalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks {
 

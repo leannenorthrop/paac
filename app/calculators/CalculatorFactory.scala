@@ -20,7 +20,7 @@ import models._
 import calculators.results._
 
 trait Calculator {
-  def summary(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution) : Option[Summary]
+  def summary(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution): Option[Summary]
 }
 
 trait AllowanceCalculator extends Calculator {
@@ -42,9 +42,18 @@ trait SummaryCalculator {
 
 trait CalculatorFactory {
   protected val calculators : List[AllowanceCalculator]
-  def get(contribution:Contribution) : Option[AllowanceCalculator] = calculators.find(_.isSupported(contribution))
+  protected def get(contribution:Contribution) : Option[AllowanceCalculator] = calculators.find(_.isSupported(contribution))
 }
 
-object CalculatorFactory extends CalculatorFactory {
+object Calculator extends CalculatorFactory {
   protected override val calculators : List[AllowanceCalculator] = List(Pre2014Calculator, Year2014Calculator, Year2015Period1Calculator, Year2015Period2Calculator)
+  def apply(contribution:Contribution): AllowanceCalculator = {
+    get(contribution).getOrElse {
+      new AllowanceCalculator() {
+        def summary(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution): Option[Summary] = None
+        def allowance(): Long = 0L
+        def isSupported(contribution:Contribution):Boolean = false
+      }
+    }
+  }
 }
