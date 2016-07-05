@@ -18,14 +18,22 @@ package calculators.results
 
 import models._
 import calculators.periods._ 
+import calculators.AllowanceCalculator
 
-object Year2015Period2Calculator extends calculators.AllowanceCalculator {
+/**
+  Calculator for 2015, period 2 (from 9th July 2015 to April 2016)
+*/
+object Year2015Period2Calculator extends AllowanceCalculator {
   protected def getAnnualAllowanceInPounds: Long = 0L
 
   def allowance(): Long = getAnnualAllowanceInPounds * 100L
   
   def isSupported(contribution:Contribution): Boolean = contribution.isPeriod2() && !contribution.isEmpty
 
+  /**
+    Calculate result for period 1 2015 returning an extended summary object which carrys values used in
+    later years where flexi-access has occured.
+   */
   def summary(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Option[Summary] = {
     if (isSupported(contribution)) {
       val calculator = PeriodCalculator(getAnnualAllowanceInPounds)

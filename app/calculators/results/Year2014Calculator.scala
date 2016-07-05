@@ -18,7 +18,10 @@ package calculators.results
 
 import models._
 
-object Year2014Calculator extends BasicAllowanceCalculator with calculators.AllowanceCalculator {
+/**
+  Calculator for 2014
+*/
+object Year2014Calculator extends BasicAllowanceCalculator {
   protected def getAnnualAllowanceInPounds: Long = 40000L
 
   def isSupported(contribution:Contribution): Boolean = {

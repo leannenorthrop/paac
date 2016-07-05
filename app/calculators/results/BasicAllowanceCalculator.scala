@@ -17,9 +17,13 @@
 package calculators.results
 
 import models._
+import calculators.AllowanceCalculator 
 import calculators.SummaryResultCalculator
 
-trait BasicAllowanceCalculator extends calculators.AllowanceCalculator {
+/**
+ Base trait for calculators that calculate results and create summary objects
+ */
+protected trait BasicAllowanceCalculator extends AllowanceCalculator {
   protected def getAnnualAllowanceInPounds: Long
 
   def allowance(): Long = getAnnualAllowanceInPounds * 100L
