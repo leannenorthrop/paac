@@ -17,18 +17,19 @@
 package calculators.results
 
 import models._
+import calculators._
 import calculators.Utilities._
 import calculators.periods.PeriodCalculator
 
 package object Utilities {
-  val extractor: BasicCalculator => ToTupleFn = b => {
+  val extractor: SummaryCalculator => ToTupleFn = calc => {
     (p, c) => {
       implicit val previousPeriods = p
       implicit val contribution = c
-      implicit val calculator = PeriodCalculator(b.annualAllowanceInPounds)
+      implicit val calculator = PeriodCalculator(calc.allowance)
       (List[SummaryResultsTuple](c) ++ List[SummaryResultsTuple](previousPeriods:_*)).reverse
     }
   }
 
-  def basicActualUnused(b: BasicCalculator): Int => (Seq[TaxYearResults], Contribution) => Long = years => (p,c) => actualUnused(extractor(b))(years)(p,c)
+  def basicActualUnused(calculator: SummaryCalculator): Int => (Seq[TaxYearResults], Contribution) => Long = years => (p,c) => actualUnused(extractor(calculator))(years)(p,c)
 }

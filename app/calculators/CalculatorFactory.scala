@@ -28,6 +28,18 @@ trait AllowanceCalculator extends Calculator {
   def isSupported(contribution:Contribution):Boolean
 }
 
+trait SummaryCalculator {
+  def allowance(): Long
+  def definedBenefit(): Long 
+  def definedContribution(): Long
+  def annualAllowance(): Long
+  def exceedingAllowance(): Long
+  def unusedAllowance(): Long
+  def annualAllowanceCF(): Long
+  def annualAllowanceCCF(): Long
+  def chargableAmount(): Long
+}
+
 trait CalculatorFactory {
   protected val calculators : List[AllowanceCalculator]
   def get(contribution:Contribution) : Option[AllowanceCalculator] = calculators.find(_.isSupported(contribution))

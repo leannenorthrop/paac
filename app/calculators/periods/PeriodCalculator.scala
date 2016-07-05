@@ -17,20 +17,13 @@
 package calculators.periods
 
 import models._
+import calculators.SummaryCalculator
+import calculators.SummaryResultCalculator
 import calculators.periods.Utilities._
 import calculators.results.Utilities._
 import calculators.Utilities._
 
-trait PeriodCalculator {
-  def definedContribution(implicit contribution:Contribution): Long = basicCalculator.definedContribution
-  def basicCalculator(): calculators.results.BasicCalculator
-  def definedBenefit(): Long
-  def chargableAmount(): Long
-  def exceedingAllowance(): Long
-  def annualAllowance(): Long
-  def unusedAllowance(): Long
-  def aaCF(): Long
-  def aaCCF(): Long
+trait PeriodCalculator extends SummaryCalculator {
   def moneyPurchaseAA(): Long = 0L
   def alternativeAA(): Long = 0L
   def dbist(): Long = 0L
@@ -56,7 +49,7 @@ trait PeriodCalculator {
       val pensionPeriod = row.input.taxPeriodStart.copy(year=row.input.taxPeriodStart.year+1)
       val contribution = Contribution(pensionPeriod, pensionPeriod, Some(InputAmounts(0L,0L)))
       // use simple basic extractor since period 1 and 2 are removed above and only dealing with years prior to 2015
-      val actualUnusedLst = actualUnusedAllowancesFn(extractor(basicCalculator))(previousPeriods, contribution).drop(1)
+      val actualUnusedLst = actualUnusedAllowancesFn(extractor(new SummaryResultCalculator(allowance, previousPeriods, contribution)))(previousPeriods, contribution).drop(1)
       actualUnusedFn(3)(actualUnusedLst)
     }.getOrElse(0L)
   }
@@ -64,22 +57,13 @@ trait PeriodCalculator {
 
 object PeriodCalculator {
   def apply(allowanceInPounds: Long)(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): PeriodCalculator = {
-    implicit val amountsCalculator = calculators.results.BasicCalculator(allowanceInPounds, previousPeriods, contribution)
+    implicit val annualAllowanceInPounds = allowanceInPounds
     if (contribution.isPeriod1) {
-      Period1Calculator()
+      new Period1Calculator
     } else if (contribution.isPeriod2) {
-      Period2Calculator()
+      new Period2Calculator
     } else {
-      new PeriodCalculator() {
-        def basicCalculator(): calculators.results.BasicCalculator = amountsCalculator
-        def definedBenefit(): Long = amountsCalculator.definedBenefit
-        def chargableAmount(): Long = amountsCalculator.chargableAmount
-        def exceedingAllowance(): Long = amountsCalculator.exceedingAllowance
-        def annualAllowance(): Long = amountsCalculator.annualAllowance
-        def unusedAllowance(): Long = amountsCalculator.unusedAllowance
-        def aaCF(): Long = amountsCalculator.annualAllowanceCF
-        def aaCCF(): Long = amountsCalculator.annualAllowanceCCF
-      }
+      new SummaryResultCalculator(annualAllowanceInPounds, previousPeriods, contribution) with PeriodCalculator
     }
   }
 }

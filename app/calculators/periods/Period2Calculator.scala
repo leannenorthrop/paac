@@ -17,23 +17,25 @@
 package calculators.periods
 
 import models._
-import calculators.results.BasicCalculator
+import calculators.SummaryResultCalculator
 import calculators.periods.Utilities._
 import calculators.Utilities._
 import calculators.results.Utilities._
 
-case class Period2Calculator(implicit amountsCalculator: BasicCalculator,
-                                      previousPeriods:Seq[TaxYearResults], 
-                                      contribution:Contribution) extends PeriodCalculator {
+class Period2Calculator(implicit allowanceInPounds: Long,
+                                 previousPeriods:Seq[TaxYearResults], 
+                                 contribution:Contribution) extends PeriodCalculator {
   val MPA = 10000 * 100L
   val P1MPA = 20000 * 100L
   val P2MPA = 10000 * 100L
   val AAA = 30000 * 100L
   val MAXAACF = 40000 * 100L
 
+  def allowance(): Long = allowanceInPounds
+
   // Annual Allowance Cumulative Carry Forwards
   protected lazy val _aaCF = if (isTriggered && isGroup3) period1.availableAAWithCCF else previous.availableAAWithCCF 
-  override def aaCF(): Long = _aaCF
+  override def annualAllowanceCF(): Long = _aaCF
 
   // Annual Allowance With Carry Forwards
   protected lazy val _aaCCF = {
@@ -56,7 +58,7 @@ case class Period2Calculator(implicit amountsCalculator: BasicCalculator,
       }
     }
   }
-  override def aaCCF(): Long = _aaCCF
+  override def annualAllowanceCCF(): Long = _aaCCF
 
   // Alternative Annual Allowance
   protected lazy val _alternativeAA = if (isGroup3 || (isGroup2 && isTriggered)) previous.unusedAAA else 0L
@@ -88,7 +90,7 @@ case class Period2Calculator(implicit amountsCalculator: BasicCalculator,
   protected lazy val _annualAllowance = period1.unusedAllowance
   override def annualAllowance(): Long = _annualAllowance
 
-  def basicCalculator(): BasicCalculator = amountsCalculator
+  def basicCalculator(): SummaryResultCalculator = new SummaryResultCalculator(allowance, previousPeriods, contribution)
 
   // Chargable Amount (tax due)
   protected lazy val _chargableAmount = {
@@ -174,6 +176,9 @@ case class Period2Calculator(implicit amountsCalculator: BasicCalculator,
   }
   override def definedBenefit(): Long = _definedBenefit
 
+  protected lazy val _definedContribution = basicCalculator.definedContribution
+  def definedContribution(): Long = _definedContribution
+  
   // Exceeding Alternative Annual Allowance
   override def exceedingAAA(): Long = 0L
 

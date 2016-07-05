@@ -21,51 +21,55 @@ import models._
 import org.scalatest._
 import org.scalatest.prop._
 import org.scalacheck.Gen
-import calculators.results.BasicCalculator
+import calculators.SummaryResultCalculator
 
 class Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks with PrivateMethodTester {
 
-
   trait TestFixture {
-    val annualAllowance = 50000
+    implicit val annualAllowanceInPounds = 50000L
     implicit var previousPeriods = List[TaxYearResults]()
     implicit var contribution = Contribution(2015, 0)
-    implicit val amountsCalculator = BasicCalculator(annualAllowance, previousPeriods, contribution)
     val period2Contribution = Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, None)
   }
   
   "period1" should {
+
     val period1Value = PrivateMethod[ExtendedSummaryFields]('period1)
+
     "return empty results if no previous periods" in new TestFixture {
-      val result = Period2Calculator() invokePrivate period1Value()
+      val result = new Period2Calculator() invokePrivate period1Value()
       result shouldBe ExtendedSummaryFields()
     }
+
     "return empty results if no previous period 1 periods" in new TestFixture {
       val p2 = Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, None)))
       previousPeriods = List(Contribution(2012,2),Contribution(2016,3),p2).map(TaxYearResults(_,SummaryResult()))
-      val result = Period2Calculator() invokePrivate period1Value()
+      val result = new Period2Calculator() invokePrivate period1Value()
       result shouldBe ExtendedSummaryFields()
     }
+
     "return period1 results if no previous period 1 periods" in new TestFixture {
       val p2 = Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, None)))
       val p1 = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(1324L), Some(2L), None, None)))
       previousPeriods = List(Contribution(2012,2),Contribution(2016,3),p2,p1).map((c)=>TaxYearResults(c,ExtendedSummaryFields(c.amounts.get.definedBenefit.get)))
-      val result = Period2Calculator() invokePrivate period1Value()
+      val result = new Period2Calculator() invokePrivate period1Value()
       result shouldBe ExtendedSummaryFields(1324L)
     }
   }
 
   "previous" should {
     val previousValue = PrivateMethod[ExtendedSummaryFields]('previous)
+
     "return empty results if no previous periods" in new TestFixture {
-      val result = Period2Calculator() invokePrivate previousValue()
+      val result = new Period2Calculator() invokePrivate previousValue()
       result shouldBe ExtendedSummaryFields()
     }
+
     "return results if previous periods" in new TestFixture {
       val p2 = Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, None)))
       val p1 = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(1324L), Some(2L), None, None)))
       previousPeriods = List(Contribution(2012,2),Contribution(2016,3),p2,p1).map((c)=>TaxYearResults(c,ExtendedSummaryFields(c.amounts.get.definedBenefit.get)))
-      val result = Period2Calculator() invokePrivate previousValue()
+      val result = new Period2Calculator() invokePrivate previousValue()
       result shouldBe ExtendedSummaryFields(2L)
     }
   }
@@ -74,10 +78,9 @@ class Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
     "return true if above MPA" in new TestFixture {
       // set up
       contribution = period2Contribution.copy(amounts = Some(InputAmounts(Some(0L), Some(1200000L), None, Some(true))))
-      override implicit val amountsCalculator = BasicCalculator(annualAllowance, previousPeriods, contribution)
 
       // test
-      val result = Period2Calculator().isMPAAApplicable
+      val result = new Period2Calculator().isMPAAApplicable
 
       // check
       result shouldBe true
@@ -86,10 +89,9 @@ class Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
     "return true if below MPA " in new TestFixture {
       // set up
       contribution = period2Contribution.copy(amounts = Some(InputAmounts(Some(0L), Some(1200L), None, Some(true))))
-      override implicit val amountsCalculator = BasicCalculator(annualAllowance, previousPeriods, contribution)
 
       // test
-      val result = Period2Calculator().isMPAAApplicable
+      val result = new Period2Calculator().isMPAAApplicable
 
       // check
       result shouldBe true
@@ -97,7 +99,7 @@ class Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
 
     "defined benefit is 0" in new TestFixture {
       // test
-      val result = Period2Calculator().definedBenefit
+      val result = new Period2Calculator().definedBenefit
 
       // check
       result shouldBe 0L
@@ -105,7 +107,7 @@ class Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
 
     "dbist is 0" in new TestFixture {
       // test
-      val result = Period2Calculator().dbist
+      val result = new Period2Calculator().dbist
 
       // check
       result shouldBe 0L
@@ -114,10 +116,9 @@ class Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
     "mpist is equal to defined contribution" in new TestFixture {
       // set up
       contribution = period2Contribution.copy(amounts = Some(InputAmounts(Some(0L), Some(1200L))))
-      override implicit val amountsCalculator = BasicCalculator(annualAllowance, previousPeriods, contribution)
 
       // test
-      val result = Period2Calculator().mpist
+      val result = new Period2Calculator().mpist
 
       // check
       result shouldBe 1200L
@@ -130,7 +131,7 @@ class Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
         previousPeriods = List[TaxYearResults](TaxYearResults(p1, ExtendedSummaryFields(unusedMPAA=1000000)))
 
         // test
-        val result = Period2Calculator().moneyPurchaseAA
+        val result = new Period2Calculator().moneyPurchaseAA
 
         // check
         result shouldBe 1000000L
@@ -140,7 +141,7 @@ class Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
     "alternativeAA" should {
       "return 0 if no previous periods supplied" in new TestFixture {
         // test
-        val result = Period2Calculator().alternativeAA
+        val result = new Period2Calculator().alternativeAA
 
         // check
         result shouldBe 0L
@@ -151,10 +152,9 @@ class Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
       "return defined contribution - period 2 MPA if no previous periods supplied" in new TestFixture {
         // set up
         contribution = period2Contribution.copy(amounts = Some(InputAmounts(Some(0L), Some(1200000L), None, Some(true))))
-        override implicit val amountsCalculator = BasicCalculator(annualAllowance, previousPeriods, contribution)
 
         // test
-        val result = Period2Calculator().alternativeChargableAmount
+        val result = new Period2Calculator().alternativeChargableAmount
 
         // check
         result shouldBe 1200000L-1000000L
@@ -169,7 +169,7 @@ class Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
         previousPeriods = List[TaxYearResults](TaxYearResults(contribution, period1))
 
         // test
-        val result = Period2Calculator().defaultChargableAmount
+        val result = new Period2Calculator().defaultChargableAmount
 
         // check
         result shouldBe 0L
@@ -177,7 +177,7 @@ class Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
     }
 
     "exceedingAllowance should be 0" in new TestFixture {
-      Period2Calculator().exceedingAllowance shouldBe 0L
+      new Period2Calculator().exceedingAllowance shouldBe 0L
     } 
 
     "unusedAllowance" should {
@@ -186,17 +186,17 @@ class Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
         contribution = period2Contribution.copy(amounts = Some(InputAmounts(Some(0L), Some(12000L))))
 
         // test
-        val result = Period2Calculator().unusedAllowance
+        val result = new Period2Calculator().unusedAllowance
 
         // check
         result shouldBe 0L
       }
     }
 
-    "aaCF" should {
+    "annualAllowanceCF" should {
       "return 0 if no previous periods supplied" in new TestFixture {
         // test
-        val result = Period2Calculator().aaCF
+        val result = new Period2Calculator().annualAllowanceCF
 
         // check
         result shouldBe 0L
@@ -207,10 +207,9 @@ class Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
       "return defined contribution if no previous periods supplied" in new TestFixture {
         // set up
         contribution = period2Contribution.copy(amounts = Some(InputAmounts(Some(0L), Some(1200000L))))
-        override implicit val amountsCalculator = BasicCalculator(annualAllowance, previousPeriods, contribution)
         
         // test
-        val result = Period2Calculator().cumulativeMP
+        val result = new Period2Calculator().cumulativeMP
 
         // check
         result shouldBe 1200000L
@@ -223,7 +222,7 @@ class Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
         contribution = period2Contribution.copy(amounts = Some(InputAmounts(Some(0L), Some(1200000L))))
 
         // test
-        val result = Period2Calculator().cumulativeDB
+        val result = new Period2Calculator().cumulativeDB
 
         // check
         result shouldBe 0L
@@ -233,7 +232,7 @@ class Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
     "unusedAAA" should {
       "return 0 if no previous periods supplied" in new TestFixture {
         // test
-        val result = Period2Calculator().unusedAAA
+        val result = new Period2Calculator().unusedAAA
 
         // check
         result shouldBe 0L
@@ -243,7 +242,7 @@ class Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
     "unusedMPAA" should {
       "return 0" in new TestFixture {
         // test
-        val result = Period2Calculator().unusedMPAA
+        val result = new Period2Calculator().unusedMPAA
 
         // check
         result shouldBe 0L
