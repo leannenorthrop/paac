@@ -242,5 +242,45 @@ class PensionResultSpec extends ModelSpec {
       taxYearResultsOption.get.summaryResult.moneyPurchaseAA shouldBe 12
       taxYearResultsOption.get.summaryResult.alternativeAA shouldBe 15
     }
+
+    "Implicit casts" should {
+      import models.TaxYearResults._
+      import calculators.Utilities._
+
+      "convert tax result to summary tuple" in {
+        // setup
+        val contribution = Contribution(2014, 0)
+        val tyr = TaxYearResults(contribution, SummaryResult(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, true, 12, 13))
+
+        // do it
+        val tuple: SummaryResultsTuple = tyr
+        val (year, exceeding, unused) = tuple
+
+        // check
+        year shouldBe 2014
+        exceeding shouldBe 2
+        unused shouldBe 4
+      }
+
+      "convert seq of results to list of summary tuples" in {
+        // setup
+        val contribution = Contribution(2014, 0)
+        val tyr1 = TaxYearResults(contribution, SummaryResult(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, true, 12, 13))
+        val tyr2 = TaxYearResults(contribution, SummaryResult(11, 12, 13, 14, 15, 16, 17, 18, 19, 20, true, 22, 23))
+
+        // do it
+        val tuples: List[SummaryResultsTuple] = Seq(tyr1, tyr2)
+        val (year1, exceeding1, unused1) = tuples(0)
+        val (year2, exceeding2, unused2) = tuples(1)
+
+        // check
+        year1 shouldBe 2014
+        exceeding1 shouldBe 2
+        unused1 shouldBe 4
+        year2 shouldBe 2014
+        exceeding2 shouldBe 12
+        unused2 shouldBe 14
+      }
+    }
   }  
 }
