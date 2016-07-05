@@ -108,7 +108,7 @@ class CalculatorControllerSpec extends ControllerSpec with BeforeAndAfterAll {
         lst.head.summaryResult.availableAAWithCF shouldBe 15000000L
       }
 
-      "with  year less than earliest supported tax year" in {
+      "with year less than earliest supported tax year" in {
         // set up
         val requestBody = VALID_CONTRIBUTION_JSON_BODY
 

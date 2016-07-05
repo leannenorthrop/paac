@@ -434,7 +434,7 @@ class ContributionSpec extends ModelSpec {
       }
     }
 
-    "allowance" can {
+    "have an allowance which" should {
       "return period 1 allowance" in {
         // check
         Contribution.allowance(20151) shouldBe 8000000L
@@ -453,7 +453,7 @@ class ContributionSpec extends ModelSpec {
       }
     }
 
-    "label" can {
+    "have a label which" should {
       "have a simple label" in {
         // set up
         val c = Contribution(2008, 0)
@@ -510,12 +510,13 @@ class ContributionSpec extends ModelSpec {
       }
     }
 
-    "construction and properties" can {
+    "be constructed and have properties that" should {
       "have a tax year" in new ContributionFixture {
         // check
         contribution.taxPeriodStart.year shouldBe taxYear
       }
-      "apply creates a proper full tax year period" in {
+
+      "apply() which creates a proper full tax year period" in {
         // set up
         val c = Contribution(2008, 0)
 
@@ -597,7 +598,7 @@ class ContributionSpec extends ModelSpec {
       }
     }
 
-    "isEmpty" can {
+    "do isEmpty which" should {
       "return true if both definedBenefit and money purchase are none or amounts is none" in new ContributionFixture {
         Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), None).isEmpty shouldBe true
         Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(None,None))).isEmpty shouldBe true
@@ -613,7 +614,7 @@ class ContributionSpec extends ModelSpec {
       }
     }
 
-    "isPeriod1" can {
+    "do isPeriod1 which" should {
       "return true if is period 1" in {
         Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(0,0))).isPeriod1 shouldBe true
       }
@@ -622,7 +623,7 @@ class ContributionSpec extends ModelSpec {
       }
     }
 
-    "isPeriod2" can {
+    "do isPeriod2 which" should {
       "return true if is period 2" in {
         Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(0,0))).isPeriod2 shouldBe true
       }
@@ -631,7 +632,7 @@ class ContributionSpec extends ModelSpec {
       }
     }
 
-    "isGroup1" can {
+    "do isGroup1 which" should {
       "return true for group 1 contributions" in {
         Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(4322L))).isGroup1 shouldBe true
         Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(4322L))).isGroup1 shouldBe true
@@ -647,7 +648,7 @@ class ContributionSpec extends ModelSpec {
       }
     }
 
-    "isGroup2" can {
+    "do isGroup2 which" should {
       "return true if defined contribution is not None and is period 1 or 2" in {
         Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(None,Some(474789L),None))).isGroup2 shouldBe true
         Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(None,Some(474789L),None))).isGroup2 shouldBe true
@@ -664,7 +665,7 @@ class ContributionSpec extends ModelSpec {
       }
     }
 
-    "isGroup3" can {
+    "do isGroup3 which" should {
       "return false if only defined benefit and not triggered" in {
         Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(12), None, None, None))).isGroup3 shouldBe false
         Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(12), None, None, None))).isGroup3 shouldBe false
@@ -683,8 +684,8 @@ class ContributionSpec extends ModelSpec {
       }
     }
 
-    "+" should{
-      "sum definedBenefit of two contributions regardless of year" in {
+    "do + which" should {
+      "sums definedBenefit of two contributions regardless of year" in {
         // set up
         val c1 = Contribution(2014, 123L)
         val c2 = Contribution(2014, 456L)
@@ -695,6 +696,7 @@ class ContributionSpec extends ModelSpec {
         // check
         c3 shouldBe Contribution(PensionPeriod(2014,4,6),PensionPeriod(2015,4,5),Some(InputAmounts(579L,0L)))
       }
+
       "not fail if amounts not defined" in {
         // set up
         val c1 = Contribution(PensionPeriod(2014,4,6),PensionPeriod(2015,4,5),None)
@@ -706,9 +708,57 @@ class ContributionSpec extends ModelSpec {
         // check
         c3 shouldBe c1
       }
+
+      "be added to another contribution" in {
+        // set up
+        val c1 = Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(None, Some(123L))))
+        val c2 = Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(Some(456L), Some(0L))))
+
+        // test
+        val c3 = c1 + c2
+
+        // check
+        c3 shouldBe Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(Some(456L), Some(123L))))
+      }
+
+      "be added to another contribution summing defined benefit" in {
+        // set up
+        val c1 = Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(Some(123L), None)))
+        val c2 = Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(Some(456L), None)))
+
+        // test
+        val c3 = c1 + c2
+
+        // check
+        c3 shouldBe Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(579L, 0L)))
+      }
+
+      "be added to another contribution summing defined contribution" in {
+        // set up
+        val c1 = Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(None, Some(123L))))
+        val c2 = Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(None, Some(456L))))
+
+        // test
+        val c3 = c1 + c2
+
+        // check
+        c3 shouldBe Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(0L, 579L)))
+      }
+
+      "is not added to another contribution when amounts is None" in {
+        // set up
+        val c1 = Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), None);
+        val c2 = Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(None, Some(456L))))
+
+        // test
+        val c3 = c1 + c2
+
+        // check
+        c3 shouldBe c1
+      }
     }
 
-    "JSON" can {
+    "do JSON which" should {
       "marshall to JSON" in new ContributionFixture {
         // do it
         val json = Json.toJson(contribution)
@@ -769,121 +819,226 @@ class ContributionSpec extends ModelSpec {
         firstValidationError.message shouldBe "error.min"
         firstValidationError.args(0) shouldBe 2008
       }
+
+      "unmashalling null" should {
+        "amounts results in None" in {
+          // setup
+          val json = Json.parse("""{"taxPeriodStart": {"year":2008, "month" : 2, "day" : 11}, "taxPeriodEnd": {"year":2008, "month" : 8, "day" : 12}, "amounts": null}""")
+
+          // do it
+          val contributionOption : Option[Contribution] = json.validate[Contribution].fold(invalid = { _ => None }, valid = { contribution => Some(contribution)})
+
+          contributionOption shouldBe Some(Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), None))
+        }
+
+        "unmarshall from JSON allows null definedBenefit" in {
+          // setup
+          val json = Json.parse("""{"taxPeriodStart": {"year":2008, "month" : 2, "day" : 11}, "taxPeriodEnd": {"year":2008, "month" : 8, "day" : 12}, "amounts": {"definedBenefit": null, "moneyPurchase": 67890}}""")
+
+          // do it
+          val contributionOption : Option[Contribution] = json.validate[Contribution].fold(invalid = { _ => None }, valid = { contribution => Some(contribution)})
+
+          contributionOption shouldBe Some(Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(None, Some(67890L)))))
+        }
+
+        "unmarshall from JSON allows null moneyPurchase" in {
+          // setup
+          val json = Json.parse("""{"taxPeriodStart": {"year":2008, "month" : 2, "day" : 11}, "taxPeriodEnd": {"year":2008, "month" : 8, "day" : 12}, "amounts": {"definedBenefit": 9898080}}""")
+
+          // do it
+          val contributionOption : Option[Contribution] = json.validate[Contribution].fold(invalid = { _ => None }, valid = { contribution => Some(contribution)})
+
+          contributionOption shouldBe Some(Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(Some(9898080L),None))))
+        }
+
+        "unmarshall from JSON allows null income" in {
+          // setup
+          val json = Json.parse("""{"taxPeriodStart": {"year":2008, "month" : 2, "day" : 11}, "taxPeriodEnd": {"year":2008, "month" : 8, "day" : 12}, "amounts": {"definedBenefit": 9898080, "income": null}}""")
+
+          // do it
+          val contributionOption : Option[Contribution] = json.validate[Contribution].fold(invalid = { _ => None }, valid = { contribution => Some(contribution)})
+
+          contributionOption shouldBe Some(Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(Some(9898080L),None, None))))
+        }
+      }
     }
 
-    "unmashalling null" can {
-      "amounts results in None" in {
+    "do JSON array of contributions" should {
+      "marshall to JSON" in new ContributionFixture {
         // setup
-        val json = Json.parse("""{"taxPeriodStart": {"year":2008, "month" : 2, "day" : 11}, "taxPeriodEnd": {"year":2008, "month" : 8, "day" : 12}, "amounts": null}""")
+        val contributions = Seq(contribution,
+                                contribution)
+        val expectedJSON = "[" + getExpectedContributionJson()+","+getExpectedContributionJson() + "]"
 
         // do it
-        val contributionOption : Option[Contribution] = json.validate[Contribution].fold(invalid = { _ => None }, valid = { contribution => Some(contribution)})
+        val json = Json.toJson(contributions)
 
-        contributionOption shouldBe Some(Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), None))
+        // check
+        Json.stringify(json) shouldBe expectedJSON
       }
 
-      "unmarshall from JSON allows null definedBenefit" in {
+      "unmarshall from JSON" in new ContributionFixture {
         // setup
-        val json = Json.parse("""{"taxPeriodStart": {"year":2008, "month" : 2, "day" : 11}, "taxPeriodEnd": {"year":2008, "month" : 8, "day" : 12}, "amounts": {"definedBenefit": null, "moneyPurchase": 67890}}""")
+        val expectedContributions = Seq(contribution, contribution)
+        val json = Json.parse("[" + getExpectedContributionJson()+","+getExpectedContributionJson() + "]")
 
         // do it
-        val contributionOption : Option[Contribution] = json.validate[Contribution].fold(invalid = { _ => None }, valid = { contribution => Some(contribution)})
-
-        contributionOption shouldBe Some(Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(None, Some(67890L)))))
+        val contributionsOption : Option[Contribution] = (json(0)).validate[Contribution].fold(invalid = { _ => None }, valid = { contribution => Some(contribution)})
+        contributionsOption shouldBe Some(expectedContributions(0))
       }
-
-      "unmarshall from JSON allows null moneyPurchase" in {
-        // setup
-        val json = Json.parse("""{"taxPeriodStart": {"year":2008, "month" : 2, "day" : 11}, "taxPeriodEnd": {"year":2008, "month" : 8, "day" : 12}, "amounts": {"definedBenefit": 9898080}}""")
-
-        // do it
-        val contributionOption : Option[Contribution] = json.validate[Contribution].fold(invalid = { _ => None }, valid = { contribution => Some(contribution)})
-
-        contributionOption shouldBe Some(Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(Some(9898080L),None))))
-      }
-
-      "unmarshall from JSON allows null income" in {
-        // setup
-        val json = Json.parse("""{"taxPeriodStart": {"year":2008, "month" : 2, "day" : 11}, "taxPeriodEnd": {"year":2008, "month" : 8, "day" : 12}, "amounts": {"definedBenefit": 9898080, "income": null}}""")
-
-        // do it
-        val contributionOption : Option[Contribution] = json.validate[Contribution].fold(invalid = { _ => None }, valid = { contribution => Some(contribution)})
-
-        contributionOption shouldBe Some(Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(Some(9898080L),None, None))))
-      }
-
-      "be added to another contribution" in {
-        // set up
-        val c1 = Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(None, Some(123L))))
-        val c2 = Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(Some(456L), Some(0L))))
-
-        // test
-        val c3 = c1 + c2
-
-        // check
-        c3 shouldBe Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(Some(456L), Some(123L))))
-      }
-
-      "be added to another contribution summing defined benefit" in {
-        // set up
-        val c1 = Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(Some(123L), None)))
-        val c2 = Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(Some(456L), None)))
-
-        // test
-        val c3 = c1 + c2
-
-        // check
-        c3 shouldBe Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(579L, 0L)))
-      }
-
-      "be added to another contribution summing defined contribution" in {
-        // set up
-        val c1 = Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(None, Some(123L))))
-        val c2 = Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(None, Some(456L))))
-
-        // test
-        val c3 = c1 + c2
-
-        // check
-        c3 shouldBe Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(0L, 579L)))
-      }
-
-      "is not added to another contribution when amounts is None" in {
-        // set up
-        val c1 = Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), None);
-        val c2 = Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(None, Some(456L))))
-
-        // test
-        val c3 = c1 + c2
-
-        // check
-        c3 shouldBe c1
-      }
-    }    
-  }
-
-  "Array of contributions" can {
-    "marshall to JSON" in new ContributionFixture {
-      // setup
-      val contributions = Seq(contribution,
-                              contribution)
-      val expectedJSON = "[" + getExpectedContributionJson()+","+getExpectedContributionJson() + "]"
-
-      // do it
-      val json = Json.toJson(contributions)
-
-      // check
-      Json.stringify(json) shouldBe expectedJSON
     }
 
-    "unmarshall from JSON" in new ContributionFixture {
-      // setup
-      val expectedContributions = Seq(contribution, contribution)
-      val json = Json.parse("[" + getExpectedContributionJson()+","+getExpectedContributionJson() + "]")
+    "do isTriggered which" should {
+      "return true when flexi-access has occured" in {
+        // set up
+        val contribution = Contribution(2016, 0).copy(amounts=Some(InputAmounts(triggered=Some(true))))
 
-      // do it
-      val contributionsOption : Option[Contribution] = (json(0)).validate[Contribution].fold(invalid = { _ => None }, valid = { contribution => Some(contribution)})
-      contributionsOption shouldBe Some(expectedContributions(0))
+        // test
+        val result = contribution.isTriggered
+
+        // check
+        result shouldBe true
+      }
+
+      "return false when flexi=access has not occured" in {
+        Contribution(2016, 0).copy(amounts=Some(InputAmounts(triggered=Some(false)))).isTriggered shouldBe false
+        Contribution(2016, 0).copy(amounts=Some(InputAmounts(triggered=None))).isTriggered shouldBe false
+        Contribution(2016, 0).copy(amounts=None).isTriggered shouldBe false
+      }
+    }
+
+    "do definedBenefit which" should {
+      "return amount if available" in {
+        // set up
+        val contribution = Contribution(2019, 123)
+
+        // test
+        val db = contribution.definedBenefit
+        
+        // check
+        db shouldBe 123L
+      }
+
+      "return 0 if not available" in {
+        Contribution(2016, 0).copy(amounts=Some(InputAmounts(None))).definedBenefit shouldBe 0L
+        Contribution(2016, 0).copy(amounts=None).definedBenefit shouldBe 0L
+      }
+    }
+
+    "do moneyPurchase which" should {
+      "return amount if available" in {
+        // set up
+        val contribution = Contribution(2019, Some(InputAmounts(None, Some(123), None, None)))
+
+        // test
+        val db = contribution.moneyPurchase
+        
+        // check
+        db shouldBe 123L
+      }
+
+      "return 0 if not available" in {
+        Contribution(2016, 0).copy(amounts=Some(InputAmounts(None,None))).moneyPurchase shouldBe 0L
+        Contribution(2016, 0).copy(amounts=None).moneyPurchase shouldBe 0L
+      }
+    }
+
+    "do implicit cast which" should {
+      import calculators.Utilities._
+      "cast from contribution to SummaryResultsTuple" in {
+        // set up
+        implicit val contribution = Contribution(2020, 123)
+        implicit val previousPeriods = Seq[TaxYearResults]()
+        implicit val calculator: calculators.SummaryCalculator = new calculators.SummaryResultCalculator(123L, previousPeriods, contribution)
+
+        // test
+        val tuple: SummaryResultsTuple = contribution
+        val (year, exceeding, unused) = tuple
+
+        // check
+        year shouldBe 2020
+        exceeding shouldBe 0L
+        unused shouldBe 12177L
+      }
+      "cast from period 1 contribution to SummaryResultsTuple" in {
+        // set up
+        implicit val contribution = Contribution(true, 789, 0)
+        implicit val previousPeriods = Seq[TaxYearResults]()
+        implicit val calculator: calculators.SummaryCalculator = calculators.periods.PeriodCalculator(123L)
+
+        // test
+        val tuple: SummaryResultsTuple = contribution
+        val (year, exceeding, unused) = tuple
+
+        // check
+        year shouldBe 2015
+        exceeding shouldBe 0L
+        unused shouldBe 11511
+      }
+      "cast from period 2 contribution to SummaryResultsTuple" in {
+        // set up
+        implicit val contribution = Contribution(false, 245, 0)
+        implicit val previousPeriods = Seq[TaxYearResults]()
+        implicit val calculator: calculators.SummaryCalculator = calculators.periods.PeriodCalculator(123L)
+
+        // test
+        val tuple: SummaryResultsTuple = contribution
+        val (year, exceeding, unused) = tuple
+
+        // check
+        year shouldBe 2015
+        exceeding shouldBe 245L
+        unused shouldBe 0L
+      }
+    }
+
+    "sort which" should {
+      "order by start year" in {
+        // set up
+        val c1 = Contribution(2014, 123)
+        val c2 = Contribution(2013, 345)
+
+        // test
+        val sorted = List[Contribution](c1,c2).sortWith(Contribution.sortByYearAndPeriod _)
+
+        // check
+        sorted(0) shouldBe c2
+        sorted(1) shouldBe c1
+      }
+
+      "put period 1 before period 2" in {
+        // set up
+        val c1 = Contribution(2014, 123)
+        val c2 = Contribution(2013, 345)
+        val c3 = Contribution(false, 3452, 0)
+        val c4 = Contribution(true, 3456, 0)
+
+        // test
+        val sorted = List[Contribution](c1,c2,c3,c4).sortWith(Contribution.sortByYearAndPeriod _)
+
+        // check
+        sorted(0) shouldBe c2
+        sorted(1) shouldBe c1
+        sorted(2) shouldBe c4
+        sorted(3) shouldBe c3
+      }
+
+      "put non-triggered before triggered" in {
+        // set up
+        val c1 = Contribution(2014, 123)
+        val c2 = Contribution(2013, 345)
+        val c3 = Contribution(true, 0, 0).copy(amounts=Some(InputAmounts(None,None,None,Some(true))))
+        val c4 = Contribution(true, 3456, 0)
+
+        // test
+        val sorted = List[Contribution](c1,c2,c3,c4).sortWith(Contribution.sortByYearAndPeriod _)
+
+        // check
+        sorted(0) shouldBe c2
+        sorted(1) shouldBe c1
+        sorted(2) shouldBe c4
+        sorted(3) shouldBe c3
+      }
     }
   }
 }
