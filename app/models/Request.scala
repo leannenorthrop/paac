@@ -20,37 +20,46 @@ import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json._
 
+/**
+ Wrapper trait for supplying options for calculator and contribution inputs to calculators.
+ */
 sealed trait BackendRequest {
   def contributions(): List[Contribution]
   def startFromYear():  Option[Int]
   def missingYearsAreRegistered():  Option[Boolean]
 }
 
+/**
+ Concrete implementation of BackendRequest
+ */
 case class CalculationRequest(contributions: List[Contribution], 
                               startFromYear: Option[Int] = None,
                               missingYearsAreRegistered: Option[Boolean] = None) extends BackendRequest {
 }
 
+/**
+  BackendRequest providing read/write for generic implementations of BackendRequest trait.
+ */
 object BackendRequest {
   implicit val requestWrites: Writes[BackendRequest] = (
     (JsPath \ "contributions").write[List[Contribution]] and
     (JsPath \ "startFromYear").write[Option[Int]] and
     (JsPath \ "missingYearsAreRegistered").write[Option[Boolean]]
-  )(BackendRequest.toTuple _)
+  )(BackendRequest.apply _)
 
   implicit val requestReads: Reads[BackendRequest] = (
     (JsPath \ "contributions").read[List[Contribution]] and
     (JsPath \ "startFromYear").readNullable[Int](min(PensionPeriod.EARLIEST_YEAR_SUPPORTED)) and
     (JsPath \ "missingYearsAreRegistered").readNullable[Boolean]
-  )(BackendRequest.toRequest _)
+  )(BackendRequest.unapply _)
 
-  def toTuple(request: BackendRequest): (List[Contribution], Option[Int], Option[Boolean]) = {
+  def apply(request: BackendRequest): (List[Contribution], Option[Int], Option[Boolean]) = {
     (request.contributions, request.startFromYear, request.missingYearsAreRegistered)
   }
 
-  def toRequest(contributions: List[Contribution],
-                startFromYear: Option[Int],
-                missingYearsAreRegistered: Option[Boolean]): BackendRequest = {
+  def unapply(contributions: List[Contribution],
+              startFromYear: Option[Int],
+              missingYearsAreRegistered: Option[Boolean]): BackendRequest = {
     CalculationRequest(contributions, startFromYear, missingYearsAreRegistered)
   }
 }
