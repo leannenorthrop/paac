@@ -76,4 +76,30 @@ class PeriodCalculatorSpec extends UnitSpec {
       }
     }
   }
+
+  "Simple period calculator" should {
+    "return 0 for all values" in {
+      // set up
+      val calculator = PeriodCalculator(123)(Seq[TaxYearResults](),Contribution(2013,123L))
+
+      // check
+      calculator.moneyPurchaseAA shouldBe 0L
+      calculator.alternativeAA shouldBe 0L
+      calculator.dbist shouldBe 0L
+      calculator.mpist shouldBe 0L
+      calculator.alternativeChargableAmount shouldBe 0L
+      calculator.defaultChargableAmount shouldBe 0L
+      calculator.cumulativeMP shouldBe 0L
+      calculator.cumulativeDB shouldBe 0L
+      calculator.exceedingMPAA shouldBe 0L
+      calculator.exceedingAAA shouldBe 0L
+      calculator.unusedAAA shouldBe 0L
+      calculator.unusedMPAA shouldBe 0L
+      calculator.preFlexiSavings shouldBe 0L
+      calculator.postFlexiSavings shouldBe 0L
+      calculator.isMPAAApplicable shouldBe false
+      calculator.acaCF shouldBe 0L
+      calculator.dcaCF shouldBe 0L
+    }
+  }
 }

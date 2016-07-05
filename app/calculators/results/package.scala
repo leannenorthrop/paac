@@ -22,6 +22,10 @@ import calculators.Utilities._
 import calculators.periods.PeriodCalculator
 
 package object Utilities {
+  /**
+    Extractor to convert list of tax year results and 'current' contribution into a simplified tuple list in forward order (e.g. 2008, 2009, 2010) 
+    To be removed once 2016 calculator is implemented.
+  */
   val extractor: SummaryCalculator => ToTupleFn = calc => {
     (p, c) => {
       implicit val previousPeriods = p
@@ -31,5 +35,10 @@ package object Utilities {
     }
   }
 
+  /**
+    Helper function to calculate actual unused from 'current' contribution and previous results.
+    This is here because the summary results only ever hold the unused allowance for the particular year in question
+    but subsequent years can reduce the unused allowance further by exceeding the 'annual' allowance
+  */
   def basicActualUnused(calculator: SummaryCalculator): Int => (Seq[TaxYearResults], Contribution) => Long = years => (p,c) => actualUnused(extractor(calculator))(years)(p,c)
 }
