@@ -28,12 +28,9 @@ protected trait BasicAllowanceCalculator extends AllowanceCalculator {
 
   def allowance(): Long = getAnnualAllowanceInPounds * 100L
 
-  def summary(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Option[Summary] = {
-    if (contribution.amounts.isDefined && !contribution.isEmpty) {
-      val calculator = new SummaryResultCalculator(getAnnualAllowanceInPounds, previousPeriods, contribution)
-      if (isSupported(contribution) && calculator.definedBenefit >= 0) {
-        calculator.summary
-      } else None
-    } else None
-  }
+  def summary(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Option[Summary] = if (!contribution.isEmpty)
+      if (isSupported(contribution) && contribution.definedBenefit >= 0) 
+        new SummaryResultCalculator(getAnnualAllowanceInPounds, previousPeriods, contribution).summary 
+      else None
+    else None
 }
