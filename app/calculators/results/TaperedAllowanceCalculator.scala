@@ -18,18 +18,21 @@ package calculators.results
 
 import calculators._
 import models._
+import config.PaacConfiguration
 
-case class TaperedAllowanceCalculator(implicit allowanceInPounds: Long,
-                                               previousPeriods:Seq[TaxYearResults], 
+case class TaperedAllowanceCalculator(implicit previousPeriods:Seq[TaxYearResults], 
                                                contribution:Contribution) extends ExtendedSummaryCalculator {
 
-  def allowance(): Long = allowanceInPounds
+  protected lazy val config: Map[String,Int] = PaacConfiguration.forYear(contribution.taxPeriodStart.taxYear)
+
+  def allowance(): Long = _annualAllowance
 
   def definedBenefit(): Long = 0L
 
   def definedContribution(): Long = 0L
 
-  def annualAllowance(): Long = 0L
+  protected lazy val _annualAllowance = config.get("annual").getOrElse(0) * 100L
+  def annualAllowance(): Long = _annualAllowance
 
   def exceedingAllowance(): Long = 0L
 
