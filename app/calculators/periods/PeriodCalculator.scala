@@ -17,31 +17,13 @@
 package calculators.periods
 
 import models._
-import calculators.SummaryCalculator
+import calculators.ExtendedSummaryCalculator
 import calculators.SummaryResultCalculator
 import calculators.periods.Utilities._
 import calculators.results.Utilities._
 import calculators.Utilities._
 
-trait PeriodCalculator extends SummaryCalculator {
-  def moneyPurchaseAA(): Long = 0L
-  def alternativeAA(): Long = 0L
-  def dbist(): Long = 0L
-  def mpist(): Long = 0L
-  def alternativeChargableAmount(): Long = 0L
-  def defaultChargableAmount(): Long = 0L
-  def cumulativeMP(): Long = 0L
-  def cumulativeDB(): Long = 0L
-  def exceedingMPAA(): Long = 0L
-  def exceedingAAA(): Long = 0L
-  def unusedAAA(): Long = 0L
-  def unusedMPAA(): Long = 0L
-  def preFlexiSavings(): Long = 0L
-  def postFlexiSavings(): Long = 0L
-  def isMPAAApplicable(): Boolean = false
-  def acaCF() : Long = 0L
-  def dcaCF() : Long = 0L
-
+trait PeriodCalculator extends ExtendedSummaryCalculator {
   def previous3YearsUnusedAllowance(implicit previous:Seq[TaxYearResults]): Long = {
     val previousPeriods = previous.filterNot((r)=>r.input.isPeriod1||r.input.isPeriod2)
     previousPeriods.headOption.map {
