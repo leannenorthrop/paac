@@ -167,7 +167,7 @@ object PensionPeriod {
   // Unlike front-end backend must have fixed supported start and end years
   // as calculation rules are very dependant on a varying set of rules for each year
   val EARLIEST_YEAR_SUPPORTED:Int = 2008
-  val LATEST_YEAR_SUPPORTED:Int = 2016
+  val LATEST_YEAR_SUPPORTED:Int = 2100
 
   // Constants for pension period json validation
   val MIN_MONTH_VALUE:Int = 1
