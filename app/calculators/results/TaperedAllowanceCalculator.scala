@@ -43,4 +43,6 @@ case class TaperedAllowanceCalculator(implicit previousPeriods:Seq[TaxYearResult
   def annualAllowanceCCF(): Long = 0L
 
   def chargableAmount(): Long = 0L
+
+  protected def isTaperingApplicable(): Boolean = contribution.amounts.flatMap(_.income.map(_ > 15000000L)).getOrElse(false)
 }
