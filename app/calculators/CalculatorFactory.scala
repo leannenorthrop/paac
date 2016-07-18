@@ -20,7 +20,7 @@ import models._
 import calculators.results._
 
 trait Calculator {
-  def summary(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution) : Option[Summary]
+  def summary(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution): Option[Summary]
 }
 
 trait AllowanceCalculator extends Calculator {
@@ -28,11 +28,32 @@ trait AllowanceCalculator extends Calculator {
   def isSupported(contribution:Contribution):Boolean
 }
 
-trait CalculatorFactory {
-  protected val calculators : List[AllowanceCalculator]
-  def get(contribution:Contribution) : Option[AllowanceCalculator] = calculators.find(_.isSupported(contribution))
+trait SummaryCalculator {
+  def allowance(): Long
+  def definedBenefit(): Long 
+  def definedContribution(): Long
+  def annualAllowance(): Long
+  def exceedingAllowance(): Long
+  def unusedAllowance(): Long
+  def annualAllowanceCF(): Long
+  def annualAllowanceCCF(): Long
+  def chargableAmount(): Long
 }
 
-object CalculatorFactory extends CalculatorFactory {
+trait CalculatorFactory {
+  protected val calculators : List[AllowanceCalculator]
+  protected def get(contribution:Contribution) : Option[AllowanceCalculator] = calculators.find(_.isSupported(contribution))
+}
+
+object Calculator extends CalculatorFactory {
   protected override val calculators : List[AllowanceCalculator] = List(Pre2014Calculator, Year2014Calculator, Year2015Period1Calculator, Year2015Period2Calculator)
+  def apply(contribution:Contribution): AllowanceCalculator = {
+    get(contribution).getOrElse {
+      new AllowanceCalculator() {
+        def summary(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution): Option[Summary] = None
+        def allowance(): Long = 0L
+        def isSupported(contribution:Contribution):Boolean = false
+      }
+    }
+  }
 }

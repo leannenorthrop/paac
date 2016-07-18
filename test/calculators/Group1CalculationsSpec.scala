@@ -21,15 +21,16 @@ import calculators.periods._
 import calculators.results._
 
 import org.scalatest._
+import TestUtilities._
 
 class Group1CalculationsSpec extends FunSpec {
   val dir = "./test/assets/calculators/group1"
 
   describe ("Group 1") {
     info(s"Tests in $dir:")
-    val tests = Utilities.getListOfFiles(dir)
+    val tests = getListOfFiles(dir)
     tests foreach { case (testFilename) =>
-      val maybeFileContents = Utilities.readTextFile(testFilename)
+      val maybeFileContents = readTextFile(testFilename)
       if (maybeFileContents.isDefined) {
         val lines = maybeFileContents.get
         val filename = testFilename.split(java.io.File.separator).reverse(0)
@@ -38,9 +39,9 @@ class Group1CalculationsSpec extends FunSpec {
           val years = table.split("\n").drop(2).toList.map(_.split('|').toList(0).trim)
           val definedBenefit = table.split("\n").drop(2).toList.map(_.split('|').toList(1).trim.toLong)
           val inputs = Map(years.zip(definedBenefit): _*)
-          val results = PensionAllowanceCalculator.calculateAllowances(Utilities.generateContributions(inputs))
-          if (false) info(Utilities.toString(results))
-          Utilities.assertResults(table, results, false)
+          val results = PensionAllowanceCalculator.calculateAllowances(generateContributions(inputs))
+          if (false) info(TestUtilities.toString(results))
+          assertResults(table, results, false)
         }
       }
     }

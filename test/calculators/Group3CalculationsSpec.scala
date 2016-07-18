@@ -20,6 +20,7 @@ import calculators._
 import calculators.periods._
 import calculators.results._
 import models._
+import TestUtilities._
 
 import org.scalatest._
 
@@ -32,21 +33,21 @@ class Group3CalculationsSpec extends FunSpec {
     val moneyPurchase = table.split('\n').drop(2).toList.map(_.split('|').toList(2).trim.toLong)
     val isTriggered = table.split('\n').drop(2).toList.map(_.split('|').toList(3).trim.toBoolean)
     val inputs = Map(years.zip((definedBenefit,moneyPurchase,isTriggered).zipped.toList): _*)    
-    val contributions = Utilities.generateDBandMPContributions(inputs).sortBy(_.taxPeriodStart.year)
+    val contributions = generateDBandMPContributions(inputs).sortBy(_.taxPeriodStart.year)
     contributions
   }  
 
   def doGroup3Test(table: String, print: Boolean = false): Unit = {
     val results = PensionAllowanceCalculator.calculateAllowances(group2Contributions(table))
-    if (print) info(Utilities.toString(results))
-    Utilities.assertResults(table, results, false)
+    if (print) info(TestUtilities.toString(results))
+    assertResults(table, results, false)
   }
 
   describe ("Group 3") {
     info(s"Tests in $dir:")
-    val tests = Utilities.getListOfFiles(dir)
+    val tests = getListOfFiles(dir)
     tests foreach { case (testFilename) =>
-      val maybeFileContents = Utilities.readTextFile(testFilename)
+      val maybeFileContents = readTextFile(testFilename)
       if (maybeFileContents.isDefined) {
         val lines = maybeFileContents.get
         val filename = testFilename.split(java.io.File.separator).reverse(0)

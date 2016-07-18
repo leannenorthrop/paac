@@ -28,6 +28,9 @@ sealed trait PensionCalculatorValue {
   def income(): Option[Long]
 }
 
+/**
+  Calculator inputs for a single year
+ */
 case class InputAmounts(definedBenefit: Option[Long] = None, 
                         moneyPurchase: Option[Long] = None, 
                         income: Option[Long] = None,
@@ -37,6 +40,9 @@ case class InputAmounts(definedBenefit: Option[Long] = None,
   }
 }
 
+/**
+  Simple date object representing a point in time within a pension period.
+*/
 case class PensionPeriod(year: Int, month: Int, day: Int) {
   def <(that: PensionPeriod): Boolean = if (year == that.year && month == that.month && day == that.day) false else 
                                     year < that.year || (year == that.year && month < that.month) || (year == that.year && month == that.month && day < that.day) 
@@ -57,7 +63,13 @@ case class PensionPeriod(year: Int, month: Int, day: Int) {
   }
 }
 
+/**
+  Contribution representing pension savings for a single pension period.
+*/
 case class Contribution(taxPeriodStart: PensionPeriod, taxPeriodEnd: PensionPeriod, amounts: Option[InputAmounts]) extends CalculationParam {
+  /**
+    Helper function for front-end. Should be converted to use messages.
+  */
   def taxYearLabel() : String = {
     if (taxPeriodStart.year == 2015 && taxPeriodStart.month == 7 ||
         taxPeriodEnd.year == 2016 && taxPeriodEnd.month == 4) {
@@ -70,6 +82,9 @@ case class Contribution(taxPeriodStart: PensionPeriod, taxPeriodEnd: PensionPeri
     }
   }
 
+  /**
+    Helper function for tests.
+  */
   def label() : String = {
     val beforeAfter = if (amounts.getOrElse(InputAmounts()).triggered.getOrElse(false)) "A" else "B"
     if (isPeriod2) {
@@ -127,15 +142,24 @@ case class Contribution(taxPeriodStart: PensionPeriod, taxPeriodEnd: PensionPeri
   }
 
   def isTriggered(): Boolean = {
-    amounts.map(_.triggered.getOrElse(false)).getOrElse(false)
+    (for {
+      inputs <- amounts
+      triggered <- inputs.triggered
+    } yield triggered) getOrElse false
   }
 
   def definedBenefit(): Long = {
-    amounts.map(_.definedBenefit.getOrElse(0L)).getOrElse(0L)
+    (for {
+      inputs <- amounts
+      definedBenefit <- inputs.definedBenefit
+    } yield definedBenefit) getOrElse 0L
   }
   
   def moneyPurchase(): Long = {
-    amounts.map(_.moneyPurchase.getOrElse(0L)).getOrElse(0L)
+    (for {
+      inputs <- amounts
+      moneyPurchase <- inputs.moneyPurchase
+    } yield moneyPurchase) getOrElse 0L
   }
 }
 
@@ -145,11 +169,13 @@ object PensionPeriod {
   val EARLIEST_YEAR_SUPPORTED:Int = 2008
   val LATEST_YEAR_SUPPORTED:Int = 2016
 
+  // Constants for pension period json validation
   val MIN_MONTH_VALUE:Int = 1
   val MIN_DAY_VALUE:Int = 1
   val MAX_MONTH_VALUE:Int = 12
   val MAX_DAY_VALUE:Int = 31
 
+  // Helpers for constructing pension contributions
   val PERIOD_1_2015_START = PensionPeriod(2015, 4, 6)
   val PERIOD_1_2015_END = PensionPeriod(2015, 7, 8)
   val PERIOD_2_2015_START = PensionPeriod(2015, 7, 9)
@@ -183,20 +209,31 @@ object InputAmounts {
     (JsPath \ "triggered").readNullable[Boolean]
   )(InputAmounts.apply(_: Option[Long], _: Option[Long], _: Option[Long], _: Option[Boolean]))
 
+  /**
+    Simplified apply function
+  */
   def apply(definedBenefit: Long, moneyPurchase: Long, income: Long) : InputAmounts = {
     InputAmounts(Some(definedBenefit), Some(moneyPurchase), Some(income), None)
   }
 
+  /**
+    Simplified apply function
+  */
   def apply(definedBenefit: Long, moneyPurchase: Long) : InputAmounts = {
     InputAmounts(Some(definedBenefit), Some(moneyPurchase), None, None)
   }
 
+  /**
+    Simplified apply function
+  */
   def apply(definedBenefit: Long) : InputAmounts = {
     InputAmounts(Some(definedBenefit), None, None, None)
   }
 }
 
 object Contribution {
+  import calculators.Utilities._
+
   implicit val contributionWrites: Writes[Contribution] = (
     (JsPath \ "taxPeriodStart").write[PensionPeriod] and
     (JsPath \ "taxPeriodEnd").write[PensionPeriod] and
@@ -209,11 +246,29 @@ object Contribution {
     (JsPath \ "amounts").readNullable[InputAmounts]
   )(Contribution.apply(_:PensionPeriod, _:PensionPeriod, _:Option[InputAmounts]))
 
+  /**
+    Implicit cast function from Contribution to SummaryResultsTuple.
+    Used when calculating actual unused allowance.
+  */
+  implicit def convert(c: Contribution)(implicit calculator:calculators.SummaryCalculator): SummaryResultsTuple = {
+    implicit val contribution = c
+    contribution match {
+      case _ if c.isPeriod1 || c.isPeriod2 => (2015, calculator.exceedingAllowance, calculator.unusedAllowance)
+      case _ => (contribution.taxPeriodStart.year, calculator.exceedingAllowance, calculator.unusedAllowance)
+    }
+  }
+
+  /**
+    Simplified apply function
+  */
   def apply(year: Int, definedBenefit: Long) : Contribution = {
     // month is 0 based
     Contribution(PensionPeriod(year, 4, 6), PensionPeriod(year + 1, 4, 5), Some(InputAmounts(definedBenefit)))
   }
 
+  /**
+    Simplified apply function
+  */
   def apply(year: Int, amounts: Option[InputAmounts]) : Contribution = {
     // month is 0 based
     Contribution(PensionPeriod(year, 4, 6), PensionPeriod(year + 1, 4, 5), amounts)
@@ -224,24 +279,37 @@ object Contribution {
     Contribution(start, end, Some(amounts))
   }
 
+  /**
+    Simplified apply function
+  */
   def apply(isP1: Boolean, db: Long, dc: Long): Contribution = {
     val start = if (isP1) PensionPeriod.PERIOD_1_2015_START else PensionPeriod.PERIOD_2_2015_START
     val end = if (isP1) PensionPeriod.PERIOD_1_2015_END else PensionPeriod.PERIOD_2_2015_END
     Contribution(start, end, db, dc, false)
   }
 
-  def periodAllowance(isP1:Boolean):Long = calculators.CalculatorFactory.get(Contribution(isP1, 0, 0)).map(_.allowance).getOrElse(0L)
+  /**
+    Returns 'annual' available allowance for period 1 if given true, and period 2 if given false
+  */
+  def periodAllowance(isP1:Boolean):Long = calculators.Calculator(Contribution(isP1, 0, 0)).allowance
 
-  def allowance(year:Int):Long = if (year == 20151) periodAllowance(true) else if (year == 20152) periodAllowance(false) else calculators.CalculatorFactory.get(Contribution(year,0L)).map(_.allowance).getOrElse(0L)
+  /**
+    Returns annual available allowance for given year.
+    For 2015 use 20151 for period 1 and 20152 for period 2.
+  */
+  def allowance(year:Int):Long = if (year == 20151) periodAllowance(true) else if (year == 20152) periodAllowance(false) else calculators.Calculator(Contribution(year,0L)).allowance
 
+  /**
+    Helper function to sort pension contributions by pension period start date, considering periods 1 and 2 for 2015.
+  */
   def sortByYearAndPeriod(left: Contribution, right: Contribution): Boolean = {
-    if (left.taxPeriodStart.year == right.taxPeriodStart.year &&
-        left.taxPeriodStart.year == 2015) {
+    if (left.taxPeriodStart.year == 2015 &&
+        right.taxPeriodStart.year == 2015) {
       left.isPeriod1 && right.isPeriod2 || 
       (left.isPeriod1 && right.isPeriod1 && !left.amounts.get.triggered.get) ||
       (left.isPeriod2 && right.isPeriod2 && !left.amounts.get.triggered.get)
     } else {  
-      left.taxPeriodStart.year < right.taxPeriodStart.year
+      left.taxPeriodStart < right.taxPeriodStart 
     }
   }
 }

@@ -17,25 +17,30 @@
 package calculators.periods
 
 import models._
-import calculators.results.BasicCalculator
+import calculators.SummaryResultCalculator
+import calculators.periods.Utilities._
+import calculators.Utilities._
+import calculators.results.Utilities._
 
-case class Period2Calculator(implicit amountsCalculator: BasicCalculator,
-                                      previousPeriods:Seq[TaxYearResults], 
-                                      contribution:Contribution) extends PeriodCalculator {
+class Period2Calculator(implicit allowanceInPounds: Long,
+                                 previousPeriods:Seq[TaxYearResults], 
+                                 contribution:Contribution) extends PeriodCalculator {
   val MPA = 10000 * 100L
   val P1MPA = 20000 * 100L
   val P2MPA = 10000 * 100L
   val AAA = 30000 * 100L
   val MAXAACF = 40000 * 100L
 
+  def allowance(): Long = allowanceInPounds
+
   // Annual Allowance Cumulative Carry Forwards
   protected lazy val _aaCF = if (isTriggered && isGroup3) period1.availableAAWithCCF else previous.availableAAWithCCF 
-  override def aaCF(): Long = _aaCF
+  override def annualAllowanceCF(): Long = _aaCF
 
   // Annual Allowance With Carry Forwards
   protected lazy val _aaCCF = {
     if (!isTriggered) {
-      actualUnused.slice(0, 3).map(_._2).foldLeft(0L)(_ + _)
+      actualUnused(periodExtractor(this))(3)(previousPeriods,contribution)
     } else {
       if (previous.unusedAAA > 0) {
         if (contribution.isGroup3)
@@ -53,7 +58,7 @@ case class Period2Calculator(implicit amountsCalculator: BasicCalculator,
       }
     }
   }
-  override def aaCCF(): Long = _aaCCF
+  override def annualAllowanceCCF(): Long = _aaCCF
 
   // Alternative Annual Allowance
   protected lazy val _alternativeAA = if (isGroup3 || (isGroup2 && isTriggered)) previous.unusedAAA else 0L
@@ -85,7 +90,7 @@ case class Period2Calculator(implicit amountsCalculator: BasicCalculator,
   protected lazy val _annualAllowance = period1.unusedAllowance
   override def annualAllowance(): Long = _annualAllowance
 
-  def basicCalculator(): BasicCalculator = amountsCalculator
+  def basicCalculator(): SummaryResultCalculator = new SummaryResultCalculator(allowance, previousPeriods, contribution)
 
   // Chargable Amount (tax due)
   protected lazy val _chargableAmount = {
@@ -171,6 +176,9 @@ case class Period2Calculator(implicit amountsCalculator: BasicCalculator,
   }
   override def definedBenefit(): Long = _definedBenefit
 
+  protected lazy val _definedContribution = basicCalculator.definedContribution
+  def definedContribution(): Long = _definedContribution
+  
   // Exceeding Alternative Annual Allowance
   override def exceedingAAA(): Long = 0L
 
@@ -192,7 +200,7 @@ case class Period2Calculator(implicit amountsCalculator: BasicCalculator,
                                              else false
   override def isMPAAApplicable(): Boolean = _isMPAAApplicable
 
-  protected lazy val isPeriod1Triggered: Boolean = previousPeriods.find(taxResultTriggered).find(_.input.isPeriod1).isDefined
+  protected lazy val isPeriod1Triggered: Boolean = previousPeriods.find(isTaxResultTriggered).find(_.input.isPeriod1).isDefined
 
   protected lazy val isPeriod2Triggered: Boolean = isTriggered && !isPeriod1Triggered
 
@@ -231,7 +239,7 @@ case class Period2Calculator(implicit amountsCalculator: BasicCalculator,
     // we only want previous values so create dummy contribution which does not affect the calculation
     // can't use period calculator's actual unused because of circular refeferences
     val c = Contribution(contribution.taxPeriodStart, contribution.taxPeriodEnd, Some(InputAmounts(0L,0L)))
-    val actualUnused = basicCalculator().actualUnused(previousPeriods.drop(1), c)
+    val actualUnused = actualUnusedAllowancesFn(extractor(basicCalculator))(previousPeriods.drop(1), c)
     val noOfRows = if (!previousPeriods.find(_.input.isPeriod1).isDefined) 1 else 2
     actualUnused.drop(noOfRows).slice(0,2).foldLeft(0L)(_+_._2)
   }

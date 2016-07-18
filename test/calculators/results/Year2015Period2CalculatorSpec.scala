@@ -89,7 +89,7 @@ class Year2015Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropert
                                                   PensionPeriod(2016, 4, 6),
                                                   Some(InputAmounts(5000L)))) shouldBe false 
     }
-/*
+
     "return none for contributions other than 2015 period 2" in {
       val invalidContributions = for {taxYear <- Gen.choose(Integer.MIN_VALUE, Integer.MAX_VALUE)
                                       taxMonth <- Gen.choose(0, 11)
@@ -107,10 +107,10 @@ class Year2015Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropert
     }
 
     "return some results for contributions in 2015 period 2" in {
-      (0 until 272).foreach {
+      (0 until 271).foreach {
         (day)=>
         // period 2 begins 9th July 2015
-        val c = new java.util.GregorianCalendar(2015, 6, 9)
+        val c = new java.util.GregorianCalendar(2015, 7, 9)
         c.add(java.util.Calendar.DAY_OF_MONTH,day)
         val taxYear = c.get(java.util.Calendar.YEAR)
         val taxMonth = c.get(java.util.Calendar.MONTH)
@@ -125,20 +125,18 @@ class Year2015Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropert
 
         // check it
         // With no previous inputs as period 2 has no allowance then exceeding is same as defined benefit input
-        withClue(s"Contributions with date '$taxDay/${taxMonth+1}/$taxYear' should be supported but") { results shouldBe Some(ExtendedSummaryFields(5000,5000,0,0,0,0,0)) }
+        withClue(s"Contributions with date '$taxDay/${taxMonth+1}/$taxYear' should be supported but") { results shouldBe Some(ExtendedSummaryFields(5000,5000,0,0,0,0,0,0,0,0,0,0,0,0,0,5000,0,0,0,0,false,0,0)) }
       }
     }
 
 
     "when no previous allowance available" can {
-      /* TO DO LN "return expected summary results when no previous entries supplied and 0 defined benefit is given" in {
+      "return expected summary results when no previous entries supplied and 0 defined benefit is given" in {
         // do it
-        val results = Year2015Period2Calculator.summary(Seq[SummaryResult](), Contribution(PensionPeriod(2015, 6, 9), 
-                                                                              PensionPeriod(2015, 6, 9),
-                                                                              Some(InputAmounts(0L))))
+        val results = Year2015Period2Calculator.summary(Seq[TaxYearResults](), Contribution(false,0,0))
         // check it
-        results shouldBe Some(SummaryResult(0,0,0,0,0,0,0))
-      }*/
+        results shouldBe Some(ExtendedSummaryFields(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,false,0,0)) 
+      }
 
 
       "return correct amount of 0 chargable amount for values under 4000000" in {
@@ -208,6 +206,6 @@ class Year2015Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropert
         // check it
         results shouldBe None
       }
-    }*/
+    }
   }
 }

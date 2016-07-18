@@ -20,31 +20,55 @@ import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json._
 
+/**
+  Container class for a single 'row' of calculation results 'table'.
+  Originally intended to be expanded to include a detailed result object to 
+  explain results as is the case with the original javascript based 
+  extended calculator.
+ */
 case class TaxYearResults(input: Contribution = Contribution(2008,0L),
                           summaryResult: Summary = SummaryResult())
 
+/**
+  Base trait for all summary result row objects. All amounts are in pence,
+  therefore divide by 100 to get pounds and pence. 
+*/
 trait Summary {
-  def chargableAmount: Long
+  /** Tax due */
+  def chargableAmount: Long     
+  /** Amount exceeding annual allowance. Not always equal to chargable amount. */
   def exceedingAAAmount: Long
+  /** Annual allowance available */
   def availableAllowance: Long
+  /** Annual allowance that wasn't used and so available for carry forwards. */
   def unusedAllowance: Long
-  def availableAAWithCF: Long    // total available allowance for current year should be renamed to totalAA
-  def availableAAWithCCF: Long   // available allowance carried forward to following year
+  /** total available allowance for current year should be renamed to totalAA */
+  def availableAAWithCF: Long
+  /** available allowance carried forward to following year */
+  def availableAAWithCCF: Long 
+  /** Alternative annual allowance that wasn't used. Only applicable from 2015 onwards. */
   def unusedAAA: Long
+  /** Money purchase annual allowance amount not used. Only applicable when flexi-access event has occured. */
   def unusedMPAA: Long
+  /** Amount exceeding MPA */
   def exceedingMPAA: Long
+  /** Amount exceeding AAA */
   def exceedingAAA: Long
+  /** True if mpa was applied */
   def isMPA: Boolean
+  /** Money purchase annual allowance. */
   def moneyPurchaseAA: Long 
+  /** Alternative annual allowance */
   def alternativeAA: Long
 }
 
+/** Simple summary result implementation. Used by calculators for years up to but not including 2015. */
 case class SummaryResult(chargableAmount: Long = 0,
                          exceedingAAAmount: Long = 0,
                          availableAllowance: Long = 0,
                          unusedAllowance: Long = 0,
-                         availableAAWithCF: Long = 0,    // total available allowance for current year should be renamed to totalAA
-                         availableAAWithCCF: Long = 0,   // available allowance carried forward to following year
+                         availableAAWithCF: Long = 0,
+                         availableAAWithCCF: Long = 0,
                          unusedAAA: Long = 0,
                          unusedMPAA: Long = 0,
                          exceedingMPAA: Long = 0,
@@ -53,12 +77,13 @@ case class SummaryResult(chargableAmount: Long = 0,
                          moneyPurchaseAA: Long = 0,
                          alternativeAA: Long = 0) extends Summary
 
+/** Extends summary result implementation. Used by calculators for years from 2015 onwards. */
 case class ExtendedSummaryFields(chargableAmount: Long = 0,
                                  exceedingAAAmount: Long = 0,
                                  availableAllowance: Long = 0,
                                  unusedAllowance: Long = 0,
-                                 availableAAWithCF: Long = 0,    // total available allowance for current year should be renamed to totalAA
-                                 availableAAWithCCF: Long = 0,   // available allowance carried forward to following year
+                                 availableAAWithCF: Long = 0,
+                                 availableAAWithCCF: Long = 0,
                                  unusedAAA: Long = 0,
                                  unusedMPAA: Long = 0,
                                  moneyPurchaseAA: Long = 0,
@@ -77,6 +102,10 @@ case class ExtendedSummaryFields(chargableAmount: Long = 0,
                                  acaCF: Long = 0,
                                  dcaCF: Long = 0) extends Summary
 
+/**
+ Summary object providing read/write for JSON values. JSON is marshalled/unmarshalled from generic interface 
+ not the case class.
+ */
 object Summary {
   implicit val summaryResultWrites: Writes[Summary] = (
     (JsPath \ "chargableAmount").write[Long] and
@@ -92,7 +121,7 @@ object Summary {
     (JsPath \ "isMPA").write[Boolean] and 
     (JsPath \ "moneyPurchaseAA").write[Long] and
     (JsPath \ "alternativeAA").write[Long]
-  )(Summary.toTuple _ )
+  )(Summary.unapply _ )
 
   implicit val summaryResultReads: Reads[Summary] = (
     (JsPath \ "chargableAmount").read[Long] and
@@ -108,13 +137,13 @@ object Summary {
     (JsPath \ "isMPA").read[Boolean] and
     (JsPath \ "moneyPurchaseAA").read[Long] and
     (JsPath \ "alternativeAA").read[Long]
-  )(Summary.toSummary _)
+  )(Summary.apply _)
 
-  def toTuple(summary: Summary): (Long, Long, Long, Long, Long, Long, Long, Long, Long, Long, Boolean, Long, Long) = {
+  def unapply(summary: Summary): (Long, Long, Long, Long, Long, Long, Long, Long, Long, Long, Boolean, Long, Long) = {
     (summary.chargableAmount, summary.exceedingAAAmount, summary.availableAllowance, summary.unusedAllowance, summary.availableAAWithCF, summary.availableAAWithCCF, summary.unusedAAA, summary.unusedMPAA, summary.exceedingMPAA, summary.exceedingAAA, summary.isMPA, summary.moneyPurchaseAA, summary.alternativeAA)
   }
 
-  def toSummary(chargableAmount: Long = 0,
+  def apply(chargableAmount: Long = 0,
                 exceedingAAAmount: Long = 0,
                 availableAllowance: Long = 0,
                 unusedAllowance: Long = 0,
@@ -143,7 +172,12 @@ object Summary {
   }
 }
 
+/** 
+ TaxYearResults providing read/write for JSON and implicit casts.
+ */
 object TaxYearResults {
+  import calculators.Utilities._
+
   implicit val summaryWrites: Writes[TaxYearResults] = (
     (JsPath \ "input").write[Contribution] and
     (JsPath \ "summaryResult").write[Summary] 
@@ -153,4 +187,20 @@ object TaxYearResults {
     (JsPath \ "input").read[Contribution] and
     (JsPath \ "summaryResult").read[Summary]
   )(TaxYearResults.apply _)
+
+  /**
+    Implicit cast function from TaxYearResults to SummaryResultsTuple.
+    Used when calculating actual unused allowance.
+  */
+  implicit def convert(result: TaxYearResults): SummaryResultsTuple = {
+    result match {
+      case TaxYearResults(input, summary) => (result.input.taxPeriodStart.year, summary.exceedingAAAmount, summary.unusedAllowance)
+    }
+  }
+
+  /**
+    Implicit cast function from sequence of TaxYearResults to list of SummaryResultsTuple.
+    Used when calculating acutal unused allowance.
+  */
+  implicit def convert(p:Seq[TaxYearResults]): List[SummaryResultsTuple] = p map { a => a: SummaryResultsTuple } toList
 }

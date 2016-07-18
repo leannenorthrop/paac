@@ -17,19 +17,20 @@
 package calculators.results
 
 import models._
+import calculators.AllowanceCalculator 
+import calculators.SummaryResultCalculator
 
-trait BasicAllowanceCalculator extends calculators.AllowanceCalculator {
+/**
+ Base trait for calculators that calculate results and create summary objects
+ */
+protected trait BasicAllowanceCalculator extends AllowanceCalculator {
   protected def getAnnualAllowanceInPounds: Long
 
   def allowance(): Long = getAnnualAllowanceInPounds * 100L
 
-  def summary(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Option[Summary] = {
-    if (contribution.amounts.isDefined && !contribution.isEmpty) {
-      val amountsCalculator = BasicCalculator(getAnnualAllowanceInPounds)
-      var definedBenefit = amountsCalculator.definedBenefit
-      if (isSupported(contribution) && definedBenefit >= 0) {
-        amountsCalculator.summary
-      } else None
-    } else None
-  }
+  def summary(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Option[Summary] = if (!contribution.isEmpty)
+      if (isSupported(contribution) && contribution.definedBenefit >= 0) 
+        new SummaryResultCalculator(getAnnualAllowanceInPounds, previousPeriods, contribution).summary 
+      else None
+    else None
 }

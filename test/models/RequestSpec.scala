@@ -79,13 +79,13 @@ class RequestSpec extends ModelSpec {
       maybeRequest shouldBe Some(CalculationRequest(List(), Some(2012), Some(false)))
     }
 
-    "toTuple" in {
+    "apply" in {
       // set up
       val contributions = List(Contribution(2010,123), Contribution(2011,456))
       val r = CalculationRequest(contributions, Some(2012), Some(false))
 
       // test
-      val result = BackendRequest.toTuple(r)
+      val result = BackendRequest.apply(r)
 
       // check
       result._1 shouldBe contributions
@@ -93,13 +93,13 @@ class RequestSpec extends ModelSpec {
       result._3 shouldBe Some(false)
     }
 
-    "toRequest" in {
+    "unapply" in {
       // set up
       val contributions = List(Contribution(2010,123), Contribution(2011,456))
       val r = CalculationRequest(contributions, Some(2012), Some(false))
 
       // test
-      val result = BackendRequest.toRequest(contributions, Some(2012), Some(false))
+      val result = BackendRequest.unapply(contributions, Some(2012), Some(false))
 
       // check
       result shouldBe r

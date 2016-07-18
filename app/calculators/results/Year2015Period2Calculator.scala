@@ -18,43 +18,48 @@ package calculators.results
 
 import models._
 import calculators.periods._ 
+import calculators.AllowanceCalculator
 
-object Year2015Period2Calculator extends calculators.AllowanceCalculator {
+/**
+  Calculator for 2015, period 2 (from 9th July 2015 to April 2016)
+*/
+object Year2015Period2Calculator extends AllowanceCalculator {
   protected def getAnnualAllowanceInPounds: Long = 0L
 
   def allowance(): Long = getAnnualAllowanceInPounds * 100L
   
   def isSupported(contribution:Contribution): Boolean = contribution.isPeriod2() && !contribution.isEmpty
 
+  /**
+    Calculate result for period 1 2015 returning an extended summary object which carrys values used in
+    later years where flexi-access has occured.
+   */
   def summary(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Option[Summary] = {
     if (isSupported(contribution)) {
-      val maybeCalculator = PeriodCalculatorFactory.get(getAnnualAllowanceInPounds)
-      maybeCalculator.map {
-        (calculator) =>
-        ExtendedSummaryFields(calculator.chargableAmount,
-                              calculator.exceedingAllowance,
-                              calculator.annualAllowance,
-                              calculator.unusedAllowance,
-                              calculator.aaCF,
-                              calculator.aaCCF,
-                              calculator.unusedAAA,
-                              calculator.unusedMPAA,
-                              calculator.moneyPurchaseAA,
-                              calculator.alternativeAA,
-                              calculator.dbist,
-                              calculator.mpist,
-                              calculator.alternativeChargableAmount,
-                              calculator.defaultChargableAmount,
-                              calculator.cumulativeMP,
-                              calculator.cumulativeDB,
-                              calculator.exceedingMPAA,
-                              calculator.exceedingAAA,
-                              calculator.preFlexiSavings,
-                              calculator.postFlexiSavings,
-                              calculator.isMPAAApplicable,
-                              calculator.acaCF,
-                              calculator.dcaCF)
-      }
+      val calculator = PeriodCalculator(getAnnualAllowanceInPounds)
+      Some(ExtendedSummaryFields(calculator.chargableAmount,
+                            calculator.exceedingAllowance,
+                            calculator.annualAllowance,
+                            calculator.unusedAllowance,
+                            calculator.annualAllowanceCF,
+                            calculator.annualAllowanceCCF,
+                            calculator.unusedAAA,
+                            calculator.unusedMPAA,
+                            calculator.moneyPurchaseAA,
+                            calculator.alternativeAA,
+                            calculator.dbist,
+                            calculator.mpist,
+                            calculator.alternativeChargableAmount,
+                            calculator.defaultChargableAmount,
+                            calculator.cumulativeMP,
+                            calculator.cumulativeDB,
+                            calculator.exceedingMPAA,
+                            calculator.exceedingAAA,
+                            calculator.preFlexiSavings,
+                            calculator.postFlexiSavings,
+                            calculator.isMPAAApplicable,
+                            calculator.acaCF,
+                            calculator.dcaCF))
     } else None
   }
 }

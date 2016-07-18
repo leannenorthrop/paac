@@ -22,7 +22,7 @@ import scala.util._
 import calculators.periods._
 import io._
 
-object Utilities {
+object TestUtilities {
   def using[A <: { def close(): Unit }, B](resource: A)(f: A => B): B = {
     try {
         f(resource)
@@ -165,7 +165,7 @@ object Utilities {
       })
     }
 
-    if (print) println(Utilities.toString(results))
+    if (print) println(TestUtilities.toString(results))
 
     val valueFor = Map("Amount Exceeding AA"-> { (r:TaxYearResults) => r.summaryResult.exceedingAAAmount },
                        "Liable to Charge"-> { (r:TaxYearResults) => r.summaryResult.chargableAmount },
