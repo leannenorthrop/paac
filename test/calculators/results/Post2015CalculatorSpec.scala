@@ -96,7 +96,7 @@ class Post2015CalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       
       // check
       result should not be None
-      result.get shouldBe ExtendedSummaryFields(0,0,4000000,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,false,0,0) 
+      result.get shouldBe ExtendedSummaryFields(0,0,4000000,0,0,0,0,0,1000000,3000000,0,0,0,0,0,0,0,0,0,0,false,0,0)
     }
 
     "annual allowance" in {
