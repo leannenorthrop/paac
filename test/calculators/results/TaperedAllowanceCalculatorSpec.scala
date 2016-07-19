@@ -123,5 +123,27 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       // check
       result shouldBe 1500000L
     }
+
+    "should be £10k when tapering is applicable and adjusted income is £250,000" in {
+      // set up
+      val contribution = Contribution(2016, Some(InputAmounts(income=Some(25000000))))
+
+      // test
+      val result = TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).annualAllowance
+
+      // check
+      result shouldBe 1000000L
+    }
+
+    "should be £40k when tapering is applicable and adjusted income is £150,000" in {
+      // set up
+      val contribution = Contribution(2016, Some(InputAmounts(income=Some(15000000))))
+
+      // test
+      val result = TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).annualAllowance
+
+      // check
+      result shouldBe 4000000L
+    }
   }
 }

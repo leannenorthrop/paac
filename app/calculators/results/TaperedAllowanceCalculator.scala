@@ -31,13 +31,21 @@ case class TaperedAllowanceCalculator(implicit previousPeriods:Seq[TaxYearResult
 
   def definedContribution(): Long = 0L
 
-  protected lazy val _taperLimit = config.get("taperLimit").getOrElse(150000) * 100L
+  protected lazy val _taa = config.get("taa").getOrElse(10000) * 100L
+  protected lazy val _taperStart = config.get("taperStart").getOrElse(150000) * 100L
+  protected lazy val _taperEnd = config.get("taperEnd").getOrElse(210000) * 100L
   protected lazy val _annualAllowance: Long = config.get("annual").getOrElse(40000) * 100L
   def annualAllowance(): Long = if (isTaperingApplicable) 
                                   contribution.amounts.flatMap(_.income.map {
                                     (ai)=>
-                                    val reduction = Math.floor(((ai - _taperLimit)/100L)/2D)*100L
-                                    (_annualAllowance - reduction).toLong
+                                    ai match {
+                                      case income if income > _taperStart && income < _taperEnd => {
+                                        val reduction = Math.floor(((ai - _taperStart)/100L)/2D)*100L
+                                        (_annualAllowance - reduction).toLong
+                                      }
+                                      case income if income > _taperEnd => _taa
+                                      case _ => _annualAllowance
+                                    }
                                   }).getOrElse(_annualAllowance)
                                 else _annualAllowance
 
@@ -51,5 +59,5 @@ case class TaperedAllowanceCalculator(implicit previousPeriods:Seq[TaxYearResult
 
   def chargableAmount(): Long = 0L
 
-  protected def isTaperingApplicable(): Boolean = contribution.amounts.flatMap(_.income.map(_ > 15000000L)).getOrElse(false)
+  protected def isTaperingApplicable(): Boolean = contribution.amounts.flatMap(_.income.map(_ > _taperStart)).getOrElse(false)
 }
