@@ -84,8 +84,9 @@ case class TaperedAllowanceCalculator(implicit previousPeriods:Seq[TaxYearResult
   override def exceedingAAA(): Long = 0L
   
   override def unusedAAA(): Long = 0L
-  
-  override def unusedMPAA(): Long = 0L
+
+  protected lazy val _unusedMPAA = if (isTriggered && !isMPAAApplicable) moneyPurchaseAA - definedContribution else 0L  
+  override def unusedMPAA(): Long = _unusedMPAA
   
   override def preFlexiSavings(): Long = 0L
   
