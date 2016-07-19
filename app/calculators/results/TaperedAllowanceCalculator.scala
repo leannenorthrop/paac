@@ -17,6 +17,7 @@
 package calculators.results
 
 import calculators._
+import calculators.Utilities._
 import models._
 import config.PaacConfiguration
 
@@ -29,7 +30,7 @@ case class TaperedAllowanceCalculator(implicit previousPeriods:Seq[TaxYearResult
 
   def definedBenefit(): Long = 0L
 
-  def definedContribution(): Long = 0L
+  def definedContribution(): Long = contribution.moneyPurchase
 
   protected lazy val _taa = config.get("taa").getOrElse(10000) * 100L
   protected lazy val _taperStart = config.get("taperStart").getOrElse(150000) * 100L
@@ -90,7 +91,8 @@ case class TaperedAllowanceCalculator(implicit previousPeriods:Seq[TaxYearResult
   
   override def postFlexiSavings(): Long = 0L
   
-  override def isMPAAApplicable(): Boolean = false
+  protected lazy val _isMPAAApplicable = definedContribution > moneyPurchaseAA
+  override def isMPAAApplicable(): Boolean = _isMPAAApplicable
   
   override def acaCF() : Long = 0L
   

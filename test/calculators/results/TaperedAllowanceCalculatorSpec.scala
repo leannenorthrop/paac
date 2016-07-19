@@ -206,16 +206,51 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
         result shouldBe 0L
       }
 
-    "should be £30k when tapering is applicable and adjusted income is £150,000" in {
-      // set up
-      val contribution = Contribution(2016, Some(InputAmounts(income=Some(15000000))))
+      "should be £30k when tapering is applicable and adjusted income is £150,000" in {
+        // set up
+        val contribution = Contribution(2016, Some(InputAmounts(income=Some(15000000))))
 
-      // test
-      val result = TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).alternativeAA
+        // test
+        val result = TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).alternativeAA
 
-      // check
-      result shouldBe 3000000L
+        // check
+        result shouldBe 3000000L
+      }
     }
+
+    "isMPA" should {
+      "return false if money purchase is less than mpa" in {
+        // set up
+        val contribution = Contribution(2016, Some(InputAmounts(moneyPurchase=Some(500000L))))
+
+        // test
+        val result = TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).isMPAAApplicable
+
+        // check
+        result shouldBe false
+      }
+
+      "return false if money purchase is equal to mpa" in {
+        // set up
+        val contribution = Contribution(2016, Some(InputAmounts(moneyPurchase=Some(1000000L))))
+
+        // test
+        val result = TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).isMPAAApplicable
+
+        // check
+        result shouldBe false
+      }
+
+      "return true if money purchase is more than map" in {
+        // set up
+        val contribution = Contribution(2016, Some(InputAmounts(moneyPurchase=Some(1000100L))))
+
+        // test
+        val result = TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).isMPAAApplicable
+
+        // check
+        result shouldBe true
+      }
     }
   }
 }
