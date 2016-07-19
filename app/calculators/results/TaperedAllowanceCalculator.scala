@@ -18,26 +18,83 @@ package calculators.results
 
 import calculators._
 import models._
+import config.PaacConfiguration
 
-case class TaperedAllowanceCalculator(implicit allowanceInPounds: Long,
-                                               previousPeriods:Seq[TaxYearResults], 
+case class TaperedAllowanceCalculator(implicit previousPeriods:Seq[TaxYearResults], 
                                                contribution:Contribution) extends ExtendedSummaryCalculator {
 
-  def allowance(): Long = allowanceInPounds
+  protected lazy val config: Map[String,Int] = PaacConfiguration.forYear(contribution.taxPeriodStart.taxYear)
+
+  def allowance(): Long = _annualAllowance
 
   def definedBenefit(): Long = 0L
 
   def definedContribution(): Long = 0L
 
-  def annualAllowance(): Long = 0L
+  protected lazy val _taa = config.get("taa").getOrElse(10000) * 100L
+  protected lazy val _taperStart = config.get("taperStart").getOrElse(150000) * 100L
+  protected lazy val _taperEnd = config.get("taperEnd").getOrElse(210000) * 100L
+  protected lazy val _annualAllowance: Long = config.get("annual").getOrElse(40000) * 100L
 
-  def exceedingAllowance(): Long = 0L
+  def annualAllowance(): Long = if (isTaperingApplicable) 
+                                  contribution.amounts.flatMap(_.income.map {
+                                    (ai)=>
+                                    ai match {
+                                      case income if income > _taperStart && income < _taperEnd => {
+                                        val reduction = Math.floor(((ai - _taperStart)/100L)/2D)*100L
+                                        (_annualAllowance - reduction).toLong
+                                      }
+                                      case income if income > _taperEnd => _taa
+                                      case _ => _annualAllowance
+                                    }
+                                  }).getOrElse(_annualAllowance)
+                                else _annualAllowance
 
-  def unusedAllowance(): Long = 0L
+  override def exceedingAllowance(): Long = 0L
 
-  def annualAllowanceCF(): Long = 0L
+  override def unusedAllowance(): Long = 0L
 
-  def annualAllowanceCCF(): Long = 0L
+  override def annualAllowanceCF(): Long = 0L
 
-  def chargableAmount(): Long = 0L
+  override def annualAllowanceCCF(): Long = 0L
+
+  override def chargableAmount(): Long = 0L
+
+  protected lazy val _mpa = config.get("mpaa").getOrElse(10000) * 100L
+
+  override def moneyPurchaseAA(): Long = _mpa
+  
+  override def alternativeAA(): Long = (annualAllowance - moneyPurchaseAA).max(0L)
+  
+  override def dbist(): Long = 0L
+  
+  override def mpist(): Long = 0L
+  
+  override def alternativeChargableAmount(): Long = 0L
+  
+  override def defaultChargableAmount(): Long = 0L
+  
+  override def cumulativeMP(): Long = 0L
+  
+  override def cumulativeDB(): Long = 0L
+  
+  override def exceedingMPAA(): Long = 0L
+  
+  override def exceedingAAA(): Long = 0L
+  
+  override def unusedAAA(): Long = 0L
+  
+  override def unusedMPAA(): Long = 0L
+  
+  override def preFlexiSavings(): Long = 0L
+  
+  override def postFlexiSavings(): Long = 0L
+  
+  override def isMPAAApplicable(): Boolean = false
+  
+  override def acaCF() : Long = 0L
+  
+  override def dcaCF() : Long = 0L
+
+  protected def isTaperingApplicable(): Boolean = contribution.amounts.flatMap(_.income.map(_ > _taperStart)).getOrElse(false)
 }

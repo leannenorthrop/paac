@@ -17,13 +17,28 @@
 package calculators.results
 
 import uk.gov.hmrc.play.test.UnitSpec
+import play.api.Play
+import org.scalatest.BeforeAndAfterAll
+import play.api.test.{FakeApplication}
 import models._
 import org.scalatest._
 import org.scalatest.prop._
 import org.scalacheck.Gen
 import calculators.SummaryResultCalculator
 
-class Post2015CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks {
+class Post2015CalculatorSpec extends UnitSpec with BeforeAndAfterAll {
+  val app = FakeApplication()
+
+  override def beforeAll() {
+    Play.start(app)
+    super.beforeAll() // To be stackable, must call super.beforeEach
+  }
+
+  override def afterAll() {
+    try {
+      super.afterAll()
+    } finally Play.stop()
+  }
 
   "Year 2016 / Post 2015 Calculator" should {
     trait ZeroContributionFixture {
@@ -81,7 +96,18 @@ class Post2015CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks
       
       // check
       result should not be None
-      result.get shouldBe ExtendedSummaryFields(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,false,0,0) 
+      result.get shouldBe ExtendedSummaryFields(0,0,4000000,0,0,0,0,0,1000000,3000000,0,0,0,0,0,0,0,0,0,0,false,0,0)
+    }
+
+    "annual allowance" in {
+      // set up
+      val contribution = Contribution(2016, 0)
+
+      // test
+      val result = Post2015Calculator.summary(Seq[TaxYearResults](), contribution)
+
+      // check
+      result.get.availableAllowance shouldBe 4000000L
     }
   }
 }

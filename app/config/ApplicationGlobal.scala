@@ -52,4 +52,19 @@ object MicroserviceGlobal extends DefaultMicroserviceGlobal with RunMode {
 
 object PaacConfiguration {
   lazy val config:Option[Configuration] = Play.current.configuration.getConfig("microservice.paac")
+  
+  def forYear(year: Int): Map[String,Int] = {
+    config.map { 
+      (m) =>
+      m.getConfig(s"year_${year}").map {
+        (subConfig) =>
+        subConfig.entrySet.map {
+          (pair) =>
+          val (key, value) = pair
+          val v = value.unwrapped
+          (key, v.asInstanceOf[Number].intValue())
+        }.toMap[String,Int]
+      }.getOrElse(Map[String,Int]())
+    }.getOrElse(Map[String,Int]())
+  }
 }

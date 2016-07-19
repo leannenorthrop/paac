@@ -61,6 +61,12 @@ case class PensionPeriod(year: Int, month: Int, day: Int) {
   def isPeriod2(): Boolean = {
     isPeriod(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END)
   }
+
+  def taxYear(): Int = {
+    if (this < PensionPeriod(year, 4, 6) && this > PensionPeriod(year-1, 4, 6)) year-1
+    else if (this > PensionPeriod(year, 4, 6) && this < PensionPeriod(year+1, 4, 6)) year
+    else year
+  }
 }
 
 /**
