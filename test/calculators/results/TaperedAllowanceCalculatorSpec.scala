@@ -287,5 +287,48 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
         result shouldBe 500000L
       }
     }
+
+    "unused AAA" should {
+      "if not mpa applicable return 0" in {
+        // set up
+        val contribution = Contribution(2016, Some(InputAmounts(moneyPurchase=Some(500000L),triggered=Some(false))))
+
+        // test
+        val result = TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).unusedAAA
+
+        // check
+        result shouldBe 0L
+      }
+      "if not triggered return 0" in {
+        // set up
+        val contribution = Contribution(2016, Some(InputAmounts(moneyPurchase=Some(1500000L),triggered=Some(false))))
+
+        // test
+        val result = TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).unusedAAA
+
+        // check
+        result shouldBe 0L
+      }
+      "if not mpa applicable and triggered return 0" in {
+        // set up
+        val contribution = Contribution(2016, Some(InputAmounts(moneyPurchase=Some(500000L),triggered=Some(true))))
+
+        // test
+        val result = TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).unusedAAA
+
+        // check
+        result shouldBe 0L
+      }
+      "if mpa applicable and triggered return unused AAA" in {
+        // set up
+        val contribution = Contribution(2016, Some(InputAmounts(moneyPurchase=Some(1000100L),triggered=Some(true))))
+
+        // test
+        val result = TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).unusedAAA
+
+        // check
+        result shouldBe 3000000L
+      }
+    }
   }
 }
