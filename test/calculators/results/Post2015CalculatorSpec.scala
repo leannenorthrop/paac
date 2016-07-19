@@ -96,7 +96,7 @@ class Post2015CalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       
       // check
       result should not be None
-      result.get shouldBe ExtendedSummaryFields(0,0,999900,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,false,0,0) 
+      result.get shouldBe ExtendedSummaryFields(0,0,4000000,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,false,0,0) 
     }
 
     "annual allowance" in {
@@ -107,7 +107,7 @@ class Post2015CalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       val result = Post2015Calculator.summary(Seq[TaxYearResults](), contribution)
 
       // check
-      result.get.availableAllowance shouldBe 999900L
+      result.get.availableAllowance shouldBe 4000000L
     }
   }
 }
