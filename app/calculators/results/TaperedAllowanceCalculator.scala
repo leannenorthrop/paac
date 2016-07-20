@@ -18,87 +18,131 @@ package calculators.results
 
 import calculators._
 import calculators.Utilities._
+import calculators.periods.Utilities._
+import calculators.results.Utilities._
 import models._
 import config.PaacConfiguration
 
 case class TaperedAllowanceCalculator(implicit previousPeriods:Seq[TaxYearResults], 
                                                contribution:Contribution) extends ExtendedSummaryCalculator {
+  def allowance(): Long = _annualAllowance
+  def definedBenefit(): Long = _definedBenefit
+  def definedContribution(): Long = _definedContribution
+  def annualAllowance(): Long = _taperedAllowance
+  override def exceedingAllowance(): Long = _exceedingAllowance
+  override def unusedAllowance(): Long = _unusedAllowance
+  override def annualAllowanceCF(): Long = _annualAllowanceCF
+  override def annualAllowanceCCF(): Long = _annualAllowanceCCF
+  override def chargableAmount(): Long = _chargableAmount
+  override def moneyPurchaseAA(): Long = _mpa
+  override def alternativeAA(): Long = _alternativeAA
+  override def dbist(): Long = _dbist
+  override def mpist(): Long = _mpist
+  override def alternativeChargableAmount(): Long = _alternativeChargableAmount
+  override def defaultChargableAmount(): Long = _defaultChargableAmount
+  override def cumulativeMP(): Long = _cumulativeMP
+  override def cumulativeDB(): Long = _cumulativeDB
+  override def exceedingMPAA(): Long = _exceedingMPAA
+  override def exceedingAAA(): Long = _exceedingAAA
+  override def unusedAAA(): Long = _unusedAAA
+  override def unusedMPAA(): Long = _unusedMPAA
+  override def preFlexiSavings(): Long = _preTriggerSavings
+  override def postFlexiSavings(): Long = _postFlexiSavings
+  override def isMPAAApplicable(): Boolean = _isMPAAApplicable
+  override def acaCF() : Long = _acaCF
+  override def dcaCF() : Long = _dcaCF
+
+  lazy val actualUnused = actualUnusedValues(this)(previousPeriods,contribution)
+
+  protected lazy val previousYear = previousPeriods.find(isYear(contribution.taxPeriodStart.taxYear-1))
 
   protected lazy val config: Map[String,Int] = PaacConfiguration.forYear(contribution.taxPeriodStart.taxYear)
 
-  def allowance(): Long = _annualAllowance
+  protected lazy val _acaCF = 0L
 
-  def definedBenefit(): Long = 0L
+  protected lazy val _dcaCF = 0L
 
-  def definedContribution(): Long = contribution.moneyPurchase
+  protected lazy val _postFlexiSavings = 0L
 
-  protected lazy val _taa = config.get("taa").getOrElse(10000) * 100L
-  protected lazy val _taperStart = config.get("taperStart").getOrElse(150000) * 100L
-  protected lazy val _taperEnd = config.get("taperEnd").getOrElse(210000) * 100L
-  protected lazy val _annualAllowance: Long = config.get("annual").getOrElse(40000) * 100L
+  protected lazy val _cumulativeMP = 0L
 
-  def annualAllowance(): Long = if (isTaperingApplicable) 
-                                  contribution.amounts.flatMap(_.income.map {
-                                    (ai)=>
-                                    ai match {
-                                      case income if income > _taperStart && income < _taperEnd => {
-                                        val reduction = Math.floor(((ai - _taperStart)/100L)/2D)*100L
-                                        (_annualAllowance - reduction).toLong
-                                      }
-                                      case income if income > _taperEnd => _taa
-                                      case _ => _annualAllowance
-                                    }
-                                  }).getOrElse(_annualAllowance)
-                                else _annualAllowance
+  protected lazy val _cumulativeDB = 0L
 
-  override def exceedingAllowance(): Long = 0L
+  protected lazy val _exceedingMPAA = 0L
 
-  override def unusedAllowance(): Long = 0L
+  protected lazy val _exceedingAAA = 0L
 
-  override def annualAllowanceCF(): Long = 0L
+  protected lazy val _defaultChargableAmount = 0L
 
-  override def annualAllowanceCCF(): Long = 0L
+  protected lazy val _annualAllowanceCCF = 0L
 
-  override def chargableAmount(): Long = 0L
+  protected lazy val _annualAllowanceCF = 0L
+
+  protected lazy val _unusedAllowance = 0L
+
+  protected lazy val _exceedingAllowance = 0L
+
+  protected lazy val _alternativeAA = (annualAllowance - moneyPurchaseAA).max(0L)
+
+  protected lazy val _definedBenefit = if (isTriggered) contribution.definedBenefit + preFlexiSavings 
+                                       else contribution.definedBenefit + contribution.moneyPurchase
+
+  protected lazy val _definedContribution = contribution.moneyPurchase
+
+  protected lazy val _chargableAmount = if (!isTriggered) basicCalculator().chargableAmount 
+                                        else if (isMPAAApplicable) alternativeChargableAmount.max(defaultChargableAmount) 
+                                        else defaultChargableAmount
+
+  protected lazy val _taperedAllowance = if (isTaperingApplicable) 
+                                            contribution.amounts.flatMap(_.income.map {
+                                              (ai)=>
+                                              ai match {
+                                                case income if income > _taperStart && income < _taperEnd => {
+                                                  val reduction = Math.floor(((ai - _taperStart)/100L)/2D)*100L
+                                                  (_annualAllowance - reduction).toLong
+                                                }
+                                                case income if income > _taperEnd => _taa
+                                                case _ => _annualAllowance
+                                              }
+                                            }).getOrElse(_annualAllowance)
+                                          else _annualAllowance
+  protected lazy val isGroup1: Boolean = contribution.isGroup1
+
+  protected lazy val isGroup2: Boolean = !contribution.isGroup3 && contribution.isGroup2
+
+  protected lazy val isGroup3: Boolean = contribution.isGroup3
+
+  protected lazy val _alternativeChargableAmount = if (isMPAAApplicable && isTriggered) mpist + dbist else 0L
+
+  protected lazy val _isMPAAApplicable = definedContribution > moneyPurchaseAA
 
   protected lazy val _mpa = config.get("mpaa").getOrElse(10000) * 100L
 
-  override def moneyPurchaseAA(): Long = _mpa
-  
-  override def alternativeAA(): Long = (annualAllowance - moneyPurchaseAA).max(0L)
-  
-  override def dbist(): Long = 0L
-  
-  override def mpist(): Long = 0L
-  
-  override def alternativeChargableAmount(): Long = 0L
-  
-  override def defaultChargableAmount(): Long = 0L
-  
-  override def cumulativeMP(): Long = 0L
-  
-  override def cumulativeDB(): Long = 0L
-  
-  override def exceedingMPAA(): Long = 0L
-  
-  override def exceedingAAA(): Long = 0L
-  
-  protected lazy val _unusedAAA = if (isMPAAApplicable && isTriggered) (alternativeAA - definedBenefit).max(0) else 0L
-  override def unusedAAA(): Long = _unusedAAA
+  protected lazy val _preTriggerSavings = preTriggerInputs.map((c)=>c.definedBenefit+c.moneyPurchase).getOrElse(0L)
 
   protected lazy val _unusedMPAA = if (isTriggered && !isMPAAApplicable) moneyPurchaseAA - definedContribution else 0L  
-  override def unusedMPAA(): Long = _unusedMPAA
+
+  protected lazy val _unusedAAA = if (isMPAAApplicable && isTriggered) (alternativeAA - definedBenefit).max(0) else 0L
+
+  protected lazy val _dbist = 0L
+
+  protected lazy val _mpist = if (isTriggered)
+      if (isMPAAApplicable)
+        (definedContribution - moneyPurchaseAA).max(0)
+      else 
+        0L
+    else
+      0L
+
+  protected lazy val _taa = config.get("taa").getOrElse(10000) * 100L
   
-  override def preFlexiSavings(): Long = 0L
+  protected lazy val _taperStart = config.get("taperStart").getOrElse(150000) * 100L
   
-  override def postFlexiSavings(): Long = 0L
+  protected lazy val _taperEnd = config.get("taperEnd").getOrElse(210000) * 100L
   
-  protected lazy val _isMPAAApplicable = definedContribution > moneyPurchaseAA
-  override def isMPAAApplicable(): Boolean = _isMPAAApplicable
-  
-  override def acaCF() : Long = 0L
-  
-  override def dcaCF() : Long = 0L
+  protected lazy val _annualAllowance: Long = config.get("annual").getOrElse(40000) * 100L
+
+  protected def basicCalculator(): SummaryResultCalculator = new SummaryResultCalculator((_annualAllowance/100D).toInt, previousPeriods, contribution)
 
   protected def isTaperingApplicable(): Boolean = contribution.amounts.flatMap(_.income.map(_ > _taperStart)).getOrElse(false)
 }

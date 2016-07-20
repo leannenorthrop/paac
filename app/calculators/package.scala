@@ -30,7 +30,7 @@ package object Utilities {
   def none[A](predicates: (A => Boolean)*) = complement(any(predicates: _*))
   def every[A](predicates: (A => Boolean)*) = none(predicates.view.map(complement(_)): _*)
 
-  val yearConstraint: SizeConstraint => ResultsFilter = constraint => taxYearResult => constraint(taxYearResult.input.taxPeriodStart.year)
+  val yearConstraint: SizeConstraint => ResultsFilter = constraint => taxYearResult => constraint(taxYearResult.input.taxPeriodStart.taxYear)
   val afterYear: Int => ResultsFilter = year => yearConstraint(_ >= year)
   val beforeYear: Int => ResultsFilter = year => yearConstraint(_ <= year)
   val isYear: Int => ResultsFilter = year => yearConstraint(_ == year)
