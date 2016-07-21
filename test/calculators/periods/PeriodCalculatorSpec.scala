@@ -20,7 +20,7 @@ import uk.gov.hmrc.play.test.UnitSpec
 import models._
 import calculators.periods.Utilities._
 import calculators.Utilities._
-import calculators.SummaryResultCalculator
+import calculators.results._
 
 class PeriodCalculatorSpec extends UnitSpec {
   trait TestFixture {

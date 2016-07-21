@@ -21,7 +21,7 @@ import models._
 /**
   Calculator for 2014
 */
-object Year2014Calculator extends BasicAllowanceCalculator {
+object Year2014Calculator extends BasicCalculator {
   protected def getAnnualAllowanceInPounds: Long = 40000L
 
   def isSupported(contribution:Contribution): Boolean = {

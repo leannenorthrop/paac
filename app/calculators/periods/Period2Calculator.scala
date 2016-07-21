@@ -17,13 +17,13 @@
 package calculators.periods
 
 import models._
-import calculators.SummaryResultCalculator
+import calculators.results.SummaryResultCalculator
 import calculators.periods.Utilities._
 import calculators.Utilities._
 
-class Period2Calculator(implicit allowanceInPounds: Long,
-                                 previousPeriods:Seq[TaxYearResults], 
-                                 contribution:Contribution) extends PeriodCalculator {
+protected class Period2Calculator(implicit allowanceInPounds: Long,
+                                           previousPeriods:Seq[TaxYearResults], 
+                                           contribution:Contribution) extends PeriodCalculator {
   val MPA = 10000 * 100L
   val P1MPA = 20000 * 100L
   val P2MPA = 10000 * 100L
@@ -189,14 +189,13 @@ class Period2Calculator(implicit allowanceInPounds: Long,
   protected lazy val _exceedingMPAA = if (isMPAAApplicable) (definedContribution - MPA).max(0) else 0L
   override def exceedingMPAA(): Long = _exceedingMPAA
 
-  protected lazy val isGroup1: Boolean = contribution.isGroup1
   protected lazy val isGroup2: Boolean = !contribution.isGroup3 && contribution.isGroup2
   protected lazy val isGroup3: Boolean = contribution.isGroup3
 
   // Is MPA Applicable
-  protected lazy val _isMPAAApplicable = if ((isGroup3 || isGroup2) && isTriggered)
-                                               (definedContribution > MPA) || period1.isMPA || period1.cumulativeMP >= P1MPA || (previous.unusedMPAA < definedContribution)
-                                             else false
+  protected lazy val _isMPAAApplicable = if (isTriggered)
+                                           (definedContribution > MPA) || period1.isMPA || period1.cumulativeMP >= P1MPA || (previous.unusedMPAA < definedContribution)
+                                         else false
   override def isMPAAApplicable(): Boolean = _isMPAAApplicable
 
   protected lazy val isPeriod1Triggered: Boolean = previousPeriods.find(isTaxResultTriggered).find(_.input.isPeriod1).isDefined
@@ -209,19 +208,11 @@ class Period2Calculator(implicit allowanceInPounds: Long,
 
   // MPIST
   protected lazy val _mpist = {
-    if (isGroup3) {
-      if (isPeriod1Triggered) {
-        (definedContribution - period1.unusedMPAA).max(0)
-      } else if (isTriggered) {
-        if (isMPAAApplicable) {
-          (definedContribution - MPA).max(0)
-        } else {
-          0L
-        }
-      } else {
-        0L
-      }
-    } else
+    if (isGroup3)
+      if (isPeriod1Triggered) (definedContribution - period1.unusedMPAA).max(0)
+      else if (isMPAAApplicable) (definedContribution - MPA).max(0)
+      else 0L
+    else
       definedContribution
   }
   override def mpist(): Long = _mpist
@@ -236,7 +227,6 @@ class Period2Calculator(implicit allowanceInPounds: Long,
   
   protected lazy val previous2YearsUnusedAllowance: Long = {
     // we only want previous values so create dummy contribution which does not affect the calculation
-    // can't use period calculator's actual unused because of circular refeferences
     val c = Contribution(contribution.taxPeriodStart, contribution.taxPeriodEnd, Some(InputAmounts(0L,0L)))
     actualUnusedList(this)(previousPeriods.drop(1), c).drop(1).slice(0,2).foldLeft(0L)(_+_._2)
   }
@@ -250,53 +240,36 @@ class Period2Calculator(implicit allowanceInPounds: Long,
   override def unusedAAA(): Long = _unusedAAA
 
   // Unused Annual Allowance
-  protected lazy val _unusedAllowance = {
-    if (isTriggered) {
-      if (isGroup3) {
-        if (previous.unusedAAA > 0) {
-          0L
-        } else {
-          val unusedAllowance = if (period1.isMPA) {
-            period1.unusedAAA - definedBenefit
-          } else {
-            val previousSavings = previousPeriods.headOption.map(_.input).getOrElse(Contribution(0,0))
-            val unused = if (isPeriod1Triggered) {
-              if (alternativeChargableAmount > defaultChargableAmount) {
-                period1.unusedAllowance - contribution.definedBenefit
-              } else {
-                period1.unusedAllowance - (contribution.definedBenefit + contribution.moneyPurchase)
-              }
-            } else {
-              if (alternativeChargableAmount > defaultChargableAmount) {
-                period1.unusedAllowance - (previousSavings.definedBenefit + previousSavings.moneyPurchase) 
-              } else {
-                period1.unusedAllowance - (previousSavings.definedBenefit + previousSavings.moneyPurchase + contribution.moneyPurchase)
-              }
-            }
-            val savings = preFlexiSavings + (if (defaultChargableAmount >= alternativeChargableAmount) definedContribution else 0L)
-            if (savings > MAXAACF) 0L else unused
-          }
-          unusedAllowance.max(0)
-        }
-      } else { //if (contribution.isGroup2) {
-        if (previous.unusedAAA > 0) {
-          0L
-        } else {
-          if (period1.cumulativeMP < P1MPA && definedContribution < MPA){
-            (previous.unusedAllowance - definedContribution).max(0)
-          } else {
-            if (alternativeChargableAmount > defaultChargableAmount) {
-              previous.unusedAllowance
-            } else {
-              (previous.unusedAllowance - definedContribution).max(0)
-            }
-          }
-        }
+  protected lazy val _group3Unused = 
+    if (period1.isMPA) period1.unusedAAA - definedBenefit
+    else if ((preFlexiSavings + (if (defaultChargableAmount >= alternativeChargableAmount) definedContribution else 0L)) > MAXAACF) 0L 
+    else if (isPeriod1Triggered)
+      if (alternativeChargableAmount > defaultChargableAmount)
+        period1.unusedAllowance - contribution.definedBenefit
+      else
+        period1.unusedAllowance - (contribution.definedBenefit + contribution.moneyPurchase)
+    else
+      previousPeriods.headOption.map(_.input).map {
+        (previousSavings) =>
+        if (alternativeChargableAmount > defaultChargableAmount)
+          period1.unusedAllowance - (previousSavings.definedBenefit + previousSavings.moneyPurchase) 
+        else
+          period1.unusedAllowance - (previousSavings.definedBenefit + previousSavings.moneyPurchase + contribution.moneyPurchase)
+      }.getOrElse {
+        if (alternativeChargableAmount > defaultChargableAmount)
+          period1.unusedAllowance
+        else
+          period1.unusedAllowance - contribution.moneyPurchase
       }
-    } else {
-      (period1.unusedAllowance - basicDefinedBenefit).max(0)
-    }
-  }
+
+  protected lazy val _unusedAllowance =
+    if (isTriggered)
+      if (previous.unusedAAA > 0) 0L
+      else if (isGroup3) _group3Unused.max(0)
+      else if (period1.cumulativeMP < P1MPA && definedContribution < MPA) (previous.unusedAllowance - definedContribution).max(0)
+      else if (alternativeChargableAmount > defaultChargableAmount) previous.unusedAllowance
+      else (previous.unusedAllowance - definedContribution).max(0)
+    else (period1.unusedAllowance - basicDefinedBenefit).max(0)
   override def unusedAllowance(): Long = _unusedAllowance
 
   // Unused Money Purchase Annual Allowance

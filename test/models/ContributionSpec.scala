@@ -24,6 +24,8 @@ import play.api.data.validation._
 import org.scalatest._
 import org.scalatest.Matchers._
 import org.scalatest.OptionValues._
+import calculators.results._
+import calculators._
 
 class ContributionSpec extends ModelSpec {
   trait TaxPeriodFixture {
@@ -949,7 +951,7 @@ class ContributionSpec extends ModelSpec {
         // set up
         implicit val contribution = Contribution(2020, 123)
         implicit val previousPeriods = Seq[TaxYearResults]()
-        implicit val calculator: calculators.SummaryCalculator = new calculators.SummaryResultCalculator(123L, previousPeriods, contribution)
+        implicit val calculator: SummaryCalculator = new SummaryResultCalculator(123L, previousPeriods, contribution)
 
         // test
         val tuple: SummaryResultsTuple = contribution

@@ -16,6 +16,7 @@
 
 package calculators
 
+import calculators.results._
 import uk.gov.hmrc.play.test.UnitSpec
 import models._
 import org.scalatest._

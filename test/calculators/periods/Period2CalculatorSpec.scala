@@ -21,7 +21,7 @@ import models._
 import org.scalatest._
 import org.scalatest.prop._
 import org.scalacheck.Gen
-import calculators.SummaryResultCalculator
+import calculators.results._
 
 class Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks with PrivateMethodTester {
 
@@ -243,6 +243,21 @@ class Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
       "return 0" in new TestFixture {
         // test
         val result = new Period2Calculator().unusedMPAA
+
+        // check
+        result shouldBe 0L
+      }
+    }
+
+    "mpist" should {
+      "returns 0 if group 3 and mpa is not applicable" in {
+        // set up
+        implicit val annualAllowanceInPounds = 50000L
+        implicit val previousPeriods = Seq[TaxYearResults]()
+        implicit val contribution = Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(100L), Some(0L), None, Some(true))))
+
+        // test
+        val result = new Period2Calculator().mpist
 
         // check
         result shouldBe 0L

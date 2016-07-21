@@ -18,7 +18,7 @@ package calculators.periods
 
 import models._
 import calculators.ExtendedSummaryCalculator
-import calculators.SummaryResultCalculator
+import calculators.results.SummaryResultCalculator
 import calculators.periods.Utilities._
 import calculators.Utilities._
 
@@ -38,12 +38,11 @@ trait PeriodCalculator extends ExtendedSummaryCalculator {
 object PeriodCalculator {
   def apply(allowanceInPounds: Long)(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): PeriodCalculator = {
     implicit val annualAllowanceInPounds = allowanceInPounds
-    if (contribution.isPeriod1) {
+    if (contribution.isPeriod1)
       new Period1Calculator
-    } else if (contribution.isPeriod2) {
+    else if (contribution.isPeriod2)
       new Period2Calculator
-    } else {
+    else
       new SummaryResultCalculator(annualAllowanceInPounds, previousPeriods, contribution) with PeriodCalculator
-    }
   }
 }

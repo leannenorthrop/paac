@@ -24,7 +24,6 @@ import models._
 import org.scalatest._
 import org.scalatest.prop._
 import org.scalacheck.Gen
-import calculators.SummaryResultCalculator
 
 class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
   val app = FakeApplication()

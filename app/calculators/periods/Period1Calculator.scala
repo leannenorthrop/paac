@@ -17,13 +17,13 @@
 package calculators.periods
 
 import models._
-import calculators.SummaryResultCalculator
+import calculators.results.SummaryResultCalculator
 import calculators.periods.Utilities._
 import calculators.Utilities._
 
-class Period1Calculator(implicit allowanceInPounds: Long,
-                                 previousPeriods:Seq[TaxYearResults], 
-                                 contribution: Contribution) extends PeriodCalculator {
+protected class Period1Calculator(implicit allowanceInPounds: Long,
+                                           previousPeriods:Seq[TaxYearResults], 
+                                           contribution: Contribution) extends PeriodCalculator {
   val MPA = 20000 * 100L
   val P2MPA = 10000 * 100L
   val AAA = 60000 * 100L
