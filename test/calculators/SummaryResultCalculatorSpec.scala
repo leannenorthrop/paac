@@ -64,7 +64,7 @@ class SummaryResultCalculatorSpec extends UnitSpec with GeneratorDrivenPropertyC
         val calculator = new SummaryResultCalculator(50000L, previous, contribution)
 
         // test
-        val results = calculators.Utilities.actualUnusedAllowancesFn(calculators.results.Utilities.extractor(calculator))(previous, contribution)
+        val results = calculators.Utilities.actualUnusedList(calculator)(previous, contribution)
 
         // check
         results.length shouldBe 5

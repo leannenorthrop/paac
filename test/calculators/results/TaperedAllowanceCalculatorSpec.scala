@@ -40,6 +40,19 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
     } finally Play.stop()
   }
 
+  "definedBenefit" should {
+    "if not triggered return sum of db and dc" in {
+      // set up
+      val contribution = Contribution(2016, Some(InputAmounts(Some(4500000L),Some(500000L),Some(0L),Some(false))))
+
+      // test
+      val results = TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).definedBenefit
+
+      // check
+      results shouldBe 5000000L
+    }
+  }
+
   "isTaperingApplicable" should {
     class Test(contribution:Contribution) extends TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution) {
       def test(): Boolean = super.isTaperingApplicable
@@ -366,6 +379,10 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
   }
 
   "Actual Unused" should {
+    class Test(previous: Seq[TaxYearResults], contribution:Contribution) extends TaperedAllowanceCalculator()(previous, contribution) {
+      def actualUnusedList() = actualUnused
+    }
+
     "return unused for all years where no trigger has occurred" in {
       // set up
       val c2008 = TaxYearResults(Contribution(2008, 4000000L), ExtendedSummaryFields(exceedingAAAmount=0L,unusedAllowance=1000000L))
@@ -377,11 +394,11 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       val c2014 = TaxYearResults(Contribution(2014, 3000000L), ExtendedSummaryFields(exceedingAAAmount=0L,unusedAllowance=1000000L))
       val c2015p1 = TaxYearResults(Contribution(true, 0, 8500000L), ExtendedSummaryFields(exceedingAAAmount=500000L,unusedAllowance=0L))
       val c2015p2 = TaxYearResults(Contribution(false, 0, 800000L), ExtendedSummaryFields(exceedingAAAmount=800000L,unusedAllowance=0L))
-      implicit val previousPeriods = Seq(c2015p2, c2015p1, c2015p1, c2014, c2013, c2012, c2011, c2010, c2009, c2008)
-      implicit val contribution = Contribution(2016, 3000000L)
+      val previousPeriods = Seq(c2015p2, c2015p1, c2015p1, c2014, c2013, c2012, c2011, c2010, c2009, c2008)
+      val contribution = Contribution(2016, 3000000L)
 
       // test
-      val results = TaperedAllowanceCalculator().actualUnused
+      val results = new Test(previousPeriods, contribution).actualUnusedList
 
       // check
       results(1) shouldBe ((2015, 0L))
@@ -403,11 +420,11 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       val c2015p1 = TaxYearResults(Contribution(true, 0, 8500000L), ExtendedSummaryFields(exceedingAAAmount=500000L,unusedAllowance=0L))
       val c2015p2pre = TaxYearResults(Contribution(false, 0, 0), ExtendedSummaryFields(exceedingAAAmount=0L,unusedAllowance=0L))
       val c2015p2post = TaxYearResults(Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, 0, 800000L, true), ExtendedSummaryFields(exceedingAAAmount=800000L,unusedAllowance=0L))
-      implicit val previousPeriods = Seq(c2015p2post, c2015p2pre, c2015p1, c2014, c2013, c2012, c2011, c2010, c2009, c2008)
-      implicit val contribution = Contribution(2016, Some(InputAmounts(definedBenefit=Some(3000000L),triggered=Some(true))))
+      val previousPeriods = Seq(c2015p2post, c2015p2pre, c2015p1, c2014, c2013, c2012, c2011, c2010, c2009, c2008)
+      val contribution = Contribution(2016, Some(InputAmounts(definedBenefit=Some(3000000L),triggered=Some(true))))
 
       // test
-      val results = TaperedAllowanceCalculator().actualUnused
+      val results = new Test(previousPeriods, contribution).actualUnusedList
 
       // check
       results(1) shouldBe ((2015, 0L))
@@ -430,11 +447,11 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       val c2015p2 = TaxYearResults(Contribution(false, 0, 800000L), ExtendedSummaryFields(exceedingAAAmount=800000L,unusedAllowance=0L))
       val c2016preTrigger = TaxYearResults(Contribution(2016, Some(InputAmounts(definedBenefit=Some(2000000L), triggered=Some(false)))), ExtendedSummaryFields(exceedingAAAmount=0L,unusedAllowance=2000000L))
       val c2016postTrigger = TaxYearResults(Contribution(2016, Some(InputAmounts(definedBenefit=Some(500000L), triggered=Some(true)))), ExtendedSummaryFields(exceedingAAAmount=0L,unusedAllowance=1500000L))
-      implicit val previousPeriods = Seq(c2016postTrigger, c2016preTrigger, c2015p2, c2015p1, c2015p1, c2014, c2013, c2012, c2011, c2010, c2009, c2008)
-      implicit val contribution = Contribution(2017, 3000000L)
+      val previousPeriods = Seq(c2016postTrigger, c2016preTrigger, c2015p2, c2015p1, c2015p1, c2014, c2013, c2012, c2011, c2010, c2009, c2008)
+      val contribution = Contribution(2017, 3000000L)
 
       // test
-      val results = TaperedAllowanceCalculator().actualUnused
+      val results = new Test(previousPeriods, contribution).actualUnusedList
 
       // check
       results(1) shouldBe ((2016, 1500000L))
@@ -443,6 +460,347 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       results(4) shouldBe ((2013, 700000L))
       results(5) shouldBe ((2012, 0L))
       results(6) shouldBe ((2011, 1000000L))
+    }
+  }
+
+  "Previous 3 years unused allowance" should {
+    class Test(previous: Seq[TaxYearResults], contribution:Contribution) extends TaperedAllowanceCalculator()(previous, contribution) {
+      def prev3YearsUnusedAllowance() = previous3YearsUnusedAllowance
+    }
+
+    "return correct value when previous year has execeeded allowance" in {
+      // set up
+      val c2008 = TaxYearResults(Contribution(2008, 4000000L), ExtendedSummaryFields(exceedingAAAmount=0L,unusedAllowance=1000000L))
+      val c2009 = TaxYearResults(Contribution(2009, 4000000L), ExtendedSummaryFields(exceedingAAAmount=0L,unusedAllowance=1000000L))
+      val c2010 = TaxYearResults(Contribution(2010, 4000000L), ExtendedSummaryFields(exceedingAAAmount=0L,unusedAllowance=1000000L))
+      val c2011 = TaxYearResults(Contribution(2011, 4000000L), ExtendedSummaryFields(exceedingAAAmount=0L,unusedAllowance=1000000L))
+      val c2012 = TaxYearResults(Contribution(2012, 4000000L), ExtendedSummaryFields(exceedingAAAmount=0L,unusedAllowance=1000000L))
+      val c2013 = TaxYearResults(Contribution(2013, 4000000L), ExtendedSummaryFields(exceedingAAAmount=0L,unusedAllowance=1000000L))
+      val c2014 = TaxYearResults(Contribution(2014, 3000000L), ExtendedSummaryFields(exceedingAAAmount=0L,unusedAllowance=1000000L))
+      val c2015p1 = TaxYearResults(Contribution(true, 0, 8500000L), ExtendedSummaryFields(exceedingAAAmount=500000L,unusedAllowance=0L))
+      val c2015p2 = TaxYearResults(Contribution(false, 0, 800000L), ExtendedSummaryFields(exceedingAAAmount=800000L,unusedAllowance=0L))
+      val c2016preTrigger = TaxYearResults(Contribution(2016, Some(InputAmounts(definedBenefit=Some(2000000L), triggered=Some(false)))), ExtendedSummaryFields(exceedingAAAmount=0L,unusedAllowance=2000000L))
+      val c2016postTrigger = TaxYearResults(Contribution(2016, Some(InputAmounts(definedBenefit=Some(500000L), triggered=Some(true)))), ExtendedSummaryFields(exceedingAAAmount=0L,unusedAllowance=1500000L))
+      val previousPeriods = Seq(c2016postTrigger, c2016preTrigger, c2015p2, c2015p1, c2015p1, c2014, c2013, c2012, c2011, c2010, c2009, c2008)
+      val contribution = Contribution(2017, 4000000L)
+
+      // test
+      val results = new Test(previousPeriods, contribution).prev3YearsUnusedAllowance
+
+      // check
+      results shouldBe 2500000L
+    }
+  }
+
+  "postFlexiSavings" should {
+    "return 0 when not triggered" in {
+      // set up
+      val contribution = Contribution(2017, 4000000L)
+
+      // test
+      val results = TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).postFlexiSavings
+
+      // check
+      results shouldBe 0L
+    }
+    "return dc + db if triggered" in {
+      // set up
+      val contribution = Contribution(2017, Some(InputAmounts(Some(1L), Some(2L), None, Some(true))))
+
+      // test
+      val results = TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).postFlexiSavings
+
+      // check
+      results shouldBe 3L
+    }
+  }
+
+  "isGroupX" should {
+    class Test(contribution:Contribution) extends TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution) {
+      def isgroup1() = isGroup1
+      def isgroup2() = isGroup2
+      def isgroup3() = isGroup3
+    }
+
+    "group 1" should {
+      "return true when contribution is group 1" in {
+        // set up
+        val contribution = Contribution(2016, Some(InputAmounts(Some(123L))))
+
+        // test
+        val results = new Test(contribution).isgroup1
+
+        // check
+        results shouldBe true
+      }
+      "return false when contribution is not group 1" in {
+        // set up
+        val contribution = Contribution(2016, Some(InputAmounts(Some(123L),triggered=Some(true))))
+
+        // test
+        val results = new Test(contribution).isgroup1
+
+        // check
+        results shouldBe false
+      }
+    }
+
+    "group 2" should {
+      "return true when contribution is group 2" in {
+        // set up
+        val contribution = Contribution(2016, Some(InputAmounts(None,Some(345L))))
+
+        // test
+        val results = new Test(contribution).isgroup2
+
+        // check
+        results shouldBe true
+      }
+      "return false when contribution is not group 2" in {
+        // set up
+        val contribution = Contribution(2016, Some(InputAmounts(Some(123L))))
+
+        // test
+        val results = new Test(contribution).isgroup2
+
+        // check
+        results shouldBe false
+      }
+    }
+
+    "group 3" should {
+      "return true when contribution is group 3" in {
+        // set up
+        val contribution = Contribution(2016, Some(InputAmounts(Some(123L),Some(345L),triggered=Some(true))))
+
+        // test
+        val results = new Test(contribution).isgroup3
+
+        // check
+        results shouldBe true
+      }
+      "return false when contribution is not group 3" in {
+        // set up
+        val contribution = Contribution(2016, Some(InputAmounts(None,Some(123L))))
+
+        // test
+        val results = new Test(contribution).isgroup3
+
+        // check
+        results shouldBe false
+      }
+    }
+  }
+
+  "DBIST" should {
+    "be £15k when pre-trigger savings are £45k and no taper allowance and no carry forwards" in {
+      // set up
+      val preTrigger = TaxYearResults(Contribution(2016, 4500000L), ExtendedSummaryFields(unusedAAA=3000000L))
+      val contribution = Contribution(2016, Some(InputAmounts(Some(0L),Some(0L),Some(0L),Some(true))))
+
+      // test
+      val results = TaperedAllowanceCalculator()(Seq[TaxYearResults](preTrigger), contribution).dbist
+
+      // check
+      results shouldBe 1500000L
+    }
+
+    "be £0 when savings are £45k but not triggered" in {
+      // set up
+      val preTrigger = Contribution(2016, 4500000L)
+
+      // test
+      val results = TaperedAllowanceCalculator()(Seq[TaxYearResults](), preTrigger).dbist
+
+      // check
+      results shouldBe 0L
+    }
+
+    "be £0 when pre-trigger savings are £14k and no taper allowance and with carry forwards" in {
+      // set up
+      val period2 = TaxYearResults(Contribution(false, 0, 0), ExtendedSummaryFields(availableAAWithCCF=6400000L))
+      val preTrigger = TaxYearResults(Contribution(2016, 1400000L), ExtendedSummaryFields(unusedAAA=3000000L))
+      val contribution = Contribution(2016, Some(InputAmounts(Some(0L),Some(1800000L),Some(0L),Some(true))))
+
+      // test
+      val results = TaperedAllowanceCalculator()(Seq[TaxYearResults](preTrigger,period2), contribution).dbist
+
+      // check
+      results shouldBe 0L
+    }
+
+    "be £32,618 when pre-trigger savings are £45k and taper allowance present with no carry forwards" in {
+      // set up
+      val period2 = TaxYearResults(Contribution(false, 0, 0), ExtendedSummaryFields(availableAAWithCCF=0L))
+      val preTrigger = TaxYearResults(Contribution(2016, 4500000L), ExtendedSummaryFields(unusedAAA=1238200L))
+      val contribution = Contribution(2016, Some(InputAmounts(Some(0L),Some(1500000L),Some(0L),Some(true))))
+
+      // test
+      val results = TaperedAllowanceCalculator()(Seq[TaxYearResults](preTrigger,period2), contribution).dbist
+
+      // check
+      results shouldBe 3261800L
+    }
+
+    "be £22,618 when pre-trigger savings are £45k and taper allowance present with carry forwards" in {
+      // set up
+      val period2 = TaxYearResults(Contribution(false, 0, 0), ExtendedSummaryFields(availableAAWithCCF=1000000L))
+      val preTrigger = TaxYearResults(Contribution(2016, 4500000L), ExtendedSummaryFields(unusedAAA=1238200L))
+      val contribution = Contribution(2016, Some(InputAmounts(Some(0L),Some(1500000L),Some(0L),Some(true))))
+
+      // test
+      val results = TaperedAllowanceCalculator()(Seq[TaxYearResults](preTrigger,period2), contribution).dbist
+
+      // check
+      results shouldBe 2261800L
+    }
+  }
+
+  "MPIST" should {
+    "return 0 when not triggered" in {
+      // set up
+      val contribution = Contribution(2016, 0)
+      
+      // test
+      val results = TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).mpist
+
+      // check
+      results shouldBe 0L
+    }
+    "return 0 when triggered but mpa is not applicable" in {
+      // set up
+      val contribution = Contribution(2016, Some(InputAmounts(Some(0L), Some(900000L), None, Some(true))))
+
+      // test
+      val results = TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).mpist
+
+      // check
+      results shouldBe 0L
+    }
+    "return £5k when triggered and mpa is applicable" in {
+      // set up
+      val contribution = Contribution(2016, Some(InputAmounts(Some(0L), Some(1500000L), None, Some(true))))
+
+      // test
+      val results = TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).mpist
+
+      // check
+      results shouldBe 500000L
+    }
+  }
+
+  "ACA (Alternative Chargable Amount)" should {
+    "return £20K when taper not applicable" in {
+      // set up
+      val preTrigger = TaxYearResults(Contribution(2016, 4500000L), ExtendedSummaryFields(unusedAAA=3000000L))
+      val contribution = Contribution(2016, Some(InputAmounts(Some(0L),Some(1500000L),Some(0L),Some(true))))
+
+      // test
+      val results = TaperedAllowanceCalculator()(Seq[TaxYearResults](preTrigger), contribution).alternativeChargableAmount
+
+      // check
+      results shouldBe 2000000L
+    }
+  }
+
+  "DCA (Default Chargable Amount)" should {
+    "return 0 if not triggered" in {
+      // set up
+      val contribution = Contribution(2016, Some(InputAmounts(Some(0L), Some(1500000L), None, Some(false))))
+
+      // test
+      val results = TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).defaultChargableAmount
+
+      // check
+      results shouldBe 0L
+    }
+    "return £20k when no carry forwards" in {
+      // set up
+      val period2 = TaxYearResults(Contribution(false, 0, 0), ExtendedSummaryFields(availableAAWithCCF=0L))
+      val preTrigger = TaxYearResults(Contribution(2016, 4500000L), ExtendedSummaryFields(unusedAAA=1238200L))
+      val contribution = Contribution(2016, Some(InputAmounts(Some(0L),Some(1500000L),Some(0L),Some(true))))
+
+      // test
+      val results = TaperedAllowanceCalculator()(Seq[TaxYearResults](preTrigger,period2), contribution).defaultChargableAmount
+
+      // check
+      results shouldBe 2000000L
+    }
+    "return £37,618 when no carry forwards but adjusted income present" in {
+      // set up
+      val period2 = TaxYearResults(Contribution(false, 0, 0), ExtendedSummaryFields(availableAAWithCCF=0L))
+      val preTrigger = TaxYearResults(Contribution(2016, 4500000L), ExtendedSummaryFields(unusedAAA=1238200L))
+      val contribution = Contribution(2016, Some(InputAmounts(Some(0L),Some(1500000L),Some(18523700L),Some(true))))
+
+      // test
+      val results = TaperedAllowanceCalculator()(Seq[TaxYearResults](preTrigger,period2), contribution).defaultChargableAmount
+
+      // check
+      results shouldBe 3761800L
+    }
+    "return £50k when no carry forwards but adjusted income present" in {
+      // set up
+      val period2 = TaxYearResults(Contribution(false, 0, 0), ExtendedSummaryFields(availableAAWithCCF=0L))
+      val preTrigger = TaxYearResults(Contribution(2016, 4500000L), ExtendedSummaryFields(unusedAAA=1238200L))
+      val contribution = Contribution(2016, Some(InputAmounts(Some(0L),Some(1500000L),Some(22523500L),Some(true))))
+
+      // test
+      val results = TaperedAllowanceCalculator()(Seq[TaxYearResults](preTrigger,period2), contribution).defaultChargableAmount
+
+      // check
+      results shouldBe 5000000L
+    }
+  }
+
+  "Liable to Charge/Chargable Amount" should {
+    "if not triggered return the basic chargeable amount" in {
+      // set up
+      val contribution = Contribution(2016, Some(InputAmounts(Some(4500000L),Some(500000L),Some(0L),Some(false))))
+
+      // test
+      val results = TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).chargableAmount
+
+      // check
+      results shouldBe 500000L
+    }
+
+    "if triggered but mpa is not applicable return default chargeable amount" in {
+      // set up
+      val period2 = TaxYearResults(Contribution(false, 0, 0), ExtendedSummaryFields(availableAAWithCCF=0L))
+      val preTrigger = TaxYearResults(Contribution(2016, 4500000L), ExtendedSummaryFields(unusedAAA=3000000L))
+      val contribution = Contribution(2016, Some(InputAmounts(Some(0L),Some(500000L),Some(0L),Some(true))))
+
+      // test
+      val results = TaperedAllowanceCalculator()(Seq[TaxYearResults](preTrigger,period2), contribution).chargableAmount
+
+      // check
+      results shouldBe 1000000L
+    }
+
+    "if mpa is applicable return the higher of dca and aca (DCA applies)" in {
+      // set up
+      val period2 = TaxYearResults(Contribution(false, 0, 0), ExtendedSummaryFields(availableAAWithCCF=0L))
+      val preTrigger = TaxYearResults(Contribution(2016, 4500000L), ExtendedSummaryFields(unusedAAA=3000000L))
+      val contribution = Contribution(2016, Some(InputAmounts(Some(0L),Some(1500000L),Some(0L),Some(true))))
+
+      // test
+      val results = TaperedAllowanceCalculator()(Seq[TaxYearResults](preTrigger,period2), contribution).chargableAmount
+
+      // check
+      results shouldBe 2000000L
+    }
+
+    "if mpa is applicable return the higher of dca and aca (ACA applies)" in {
+      // set up
+      val period2 = TaxYearResults(Contribution(false, 0, 0), ExtendedSummaryFields(availableAAWithCCF=6400000L))
+      val preTrigger = TaxYearResults(Contribution(2016, 1400000L), ExtendedSummaryFields(unusedAAA=3000000L))
+      val contribution = Contribution(2016, Some(InputAmounts(Some(0L),Some(1800000L),Some(0L),Some(true))))
+
+      // test
+      val results = TaperedAllowanceCalculator()(Seq[TaxYearResults](preTrigger,period2), contribution).chargableAmount
+
+      // check
+      results shouldBe 800000L
     }
   }
 }

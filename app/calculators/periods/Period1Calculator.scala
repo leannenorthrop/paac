@@ -36,7 +36,7 @@ class Period1Calculator(implicit allowanceInPounds: Long,
   // Annual Allowance Cumulative Carry Forwards
   protected lazy val _aaCCF = {
     if (!isTriggered) {
-      actualUnused(periodExtractor(this))(4)(previousPeriods,contribution)
+      actualUnused(this)(4)(previousPeriods,contribution)
     } else {
       if (isMPAAApplicable) {
         val aaa = (AAA + previous3YearsUnusedAllowance - preTriggerSavings)

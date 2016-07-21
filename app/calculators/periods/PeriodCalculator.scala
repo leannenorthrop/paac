@@ -20,7 +20,6 @@ import models._
 import calculators.ExtendedSummaryCalculator
 import calculators.SummaryResultCalculator
 import calculators.periods.Utilities._
-import calculators.results.Utilities._
 import calculators.Utilities._
 
 trait PeriodCalculator extends ExtendedSummaryCalculator {
@@ -29,10 +28,9 @@ trait PeriodCalculator extends ExtendedSummaryCalculator {
     previousPeriods.headOption.map {
       (row)=>
       val pensionPeriod = row.input.taxPeriodStart.copy(year=row.input.taxPeriodStart.year+1)
-      val contribution = Contribution(pensionPeriod, pensionPeriod, Some(InputAmounts(0L,0L)))
+      implicit val contribution = Contribution(pensionPeriod, pensionPeriod, Some(InputAmounts(0L,0L)))
       // use simple basic extractor since period 1 and 2 are removed above and only dealing with years prior to 2015
-      val actualUnusedLst = actualUnusedAllowancesFn(extractor(new SummaryResultCalculator(allowance, previousPeriods, contribution)))(previousPeriods, contribution).drop(1)
-      actualUnusedFn(3)(actualUnusedLst)
+      actualUnusedList(PeriodCalculator(allowance))(previousPeriods, contribution).drop(1).slice(0,3).foldLeft(0L)(_+_._2)
     }.getOrElse(0L)
   }
 }

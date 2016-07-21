@@ -17,7 +17,7 @@
 package calculators
 
 import models._
-import calculators.results.Utilities._
+import calculators.Utilities._
 
 class SummaryResultCalculator(annualAllowanceInPounds: Long, previousPeriods:Seq[TaxYearResults], contribution: Contribution) extends SummaryCalculator {
 
@@ -56,25 +56,19 @@ class SummaryResultCalculator(annualAllowanceInPounds: Long, previousPeriods:Seq
   def annualAllowanceCF(): Long = _annualAllowanceCF
 
   // cumulative carry forwards is 2 previous years plus current year's annual allowance - used allowance
-  val previous3YearsActualUnused = basicActualUnused(this)(3)
   protected lazy val _annualAllowanceCCF = {
-    val execeeding = exceedingAllowance
-    val previous3YearsUnused = previous3YearsActualUnused(previousPeriods,contribution)
-    if (contribution.taxPeriodStart.year < 2011) {
+    if (contribution.taxPeriodStart.year < 2011)
       // Prior to 2011 nothing was liable for tax charge and carry forwards are allowed
-      previous3YearsUnused
-    } else {
-      if (execeeding > 0) {
+      actualUnused(this)(3)(previousPeriods,contribution)
+    else
+      if (exceedingAllowance > 0) {
         val previousResults = previousPeriods.map(_.summaryResult).headOption.getOrElse(SummaryResult())
-        if (execeeding >= previousResults.availableAAWithCCF){
+        if (exceedingAllowance >= previousResults.availableAAWithCCF)
           0L
-        } else {
-          previous3YearsUnused
-        }
-      } else {
-        previous3YearsUnused
-      }
-    }
+        else
+          actualUnused(this)(3)(previousPeriods,contribution)
+      } else
+        actualUnused(this)(3)(previousPeriods,contribution)
   }
   def annualAllowanceCCF(): Long = _annualAllowanceCCF
 
