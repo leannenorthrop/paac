@@ -108,5 +108,11 @@ class SummaryResultCalculatorSpec extends UnitSpec with GeneratorDrivenPropertyC
         results shouldBe 15000000L
       }
     }
+
+    "allowance" should {
+      "return allowance in pounds" in {
+        new SummaryResultCalculator(50000L, Seq[TaxYearResults](), Contribution(2000, 0)).allowance shouldBe 50000L
+      }
+    }
   }
 } 

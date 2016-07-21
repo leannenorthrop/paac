@@ -162,7 +162,9 @@ package object Utilities {
     }.getOrElse(p)
   }
 
-  protected def groupedPreTriggerExcluded(p: Seq[TaxYearResults]): Map[String, Seq[TaxYearResults]] = excludePreTrigger(p).groupBy {
+  def groupedPreTriggerExcluded(p: Seq[TaxYearResults]): Map[String, Seq[TaxYearResults]] = grouped(excludePreTrigger(p))
+
+  def grouped(p: Seq[TaxYearResults]): Map[String, Seq[TaxYearResults]] = p.groupBy {
       (c)=>
       c.input.taxPeriodStart.taxYear match {
         case year if year < 2015 => "<2015"
