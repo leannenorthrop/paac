@@ -60,9 +60,10 @@ object PaacConfiguration {
         (subConfig) =>
         subConfig.entrySet.map {
           (pair) =>
-          val (key, value) = pair
-          val v = value.unwrapped
-          (key, v.asInstanceOf[Number].intValue())
+          pair._2.unwrapped match {
+            case n: Number => (pair._1, n.intValue())
+            case _ => (pair._1, -1)
+          }
         }.toMap[String,Int]
       }.getOrElse(Map[String,Int]())
     }.getOrElse(Map[String,Int]())

@@ -18,13 +18,15 @@ package calculators.results
 
 import models._
 import calculators._
+import calculators.internal.Post2015TaperedAllowanceCalculator
+import calculators.internal.ExtendedSummaryCalculator
+import config.PaacConfiguration
 
 /**
   Calculator for all years from 2008 to 2013.
 */
-object Post2015Calculator extends AllowanceCalculator {
-
-  def allowance(): Long = 0L
+protected trait Post2015Calculator extends ExtendedCalculator {
+  override def allowance(contribution:Contribution): Long = PaacConfiguration.forYear(contribution.taxPeriodStart.taxYear).getOrElse("annual", 0) * 100L
 
   def isSupported(contribution:Contribution): Boolean = {
     val start = contribution.taxPeriodStart
@@ -34,33 +36,9 @@ object Post2015Calculator extends AllowanceCalculator {
     start > periodStartAfter && start < periodEndBefore && end > periodStartAfter && end < periodEndBefore
   }
 
-  def summary(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Option[Summary] = {
-    implicit val allowanceInPounds = 0L
-    if (isSupported(contribution)) {
-      val calculator = TaperedAllowanceCalculator()
-      Some(ExtendedSummaryFields(calculator.chargableAmount,
-                                 calculator.exceedingAllowance,
-                                 calculator.annualAllowance,
-                                 calculator.unusedAllowance,
-                                 calculator.annualAllowanceCF,
-                                 calculator.annualAllowanceCCF,
-                                 calculator.unusedAAA,
-                                 calculator.unusedMPAA,
-                                 calculator.moneyPurchaseAA,
-                                 calculator.alternativeAA,
-                                 calculator.dbist,
-                                 calculator.mpist,
-                                 calculator.alternativeChargableAmount,
-                                 calculator.defaultChargableAmount,
-                                 calculator.cumulativeMP,
-                                 calculator.cumulativeDB,
-                                 calculator.exceedingMPAA,
-                                 calculator.exceedingAAA,
-                                 calculator.preFlexiSavings,
-                                 calculator.postFlexiSavings,
-                                 calculator.isMPAAApplicable,
-                                 calculator.acaCF,
-                                 calculator.dcaCF))
-    } else None
-  }
+  protected def getAnnualAllowanceInPounds: Long = 0L
+
+  protected def getCalculator(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): ExtendedSummaryCalculator = Post2015TaperedAllowanceCalculator()
 }
+
+protected object Post2015Calculator extends Post2015Calculator

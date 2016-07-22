@@ -19,6 +19,7 @@ package calculators
 import models._
 import models.PensionPeriod._
 import play.api.Logger
+import calculators.results.Calculator
 
 trait PensionAllowanceCalculator {
 
@@ -101,31 +102,48 @@ trait PensionAllowanceCalculator {
     def fetchTriggered(l:List[TaxYearResults]):Option[TaxYearResults] = l.find(_.input.isTriggered)
     def fetchNotTriggered(l:List[TaxYearResults]):Option[TaxYearResults] = l.find(!_.input.isTriggered)
 
-    if (true) Logger.info("\n\n" + r.mkString("\n") + "\n")
+    Logger.debug("\n\n" + r.mkString("\n") + "\n")
 
     r.find(_.input.isTriggered).map {
       (_) =>
-      val year2015ResultsMap = r.groupBy((r)=>r.input.isPeriod1||r.input.isPeriod2)(true).groupBy(_.input.isPeriod1)
-      val period1Results = year2015ResultsMap.get(true).get
-      val period2Results = year2015ResultsMap.get(false).get
-      val non2015Results = r.filterNot((t)=>t.input.isPeriod1||t.input.isPeriod2)
-      val results: List[TaxYearResults] = if (period1Results.size == 2) {
-        val p1Triggered = fetchTriggered(period1Results).get.summaryResult.asInstanceOf[ExtendedSummaryFields]
-        val p1NotTriggered = fetchNotTriggered(period1Results).get
-        val tax = p1NotTriggered.summaryResult.chargableAmount+p1Triggered.chargableAmount
-        val newP1 = TaxYearResults(p1NotTriggered.input, p1Triggered)
-        non2015Results ++ List(newP1) ++ List(fetchTriggered(period2Results).get)
-      } else if (period2Results.size == 2) {
-        val p2Triggered = fetchTriggered(period2Results).get.summaryResult.asInstanceOf[ExtendedSummaryFields]
-        val p2NotTriggered = fetchNotTriggered(period2Results).get
-        val tax = p2NotTriggered.summaryResult.chargableAmount+p2Triggered.chargableAmount
-        val newP2 = TaxYearResults(p2NotTriggered.input, p2Triggered)
-        non2015Results ++ List(fetchNotTriggered(period1Results).get) ++ List(newP2)
-      } else {
-        r
-      }
-      results.toIndexedSeq
-    }.getOrElse(r.toIndexedSeq)
+      val mappedResults = calculators.internal.Utilities.grouped(r)
+      mappedResults.map {
+        (entry)=>
+        entry._1 match {
+          case "2015" => {
+            val year2015ResultsMap = entry._2.groupBy(_.input.isPeriod1)
+            val period1Results = year2015ResultsMap.get(true).get.toList
+            val period2Results = year2015ResultsMap.get(false).get.toList
+            val non2015Results = r.filterNot((t)=>t.input.isPeriod1||t.input.isPeriod2)
+            if (period1Results.size == 2) {
+              val p1Triggered = fetchTriggered(period1Results).get.summaryResult
+              val p1NotTriggered = fetchNotTriggered(period1Results).get
+              val newP1 = TaxYearResults(p1NotTriggered.input, p1Triggered)
+              (List(newP1) ++ List(fetchTriggered(period2Results).get)).toIndexedSeq
+            } else if (period2Results.size == 2) {
+              val p2Triggered = fetchTriggered(period2Results).get.summaryResult
+              val p2NotTriggered = fetchNotTriggered(period2Results).get
+              val newP2 = TaxYearResults(p2NotTriggered.input, p2Triggered)
+              (List(fetchNotTriggered(period1Results).get) ++ List(newP2)).toIndexedSeq
+            } else {
+              entry._2
+            }
+          }
+          case "<2015" => entry._2.toIndexedSeq
+          case ">2015" => {
+            entry._2.groupBy(_.input.taxPeriodStart.taxYear).map {
+              (subentry)=>
+              if (subentry._2.size == 2) {
+                val triggered = fetchTriggered(subentry._2.toList)
+                val notTriggered = fetchNotTriggered(subentry._2.toList)
+                List(TaxYearResults(notTriggered.get.input,triggered.get.summaryResult)).toIndexedSeq
+              } else
+                subentry._2
+            }.flatten.toList
+          }
+        }
+      }.flatten.toList.sortBy(_.input.taxPeriodStart.taxYear)
+    }.getOrElse(calculationResults)
   }
 }
 

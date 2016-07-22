@@ -24,8 +24,11 @@ import play.api.data.validation._
 import org.scalatest._
 import org.scalatest.Matchers._
 import org.scalatest.OptionValues._
+import calculators.results._
+import calculators._
+import calculators.internal._
 
-class ContributionSpec extends ModelSpec {
+class CalculatorInputsSpec extends ModelSpec {
   trait TaxPeriodFixture {
     val year : Int = 2016
     val month : Int = 7
@@ -694,7 +697,7 @@ class ContributionSpec extends ModelSpec {
         val c3 = c1 + c2
 
         // check
-        c3 shouldBe Contribution(PensionPeriod(2014,4,6),PensionPeriod(2015,4,5),Some(InputAmounts(579L,0L)))
+        c3 shouldBe Contribution(PensionPeriod(2014,4,6),PensionPeriod(2015,4,5),Some(InputAmounts(579L,0L,0L)))
       }
 
       "not fail if amounts not defined" in {
@@ -718,7 +721,7 @@ class ContributionSpec extends ModelSpec {
         val c3 = c1 + c2
 
         // check
-        c3 shouldBe Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(Some(456L), Some(123L))))
+        c3 shouldBe Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(Some(456L), Some(123L), Some(0L))))
       }
 
       "be added to another contribution summing defined benefit" in {
@@ -730,7 +733,7 @@ class ContributionSpec extends ModelSpec {
         val c3 = c1 + c2
 
         // check
-        c3 shouldBe Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(579L, 0L)))
+        c3 shouldBe Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(579L, 0L, 0L)))
       }
 
       "be added to another contribution summing defined contribution" in {
@@ -742,7 +745,19 @@ class ContributionSpec extends ModelSpec {
         val c3 = c1 + c2
 
         // check
-        c3 shouldBe Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(0L, 579L)))
+        c3 shouldBe Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(0L, 579L, 0L)))
+      }
+
+      "be added to another contribution summing income" in {
+        // set up
+        val c1 = Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(None, None, Some(123L))))
+        val c2 = Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(None, None, Some(456L))))
+
+        // test
+        val c3 = c1 + c2
+
+        // check
+        c3 shouldBe Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(0L, 0L, 579L)))
       }
 
       "is not added to another contribution when amounts is None" in {
@@ -944,12 +959,12 @@ class ContributionSpec extends ModelSpec {
     }
 
     "do implicit cast which" should {
-      import calculators.Utilities._
+      import calculators.internal.Utilities._
       "cast from contribution to SummaryResultsTuple" in {
         // set up
         implicit val contribution = Contribution(2020, 123)
         implicit val previousPeriods = Seq[TaxYearResults]()
-        implicit val calculator: calculators.SummaryCalculator = new calculators.SummaryResultCalculator(123L, previousPeriods, contribution)
+        implicit val calculator: SummaryCalculator = BasicAllowanceCalculator(123L, previousPeriods, contribution)
 
         // test
         val tuple: SummaryResultsTuple = contribution
@@ -964,7 +979,7 @@ class ContributionSpec extends ModelSpec {
         // set up
         implicit val contribution = Contribution(true, 789, 0)
         implicit val previousPeriods = Seq[TaxYearResults]()
-        implicit val calculator: calculators.SummaryCalculator = calculators.periods.PeriodCalculator(123L)
+        implicit val calculator: SummaryCalculator = PeriodCalculator(123L)
 
         // test
         val tuple: SummaryResultsTuple = contribution
@@ -979,7 +994,7 @@ class ContributionSpec extends ModelSpec {
         // set up
         implicit val contribution = Contribution(false, 245, 0)
         implicit val previousPeriods = Seq[TaxYearResults]()
-        implicit val calculator: calculators.SummaryCalculator = calculators.periods.PeriodCalculator(123L)
+        implicit val calculator: SummaryCalculator = PeriodCalculator(123L)
 
         // test
         val tuple: SummaryResultsTuple = contribution

@@ -14,21 +14,22 @@
  * limitations under the License.
  */
 
-package calculators
+package calculators.internal
 
+import calculators.results._
 import uk.gov.hmrc.play.test.UnitSpec
 import models._
 import org.scalatest._
 import org.scalatest.prop._
 import org.scalacheck.Gen
 
-class SummaryResultCalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks {
+class BasicAllowanceCalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks {
 
-  "SummaryResultCalculator" should {
+  "BasicAllowanceCalculator" should {
     "return None when no amounts given" in {
       // set up
       val contribution = Contribution(PensionPeriod(2014,4,5), PensionPeriod(2015,4,6), None)
-      val calculator = new SummaryResultCalculator(100, Seq[TaxYearResults](), contribution)
+      val calculator = BasicAllowanceCalculator(100, Seq[TaxYearResults](), contribution)
 
       // check
       calculator.summary shouldBe None
@@ -37,7 +38,7 @@ class SummaryResultCalculatorSpec extends UnitSpec with GeneratorDrivenPropertyC
     "return 0 for defined benefit if no amounts given" in {
       // set up
       val contribution = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, None)
-      val calculator = new SummaryResultCalculator(100, Seq[TaxYearResults](), contribution)
+      val calculator = BasicAllowanceCalculator(100, Seq[TaxYearResults](), contribution)
 
       // check
       calculator.definedBenefit shouldBe 0L
@@ -46,7 +47,7 @@ class SummaryResultCalculatorSpec extends UnitSpec with GeneratorDrivenPropertyC
     "return 0 for defined contribution if no amounts given" in {
       // set up
       val contribution = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, None)
-      val calculator = new SummaryResultCalculator(100, Seq[TaxYearResults](), contribution)
+      val calculator = BasicAllowanceCalculator(100, Seq[TaxYearResults](), contribution)
 
       // check
       calculator.definedContribution shouldBe 0L
@@ -61,10 +62,10 @@ class SummaryResultCalculatorSpec extends UnitSpec with GeneratorDrivenPropertyC
         val tr4 = TaxYearResults(Contribution(2011, 1000000L), SummaryResult(unusedAllowance=4000000L,availableAllowance=5000000L))
         val previous = Seq(tr4, tr3, tr2, tr1)
         val contribution = Contribution(2012, 5000000L)
-        val calculator = new SummaryResultCalculator(50000L, previous, contribution)
+        val calculator = BasicAllowanceCalculator(50000L, previous, contribution)
 
         // test
-        val results = calculators.Utilities.actualUnusedAllowancesFn(calculators.results.Utilities.extractor(calculator))(previous, contribution)
+        val results = calculators.internal.Utilities.actualUnusedList(calculator)(previous, contribution)
 
         // check
         results.length shouldBe 5
@@ -83,7 +84,7 @@ class SummaryResultCalculatorSpec extends UnitSpec with GeneratorDrivenPropertyC
         val tr2 = TaxYearResults(Contribution(2009, 0L), SummaryResult(unusedAllowance=5000000L,availableAllowance=5000000L,exceedingAAAmount=0L))
         val previous = Seq(tr1, tr2)
         val contribution = Contribution(2010, 0L)
-        val calculator = new SummaryResultCalculator(50000L, previous, contribution)
+        val calculator = BasicAllowanceCalculator(50000L, previous, contribution)
 
         // test
         val results = calculator.annualAllowanceCCF
@@ -99,13 +100,19 @@ class SummaryResultCalculatorSpec extends UnitSpec with GeneratorDrivenPropertyC
         val tr3 = TaxYearResults(Contribution(2010, 0L), SummaryResult(unusedAllowance=5000000L,availableAllowance=5000000L,exceedingAAAmount=0L))
         val previous = Seq(tr1, tr2)
         val contribution = Contribution(2011, 0L)
-        val calculator = new SummaryResultCalculator(50000L, previous, contribution)
+        val calculator = BasicAllowanceCalculator(50000L, previous, contribution)
 
         // test
         val results = calculator.annualAllowanceCCF
 
         // check
         results shouldBe 15000000L
+      }
+    }
+
+    "allowance" should {
+      "return allowance in pounds" in {
+        new BasicAllowanceCalculator(50000L, Seq[TaxYearResults](), Contribution(2000, 0)).allowance shouldBe 50000L
       }
     }
   }

@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package calculators.periods
+package calculators.internal
 
 import uk.gov.hmrc.play.test.UnitSpec
 import models._
-import calculators.periods.Utilities._
-import calculators.Utilities._
-import calculators.SummaryResultCalculator
+import calculators.internal.Utilities._
+import calculators.results._
 
-class PeriodCalculatorSpec extends UnitSpec {
+class UtilitiesSpec extends UnitSpec {
   trait TestFixture {
     implicit var contribution = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, Some(true))))
     implicit var previousPeriods = List[TaxYearResults]()
@@ -75,31 +74,18 @@ class PeriodCalculatorSpec extends UnitSpec {
         isTaxResultTriggered(tr) shouldBe true
       }
     }
-  }
 
-  "Simple period calculator" should {
-    "return 0 for all values" in {
-      // set up
-      val calculator = PeriodCalculator(123)(Seq[TaxYearResults](),Contribution(2013,123L))
+    "maybeExtended" should {
+      "return None when results does not contain extended result" in {
+        // set up
+        val tyr = TaxYearResults(Contribution(2019,0), SummaryResult())
 
-      // check
-      calculator.moneyPurchaseAA shouldBe 0L
-      calculator.alternativeAA shouldBe 0L
-      calculator.dbist shouldBe 0L
-      calculator.mpist shouldBe 0L
-      calculator.alternativeChargableAmount shouldBe 0L
-      calculator.defaultChargableAmount shouldBe 0L
-      calculator.cumulativeMP shouldBe 0L
-      calculator.cumulativeDB shouldBe 0L
-      calculator.exceedingMPAA shouldBe 0L
-      calculator.exceedingAAA shouldBe 0L
-      calculator.unusedAAA shouldBe 0L
-      calculator.unusedMPAA shouldBe 0L
-      calculator.preFlexiSavings shouldBe 0L
-      calculator.postFlexiSavings shouldBe 0L
-      calculator.isMPAAApplicable shouldBe false
-      calculator.acaCF shouldBe 0L
-      calculator.dcaCF shouldBe 0L
+        // test
+        val result = maybeExtended(tyr)
+
+        // check
+        result shouldBe None
+      }
     }
   }
 }

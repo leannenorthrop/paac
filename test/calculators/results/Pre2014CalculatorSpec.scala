@@ -21,7 +21,7 @@ import models._
 import org.scalatest._
 import org.scalatest.prop._
 import org.scalacheck.Gen
-import calculators.SummaryResultCalculator
+import calculators.internal.BasicAllowanceCalculator
 
 class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks {
   
@@ -260,7 +260,7 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
       val previous = Seq[TaxYearResults](TaxYearResults(Contribution(PensionPeriod.EARLIEST_YEAR_SUPPORTED,500000L),starting))
       val result = Pre2014Calculator.summary(previous, contribution1).get
 
-      val actualUnused = calculators.Utilities.actualUnusedAllowancesFn(calculators.results.Utilities.extractor(new SummaryResultCalculator(50000L, previous, contribution1)))(previous, contribution1)
+      val actualUnused = calculators.internal.Utilities.actualUnusedList(BasicAllowanceCalculator(50000L, previous, contribution1))(previous, contribution1)
       info(actualUnused.mkString(","))
 
       // check it

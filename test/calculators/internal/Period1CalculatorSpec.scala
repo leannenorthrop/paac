@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package calculators.periods
+package calculators.internal
 
 import uk.gov.hmrc.play.test.UnitSpec
 import models._
 import org.scalatest._
 import org.scalatest.prop._
 import org.scalacheck.Gen
-import calculators.SummaryResultCalculator
+import calculators.results._
 
 class Period1CalculatorSpec extends UnitSpec {
 

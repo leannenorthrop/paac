@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package calculators.periods
+package calculators.internal
 
 import uk.gov.hmrc.play.test.UnitSpec
 import models._
 import org.scalatest._
 import org.scalatest.prop._
 import org.scalacheck.Gen
-import calculators.SummaryResultCalculator
+import calculators.results._
 
 class Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks with PrivateMethodTester {
 
@@ -86,7 +86,7 @@ class Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
       result shouldBe true
     }
 
-    "return true if below MPA " in new TestFixture {
+    "return false if below MPA " in new TestFixture {
       // set up
       contribution = period2Contribution.copy(amounts = Some(InputAmounts(Some(0L), Some(1200L), None, Some(true))))
 
@@ -94,8 +94,9 @@ class Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
       val result = new Period2Calculator().isMPAAApplicable
 
       // check
-      result shouldBe true
+      result shouldBe false
     }
+  }
 
     "defined benefit is 0" in new TestFixture {
       // test
@@ -103,25 +104,6 @@ class Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
 
       // check
       result shouldBe 0L
-    }
-
-    "dbist is 0" in new TestFixture {
-      // test
-      val result = new Period2Calculator().dbist
-
-      // check
-      result shouldBe 0L
-    }
-
-    "mpist is equal to defined contribution" in new TestFixture {
-      // set up
-      contribution = period2Contribution.copy(amounts = Some(InputAmounts(Some(0L), Some(1200L))))
-
-      // test
-      val result = new Period2Calculator().mpist
-
-      // check
-      result shouldBe 1200L
     }
 
     "moneyPurchaseAA" should {
@@ -161,6 +143,14 @@ class Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
       }
     }
 
+    "dbist is 0" in new TestFixture {
+      // test
+      val result = new Period2Calculator().dbist
+
+      // check
+      result shouldBe 0L
+    }
+
     "defaultChargableAmount" should {
       "return 0 if period 1 unused AAA > defined contribution" in new TestFixture {
         // set up
@@ -188,6 +178,38 @@ class Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
         // test
         val result = new Period2Calculator().unusedAllowance
 
+        // check
+        result shouldBe 0L
+      }
+      "return 0 unused allowance when no previous results and group 3" in {
+        // set up
+        val calc = new Year2015Period2Calculator() {
+          def allowanceInPounds(): Long = 0L
+          def previousPeriods(): Seq[TaxYearResults] = Seq[TaxYearResults]()
+          def contribution(): Contribution = Contribution(false, 123L, 456L)
+          def test(): Long = _group3Unused
+        }
+
+        // test
+        val result = calc.test
+        
+        // check
+        result shouldBe 0L
+      }
+      "return 0 unused allowance when no previous results" in {
+        // set up
+        val calc = new Year2015Period2Calculator() {
+          def allowanceInPounds(): Long = 0L
+          def previousPeriods(): Seq[TaxYearResults] = Seq[TaxYearResults](TaxYearResults(Contribution(true, 987L, 654L), ExtendedSummaryFields()))
+          def contribution(): Contribution = Contribution(false, 123L, 456L)
+          override def defaultChargableAmount(): Long = 800000L
+          override def alternativeChargableAmount(): Long = 700000L
+          def test(): Long = _group3Unused
+        }
+
+        // test
+        val result = calc.test
+        
         // check
         result shouldBe 0L
       }
@@ -248,5 +270,46 @@ class Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
         result shouldBe 0L
       }
     }
-  }
+
+    "mpist" should {
+      "returns 0 if group 3 and mpa is not applicable" in {
+        // set up
+        implicit val annualAllowanceInPounds = 50000L
+        implicit val previousPeriods = Seq[TaxYearResults]()
+        implicit val contribution = Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(100L), Some(0L), None, Some(true))))
+
+        // test
+        val result = new Period2Calculator().mpist
+
+        // check
+        result shouldBe 0L
+      }
+      "return defined contribution" in new TestFixture {
+        // set up
+        contribution = period2Contribution.copy(amounts = Some(InputAmounts(Some(0L), Some(1200L))))
+
+        // test
+        val result = new Period2Calculator().mpist
+
+        // check
+        result shouldBe 1200L
+      }
+      "return 0L" in {
+        // set up
+        val calc = new Year2015Period2Calculator() {
+          def allowanceInPounds(): Long = 0L
+          def previousPeriods(): Seq[TaxYearResults] = Seq[TaxYearResults]()
+          def contribution(): Contribution = Contribution(false, 123L, 456L)
+          override protected lazy val isGroup3: Boolean = true
+          override protected lazy val isPeriod1Triggered: Boolean = false
+          override def isMPAAApplicable(): Boolean = false
+        }
+
+        // test
+        val result = calc.mpist()
+        
+        // check
+        result shouldBe 0L
+      }
+    }
 }

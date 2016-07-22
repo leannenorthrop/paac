@@ -21,7 +21,7 @@ import models._
 /**
   Calculator for 2014
 */
-object Year2014Calculator extends BasicAllowanceCalculator {
+protected trait Year2014Calculator extends BasicCalculator {
   protected def getAnnualAllowanceInPounds: Long = 40000L
 
   def isSupported(contribution:Contribution): Boolean = {
@@ -32,3 +32,5 @@ object Year2014Calculator extends BasicAllowanceCalculator {
     start > periodStartAfter && start < periodStartBefore && end > periodStartAfter && end < periodStartBefore
   }
 }
+
+protected object Year2014Calculator extends Year2014Calculator

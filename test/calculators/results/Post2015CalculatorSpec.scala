@@ -24,7 +24,6 @@ import models._
 import org.scalatest._
 import org.scalatest.prop._
 import org.scalacheck.Gen
-import calculators.SummaryResultCalculator
 
 class Post2015CalculatorSpec extends UnitSpec with BeforeAndAfterAll {
   val app = FakeApplication()
@@ -99,15 +98,30 @@ class Post2015CalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       result.get shouldBe ExtendedSummaryFields(0,0,4000000,0,0,0,0,0,1000000,3000000,0,0,0,0,0,0,0,0,0,0,false,0,0)
     }
 
-    "annual allowance" in {
-      // set up
-      val contribution = Contribution(2016, 0)
+    "annual allowance" should {
+      "return 0 for allowance in pounds without a contribution" in {
+        // set up
+        val classUnderTest = new Post2015Calculator() {
+          def test(): Long = getAnnualAllowanceInPounds
+        }
 
-      // test
-      val result = Post2015Calculator.summary(Seq[TaxYearResults](), contribution)
+        // test
+        val result = classUnderTest.test
 
-      // check
-      result.get.availableAllowance shouldBe 4000000L
+        // check
+        result shouldBe 0L
+      }
+
+      "return £40k for allowance in pounds with a contribution" in {
+        // set up
+        val contribution = Contribution(2016, 0)
+
+        // test
+        val result = Post2015Calculator.allowance(contribution)
+
+        // check
+        result shouldBe 4000000L
+      }
     }
   }
 }

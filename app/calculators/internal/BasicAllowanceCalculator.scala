@@ -14,31 +14,28 @@
  * limitations under the License.
  */
 
-package calculators
+package calculators.internal
 
 import models._
-import calculators.results.Utilities._
+import calculators.internal.Utilities._
 
-class SummaryResultCalculator(annualAllowanceInPounds: Long, previousPeriods:Seq[TaxYearResults], contribution: Contribution) extends SummaryCalculator {
+trait SimpleAllowanceCalculator extends SummaryCalculator {
+  def annualAllowanceInPounds(): Long
+  def previousPeriods(): Seq[TaxYearResults]
+  def contribution(): Contribution
 
   def allowance(): Long = annualAllowanceInPounds
   
   protected lazy val _definedBenefit = {
-    val amounts = contribution.amounts.getOrElse(InputAmounts())
-    val year = contribution.taxPeriodStart.year
-    if (year < 2015)
-      amounts.definedBenefit.getOrElse(0L) + amounts.moneyPurchase.getOrElse(0L)
-    else {
-      if (year == 2015 && !contribution.isTriggered) {
-        amounts.definedBenefit.getOrElse(0L) + amounts.moneyPurchase.getOrElse(0L)
-      } else {
-        amounts.definedBenefit.getOrElse(0L)
-      }
-    }
+    val year = contribution.taxPeriodStart.taxYear
+    if (year < 2015 || year == 2015 && !contribution.isTriggered)
+      contribution.definedBenefit + definedContribution
+    else
+      contribution.definedBenefit
   }
   def definedBenefit(): Long = _definedBenefit
 
-  protected lazy val _definedContribution = contribution.amounts.getOrElse(InputAmounts()).moneyPurchase.getOrElse(0L)
+  protected lazy val _definedContribution = contribution.moneyPurchase
   def definedContribution(): Long = _definedContribution
 
   protected lazy val _aa = annualAllowanceInPounds*100L // convert allowance from pounds to pence
@@ -56,36 +53,24 @@ class SummaryResultCalculator(annualAllowanceInPounds: Long, previousPeriods:Seq
   def annualAllowanceCF(): Long = _annualAllowanceCF
 
   // cumulative carry forwards is 2 previous years plus current year's annual allowance - used allowance
-  val previous3YearsActualUnused = basicActualUnused(this)(3)
-  protected lazy val _annualAllowanceCCF = {
-    val execeeding = exceedingAllowance
-    val previous3YearsUnused = previous3YearsActualUnused(previousPeriods,contribution)
-    if (contribution.taxPeriodStart.year < 2011) {
+  protected lazy val _annualAllowanceCCF =
+    if (contribution.taxPeriodStart.year < 2011)
       // Prior to 2011 nothing was liable for tax charge and carry forwards are allowed
-      previous3YearsUnused
-    } else {
-      if (execeeding > 0) {
+      actualUnused(this)(3)(previousPeriods,contribution)
+    else
+      if (exceedingAllowance > 0) {
         val previousResults = previousPeriods.map(_.summaryResult).headOption.getOrElse(SummaryResult())
-        if (execeeding >= previousResults.availableAAWithCCF){
-          0L
-        } else {
-          previous3YearsUnused
-        }
-      } else {
-        previous3YearsUnused
-      }
-    }
-  }
+        if (exceedingAllowance >= previousResults.availableAAWithCCF) 0L
+        else actualUnused(this)(3)(previousPeriods,contribution)
+      } else actualUnused(this)(3)(previousPeriods,contribution)
   def annualAllowanceCCF(): Long = _annualAllowanceCCF
 
-  protected lazy val _chargableAmount = {
-    if (contribution.taxPeriodStart.year < 2011) - 1 else {
-      (definedBenefit - annualAllowanceCF).max(0)
-    }
-  }
+  protected lazy val _chargableAmount =
+    if (contribution.taxPeriodStart.year < 2011) - 1 
+    else (definedBenefit - annualAllowanceCF).max(0)
   def chargableAmount(): Long = _chargableAmount
 
-  def summary(): Option[Summary] = {
+  def summary(): Option[Summary] =
     contribution.amounts.map {
       _ =>
       SummaryResult(chargableAmount, 
@@ -95,5 +80,6 @@ class SummaryResultCalculator(annualAllowanceInPounds: Long, previousPeriods:Seq
                     annualAllowanceCF, 
                     annualAllowanceCCF)
     }
-  }
 }
+
+case class BasicAllowanceCalculator(annualAllowanceInPounds: Long, previousPeriods:Seq[TaxYearResults], contribution: Contribution) extends SimpleAllowanceCalculator

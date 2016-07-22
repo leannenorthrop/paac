@@ -25,8 +25,8 @@ import org.scalatest._
 import org.scalatest.Matchers._
 import org.scalatest.OptionValues._
 
-class RequestSpec extends ModelSpec {
-  "CalculationRequest" should {
+class BackendRequestSpec extends ModelSpec {
+  "Backend Request" should {
     "have a list of contributions" in {
       // set up
       val contributions = List(Contribution(2010,123), Contribution(2011,456))

@@ -17,7 +17,7 @@
 package calculators
 
 import calculators._
-import calculators.periods._
+import calculators.internal._
 import calculators.results._
 
 import org.scalatest._

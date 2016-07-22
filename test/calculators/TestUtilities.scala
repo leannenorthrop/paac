@@ -19,7 +19,7 @@ package calculators
 import models._
 import org.scalatest.Assertions._
 import scala.util._
-import calculators.periods._
+import calculators.internal._
 import io._
 
 object TestUtilities {
