@@ -38,7 +38,7 @@ object PeriodCalculator {
     implicit val annualAllowanceInPounds = allowanceInPounds
     contribution match {
       case c if c.isPeriod1 => Period1Calculator()
-      case _ => new Period2Calculator
+      case _ => Period2Calculator()
     }
   }
 }
