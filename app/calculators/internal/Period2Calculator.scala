@@ -187,10 +187,16 @@ protected trait Year2015Period2Calculator extends PeriodCalculator {
   protected lazy val isGroup3: Boolean = contribution.isGroup3
 
   // Is MPA Applicable
-  protected lazy val _isMPAAApplicable = 
+  protected lazy val _isPeriod1MPA: Boolean = 
+    period1.isMPA || 
+    period1.cumulativeMP >= P1MPA || 
+    (previous.unusedMPAA > 0 && previous.unusedMPAA < definedContribution)
+
+  protected lazy val _isMPAAApplicable: Boolean = 
     if (isTriggered)
-      (definedContribution > MPA) || period1.isMPA || period1.cumulativeMP >= P1MPA || (previous.unusedMPAA < definedContribution)
-    else false
+      definedContribution > MPA || _isPeriod1MPA
+    else 
+      false
   override def isMPAAApplicable(): Boolean = _isMPAAApplicable
 
   def isTriggered(): Boolean = contribution.isTriggered
