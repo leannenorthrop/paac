@@ -65,7 +65,7 @@ class BasicAllowanceCalculatorSpec extends UnitSpec with GeneratorDrivenProperty
         val calculator = BasicAllowanceCalculator(50000L, previous, contribution)
 
         // test
-        val results = calculators.Utilities.actualUnusedList(calculator)(previous, contribution)
+        val results = calculators.internal.Utilities.actualUnusedList(calculator)(previous, contribution)
 
         // check
         results.length shouldBe 5

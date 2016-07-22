@@ -18,7 +18,6 @@ package calculators.internal
 
 import models._
 import calculators.internal.Utilities._
-import calculators.Utilities._
 
 protected trait Year2015Period2Calculator extends PeriodCalculator {
   base: PeriodCalculator =>

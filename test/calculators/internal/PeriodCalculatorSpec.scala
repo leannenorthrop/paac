@@ -19,7 +19,6 @@ package calculators.internal
 import uk.gov.hmrc.play.test.UnitSpec
 import models._
 import calculators.internal.Utilities._
-import calculators.Utilities._
 import calculators.results._
 
 class PeriodCalculatorSpec extends UnitSpec {

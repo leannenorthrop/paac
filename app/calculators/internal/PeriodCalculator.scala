@@ -18,7 +18,6 @@ package calculators.internal
 
 import models._
 import calculators.internal.Utilities._
-import calculators.Utilities._
 
 trait PeriodCalculator extends ExtendedSummaryCalculator {
   def previous3YearsUnusedAllowance(implicit previous:Seq[TaxYearResults]): Long = {

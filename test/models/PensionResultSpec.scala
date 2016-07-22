@@ -245,7 +245,7 @@ class PensionResultSpec extends ModelSpec {
 
     "Implicit casts" should {
       import models.TaxYearResults._
-      import calculators.Utilities._
+      import calculators.internal.Utilities._
 
       "convert tax result to summary tuple" in {
         // setup

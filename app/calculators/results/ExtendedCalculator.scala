@@ -17,7 +17,7 @@
 package calculators.results
 
 import models._
-import calculators.internal._ 
+import calculators.internal.ExtendedSummaryCalculator
 
 protected trait ExtendedCalculator extends BasicCalculator {
   protected def getCalculator(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): ExtendedSummaryCalculator

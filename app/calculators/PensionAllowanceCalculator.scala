@@ -19,6 +19,7 @@ package calculators
 import models._
 import models.PensionPeriod._
 import play.api.Logger
+import calculators.results.Calculator
 
 trait PensionAllowanceCalculator {
 
@@ -105,7 +106,7 @@ trait PensionAllowanceCalculator {
 
     r.find(_.input.isTriggered).map {
       (_) =>
-      val mappedResults = calculators.Utilities.grouped(r)
+      val mappedResults = calculators.internal.Utilities.grouped(r)
       mappedResults.map {
         (entry)=>
         entry._1 match {

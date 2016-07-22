@@ -32,9 +32,9 @@ class CalculatorSpec extends UnitSpec {
 
       // check
       result.allowance shouldBe 0L
-      result.isSupported(contribution) shouldBe false
       result.summary(Seq[TaxYearResults](), contribution) shouldBe None
     }
+
     "create pre 2014" in {
       // set up
       val contribution = Contribution(2013, 0)

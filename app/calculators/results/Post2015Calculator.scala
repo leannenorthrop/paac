@@ -18,14 +18,15 @@ package calculators.results
 
 import models._
 import calculators._
-import calculators.internal._
+import calculators.internal.Post2015TaperedAllowanceCalculator
+import calculators.internal.ExtendedSummaryCalculator
 
 /**
   Calculator for all years from 2008 to 2013.
 */
-object Post2015Calculator extends ExtendedCalculator {
+protected trait Post2015Calculator extends ExtendedCalculator {
   protected def getAnnualAllowanceInPounds: Long = 0L
-  protected def getCalculator(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): ExtendedSummaryCalculator = TaperedAllowanceCalculator()
+  protected def getCalculator(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): ExtendedSummaryCalculator = Post2015TaperedAllowanceCalculator()
 
   def isSupported(contribution:Contribution): Boolean = {
     val start = contribution.taxPeriodStart
@@ -35,3 +36,5 @@ object Post2015Calculator extends ExtendedCalculator {
     start > periodStartAfter && start < periodEndBefore && end > periodStartAfter && end < periodEndBefore
   }
 }
+
+protected object Post2015Calculator extends Post2015Calculator

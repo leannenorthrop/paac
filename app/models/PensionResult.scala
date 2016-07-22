@@ -176,7 +176,7 @@ object Summary {
  TaxYearResults providing read/write for JSON and implicit casts.
  */
 object TaxYearResults {
-  import calculators.Utilities._
+  import calculators.internal.Utilities._
 
   implicit val summaryWrites: Writes[TaxYearResults] = (
     (JsPath \ "input").write[Contribution] and

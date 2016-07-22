@@ -17,7 +17,7 @@
 package calculators.internal
 
 import models._
-import calculators.Utilities._
+import calculators.internal.Utilities._
 
 trait SimpleAllowanceCalculator extends SummaryCalculator {
   def annualAllowanceInPounds(): Long

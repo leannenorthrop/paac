@@ -45,7 +45,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       val contribution = Contribution(2016, Some(InputAmounts(Some(4500000L),Some(500000L),Some(0L),Some(false))))
 
       // test
-      val results = TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).definedBenefit
+      val results = Post2015TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).definedBenefit
 
       // check
       results shouldBe 5000000L
@@ -53,7 +53,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
   }
 
   "isTaperingApplicable" should {
-    class Test(contribution:Contribution) extends TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution) {
+    class Test(contribution:Contribution) extends Post2015TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution) {
       def test(): Boolean = super.isTaperingApplicable
     }
 
@@ -97,7 +97,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       val contribution = Contribution(2016, Some(InputAmounts(income=Some(14900000))))
 
       // test
-      val result = TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).annualAllowance
+      val result = Post2015TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).annualAllowance
 
       // check
       result shouldBe 4000000L
@@ -108,7 +108,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       val contribution = Contribution(2016, Some(InputAmounts(income=Some(15000100))))
 
       // test
-      val result = TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).annualAllowance
+      val result = Post2015TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).annualAllowance
 
       // check
       result shouldBe 4000000L
@@ -119,7 +119,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       val contribution = Contribution(2016, Some(InputAmounts(income=Some(15000200))))
 
       // test
-      val result = TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).annualAllowance
+      val result = Post2015TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).annualAllowance
 
       // check
       result shouldBe 3999900L
@@ -130,7 +130,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       val contribution = Contribution(2016, Some(InputAmounts(income=Some(20000000))))
 
       // test
-      val result = TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).annualAllowance
+      val result = Post2015TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).annualAllowance
 
       // check
       result shouldBe 1500000L
@@ -141,7 +141,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       val contribution = Contribution(2016, Some(InputAmounts(income=Some(25000000))))
 
       // test
-      val result = TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).annualAllowance
+      val result = Post2015TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).annualAllowance
 
       // check
       result shouldBe 1000000L
@@ -152,7 +152,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       val contribution = Contribution(2016, Some(InputAmounts(income=Some(15000000))))
 
       // test
-      val result = TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).annualAllowance
+      val result = Post2015TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).annualAllowance
 
       // check
       result shouldBe 4000000L
@@ -165,7 +165,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       val contribution = Contribution(2016, Some(InputAmounts(income=Some(0))))
 
       // test
-      val result = TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).moneyPurchaseAA
+      val result = Post2015TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).moneyPurchaseAA
 
       // check
       result shouldBe 1000000L
@@ -178,7 +178,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       val contribution = Contribution(2016, Some(InputAmounts(income=Some(0))))
 
       // test
-      val result = TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).alternativeAA
+      val result = Post2015TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).alternativeAA
 
       // check
       result shouldBe 3000000L
@@ -190,7 +190,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
         val contribution = Contribution(2016, Some(InputAmounts(income=Some(15000200))))
 
         // test
-        val result = TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).alternativeAA
+        val result = Post2015TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).alternativeAA
 
         // check
         result shouldBe 2999900L
@@ -201,7 +201,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
         val contribution = Contribution(2016, Some(InputAmounts(income=Some(20000000))))
 
         // test
-        val result = TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).alternativeAA
+        val result = Post2015TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).alternativeAA
 
         // check
         result shouldBe 500000L
@@ -212,7 +212,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
         val contribution = Contribution(2016, Some(InputAmounts(income=Some(25000000))))
 
         // test
-        val result = TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).alternativeAA
+        val result = Post2015TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).alternativeAA
 
         // check
         result shouldBe 0L
@@ -223,7 +223,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
         val contribution = Contribution(2016, Some(InputAmounts(income=Some(15000000))))
 
         // test
-        val result = TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).alternativeAA
+        val result = Post2015TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).alternativeAA
 
         // check
         result shouldBe 3000000L
@@ -237,7 +237,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       val contribution = Contribution(2016, Some(InputAmounts(moneyPurchase=Some(500000L))))
 
       // test
-      val result = TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).isMPAAApplicable
+      val result = Post2015TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).isMPAAApplicable
 
       // check
       result shouldBe false
@@ -248,7 +248,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       val contribution = Contribution(2016, Some(InputAmounts(moneyPurchase=Some(1000000L))))
 
       // test
-      val result = TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).isMPAAApplicable
+      val result = Post2015TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).isMPAAApplicable
 
       // check
       result shouldBe false
@@ -259,7 +259,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       val contribution = Contribution(2016, Some(InputAmounts(moneyPurchase=Some(1000100L))))
 
       // test
-      val result = TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).isMPAAApplicable
+      val result = Post2015TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).isMPAAApplicable
 
       // check
       result shouldBe true
@@ -272,7 +272,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       val contribution = Contribution(2016, Some(InputAmounts(moneyPurchase=Some(500000L))))
 
       // test
-      val result = TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).unusedMPAA
+      val result = Post2015TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).unusedMPAA
 
       // check
       result shouldBe 0L
@@ -283,7 +283,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       val contribution = Contribution(2016, Some(InputAmounts(moneyPurchase=Some(1000100L),triggered=Some(true))))
 
       // test
-      val result = TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).unusedMPAA
+      val result = Post2015TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).unusedMPAA
 
       // check
       result shouldBe 0L
@@ -294,7 +294,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       val contribution = Contribution(2016, Some(InputAmounts(moneyPurchase=Some(500000L),triggered=Some(true))))
 
       // test
-      val result = TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).unusedMPAA
+      val result = Post2015TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).unusedMPAA
 
       // check
       result shouldBe 500000L
@@ -307,7 +307,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       val contribution = Contribution(2016, Some(InputAmounts(moneyPurchase=Some(500000L),triggered=Some(false))))
 
       // test
-      val result = TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).unusedAAA
+      val result = Post2015TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).unusedAAA
 
       // check
       result shouldBe 0L
@@ -317,7 +317,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       val contribution = Contribution(2016, Some(InputAmounts(moneyPurchase=Some(1500000L),triggered=Some(false))))
 
       // test
-      val result = TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).unusedAAA
+      val result = Post2015TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).unusedAAA
 
       // check
       result shouldBe 0L
@@ -327,7 +327,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       val contribution = Contribution(2016, Some(InputAmounts(moneyPurchase=Some(500000L),triggered=Some(true))))
 
       // test
-      val result = TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).unusedAAA
+      val result = Post2015TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).unusedAAA
 
       // check
       result shouldBe 0L
@@ -337,7 +337,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       val contribution = Contribution(2016, Some(InputAmounts(moneyPurchase=Some(1000100L),triggered=Some(true))))
 
       // test
-      val result = TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).unusedAAA
+      val result = Post2015TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).unusedAAA
 
       // check
       result shouldBe 3000000L
@@ -345,7 +345,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
   }
 
   "Previous year" should {
-    class Test(previous: Seq[TaxYearResults], contribution:Contribution) extends TaperedAllowanceCalculator()(previous, contribution) {
+    class Test(previous: Seq[TaxYearResults], contribution:Contribution) extends Post2015TaperedAllowanceCalculator()(previous, contribution) {
       def test(): Option[TaxYearResults] = previousYear
     }
 
@@ -378,7 +378,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
   }
 
   "Actual Unused" should {
-    class Test(previous: Seq[TaxYearResults], contribution:Contribution) extends TaperedAllowanceCalculator()(previous, contribution) {
+    class Test(previous: Seq[TaxYearResults], contribution:Contribution) extends Post2015TaperedAllowanceCalculator()(previous, contribution) {
       def actualUnusedList() = actualUnused
     }
 
@@ -463,7 +463,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
   }
 
   "Previous 3 years unused allowance" should {
-    class Test(previous: Seq[TaxYearResults], contribution:Contribution) extends TaperedAllowanceCalculator()(previous, contribution) {
+    class Test(previous: Seq[TaxYearResults], contribution:Contribution) extends Post2015TaperedAllowanceCalculator()(previous, contribution) {
       def prev3YearsUnusedAllowance() = previous3YearsUnusedAllowance
     }
 
@@ -497,7 +497,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       val contribution = Contribution(2017, 4000000L)
 
       // test
-      val results = TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).postFlexiSavings
+      val results = Post2015TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).postFlexiSavings
 
       // check
       results shouldBe 0L
@@ -507,7 +507,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       val contribution = Contribution(2017, Some(InputAmounts(Some(1L), Some(2L), None, Some(true))))
 
       // test
-      val results = TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).postFlexiSavings
+      val results = Post2015TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).postFlexiSavings
 
       // check
       results shouldBe 3L
@@ -515,7 +515,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
   }
 
   "isGroupX" should {
-    class Test(contribution:Contribution) extends TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution) {
+    class Test(contribution:Contribution) extends Post2015TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution) {
       def isgroup1() = isGroup1
       def isgroup2() = isGroup2
       def isgroup3() = isGroup3
@@ -598,7 +598,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       val contribution = Contribution(2016, Some(InputAmounts(Some(0L),Some(0L),Some(0L),Some(true))))
 
       // test
-      val results = TaperedAllowanceCalculator()(Seq[TaxYearResults](preTrigger), contribution).dbist
+      val results = Post2015TaperedAllowanceCalculator()(Seq[TaxYearResults](preTrigger), contribution).dbist
 
       // check
       results shouldBe 1500000L
@@ -609,7 +609,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       val preTrigger = Contribution(2016, 4500000L)
 
       // test
-      val results = TaperedAllowanceCalculator()(Seq[TaxYearResults](), preTrigger).dbist
+      val results = Post2015TaperedAllowanceCalculator()(Seq[TaxYearResults](), preTrigger).dbist
 
       // check
       results shouldBe 0L
@@ -622,7 +622,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       val contribution = Contribution(2016, Some(InputAmounts(Some(0L),Some(1800000L),Some(0L),Some(true))))
 
       // test
-      val results = TaperedAllowanceCalculator()(Seq[TaxYearResults](preTrigger,period2), contribution).dbist
+      val results = Post2015TaperedAllowanceCalculator()(Seq[TaxYearResults](preTrigger,period2), contribution).dbist
 
       // check
       results shouldBe 0L
@@ -635,7 +635,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       val contribution = Contribution(2016, Some(InputAmounts(Some(0L),Some(1500000L),Some(0L),Some(true))))
 
       // test
-      val results = TaperedAllowanceCalculator()(Seq[TaxYearResults](preTrigger,period2), contribution).dbist
+      val results = Post2015TaperedAllowanceCalculator()(Seq[TaxYearResults](preTrigger,period2), contribution).dbist
 
       // check
       results shouldBe 3261800L
@@ -648,7 +648,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       val contribution = Contribution(2016, Some(InputAmounts(Some(0L),Some(1500000L),Some(0L),Some(true))))
 
       // test
-      val results = TaperedAllowanceCalculator()(Seq[TaxYearResults](preTrigger,period2), contribution).dbist
+      val results = Post2015TaperedAllowanceCalculator()(Seq[TaxYearResults](preTrigger,period2), contribution).dbist
 
       // check
       results shouldBe 2261800L
@@ -661,7 +661,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       val contribution = Contribution(2016, 0)
       
       // test
-      val results = TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).mpist
+      val results = Post2015TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).mpist
 
       // check
       results shouldBe 0L
@@ -671,7 +671,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       val contribution = Contribution(2016, Some(InputAmounts(Some(0L), Some(900000L), None, Some(true))))
 
       // test
-      val results = TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).mpist
+      val results = Post2015TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).mpist
 
       // check
       results shouldBe 0L
@@ -681,7 +681,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       val contribution = Contribution(2016, Some(InputAmounts(Some(0L), Some(1500000L), None, Some(true))))
 
       // test
-      val results = TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).mpist
+      val results = Post2015TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).mpist
 
       // check
       results shouldBe 500000L
@@ -695,7 +695,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       val contribution = Contribution(2016, Some(InputAmounts(Some(0L),Some(1500000L),Some(0L),Some(true))))
 
       // test
-      val results = TaperedAllowanceCalculator()(Seq[TaxYearResults](preTrigger), contribution).alternativeChargableAmount
+      val results = Post2015TaperedAllowanceCalculator()(Seq[TaxYearResults](preTrigger), contribution).alternativeChargableAmount
 
       // check
       results shouldBe 2000000L
@@ -708,7 +708,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       val contribution = Contribution(2016, Some(InputAmounts(Some(0L), Some(1500000L), None, Some(false))))
 
       // test
-      val results = TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).defaultChargableAmount
+      val results = Post2015TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).defaultChargableAmount
 
       // check
       results shouldBe 0L
@@ -720,7 +720,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       val contribution = Contribution(2016, Some(InputAmounts(Some(0L),Some(1500000L),Some(0L),Some(true))))
 
       // test
-      val results = TaperedAllowanceCalculator()(Seq[TaxYearResults](preTrigger,period2), contribution).defaultChargableAmount
+      val results = Post2015TaperedAllowanceCalculator()(Seq[TaxYearResults](preTrigger,period2), contribution).defaultChargableAmount
 
       // check
       results shouldBe 2000000L
@@ -732,7 +732,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       val contribution = Contribution(2016, Some(InputAmounts(Some(0L),Some(1500000L),Some(18523700L),Some(true))))
 
       // test
-      val results = TaperedAllowanceCalculator()(Seq[TaxYearResults](preTrigger,period2), contribution).defaultChargableAmount
+      val results = Post2015TaperedAllowanceCalculator()(Seq[TaxYearResults](preTrigger,period2), contribution).defaultChargableAmount
 
       // check
       results shouldBe 3761800L
@@ -744,7 +744,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       val contribution = Contribution(2016, Some(InputAmounts(Some(0L),Some(1500000L),Some(22523500L),Some(true))))
 
       // test
-      val results = TaperedAllowanceCalculator()(Seq[TaxYearResults](preTrigger,period2), contribution).defaultChargableAmount
+      val results = Post2015TaperedAllowanceCalculator()(Seq[TaxYearResults](preTrigger,period2), contribution).defaultChargableAmount
 
       // check
       results shouldBe 5000000L
@@ -757,7 +757,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       val contribution = Contribution(2016, Some(InputAmounts(Some(4500000L),Some(500000L),Some(0L),Some(false))))
 
       // test
-      val results = TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).chargableAmount
+      val results = Post2015TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).chargableAmount
 
       // check
       results shouldBe 500000L
@@ -770,7 +770,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       val contribution = Contribution(2016, Some(InputAmounts(Some(0L),Some(500000L),Some(0L),Some(true))))
 
       // test
-      val results = TaperedAllowanceCalculator()(Seq[TaxYearResults](preTrigger,period2), contribution).chargableAmount
+      val results = Post2015TaperedAllowanceCalculator()(Seq[TaxYearResults](preTrigger,period2), contribution).chargableAmount
 
       // check
       results shouldBe 1000000L
@@ -783,7 +783,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       val contribution = Contribution(2016, Some(InputAmounts(Some(0L),Some(1500000L),Some(0L),Some(true))))
 
       // test
-      val results = TaperedAllowanceCalculator()(Seq[TaxYearResults](preTrigger,period2), contribution).chargableAmount
+      val results = Post2015TaperedAllowanceCalculator()(Seq[TaxYearResults](preTrigger,period2), contribution).chargableAmount
 
       // check
       results shouldBe 2000000L
@@ -796,7 +796,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       val contribution = Contribution(2016, Some(InputAmounts(Some(0L),Some(1800000L),Some(0L),Some(true))))
 
       // test
-      val results = TaperedAllowanceCalculator()(Seq[TaxYearResults](preTrigger,period2), contribution).chargableAmount
+      val results = Post2015TaperedAllowanceCalculator()(Seq[TaxYearResults](preTrigger,period2), contribution).chargableAmount
 
       // check
       results shouldBe 800000L

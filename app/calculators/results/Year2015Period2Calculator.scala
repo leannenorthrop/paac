@@ -17,14 +17,17 @@
 package calculators.results
 
 import models._
-import calculators.internal._
+import calculators.internal.PeriodCalculator
+import calculators.internal.ExtendedSummaryCalculator
 
 /**
   Calculator for 2015, period 2 (from 9th July 2015 to April 2016)
 */
-object Year2015Period2Calculator extends ExtendedCalculator {
+protected trait Year2015Period2Calculator extends ExtendedCalculator {
   protected def getAnnualAllowanceInPounds: Long = 0L
   protected def getCalculator(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): ExtendedSummaryCalculator = 
     PeriodCalculator(getAnnualAllowanceInPounds)
   def isSupported(contribution:Contribution): Boolean = contribution.isPeriod2() && !contribution.isEmpty
 }
+
+protected object Year2015Period2Calculator extends Year2015Period2Calculator

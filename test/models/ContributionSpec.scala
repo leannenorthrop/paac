@@ -947,7 +947,7 @@ class ContributionSpec extends ModelSpec {
     }
 
     "do implicit cast which" should {
-      import calculators.Utilities._
+      import calculators.internal.Utilities._
       "cast from contribution to SummaryResultsTuple" in {
         // set up
         implicit val contribution = Contribution(2020, 123)

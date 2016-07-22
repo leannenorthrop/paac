@@ -14,32 +14,30 @@
  * limitations under the License.
  */
 
-package calculators
+package calculators.results
 
 import models._
-import calculators.results._
 
 trait Calculator {
+  def allowance(): Long
   def summary(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution): Option[Summary]
 }
 
-trait AllowanceCalculator extends Calculator {
-  def allowance(): Long
+protected trait FactoryCalculator extends Calculator {
   def isSupported(contribution:Contribution):Boolean
 }
 
-
-trait CalculatorFactory {
-  protected val calculators : List[AllowanceCalculator]
-  protected def get(contribution:Contribution) : Option[AllowanceCalculator] = calculators.find(_.isSupported(contribution))
+protected trait CalculatorFactory {
+  protected val calculators : List[FactoryCalculator]
+  protected def get(contribution:Contribution) : Option[FactoryCalculator] = calculators.find(_.isSupported(contribution))
 }
 
 object Calculator extends CalculatorFactory {
-  protected override val calculators : List[AllowanceCalculator] = List(Pre2014Calculator, Year2014Calculator, Year2015Period1Calculator, Year2015Period2Calculator, Post2015Calculator)
+  protected override val calculators : List[FactoryCalculator] = List(Pre2014Calculator, Year2014Calculator, Year2015Period1Calculator, Year2015Period2Calculator, Post2015Calculator)
   
-  def apply(contribution:Contribution): AllowanceCalculator = {
+  def apply(contribution:Contribution): Calculator = {
     get(contribution).getOrElse {
-      new AllowanceCalculator() {
+      new FactoryCalculator() {
         def summary(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution): Option[Summary] = None
         def allowance(): Long = 0L
         def isSupported(contribution:Contribution):Boolean = false
