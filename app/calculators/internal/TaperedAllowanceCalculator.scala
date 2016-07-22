@@ -52,19 +52,28 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
   override def unusedAllowance(): Long = _unusedAllowance
   override def unusedMPAA(): Long = _unusedMPAA
 
-  protected def basicCalculator(): SummaryCalculator = BasicAllowanceCalculator((_annualAllowance/100D).toInt, previousPeriods, contribution)
+  protected def basicCalculator(): SummaryCalculator = 
+    BasicAllowanceCalculator((_annualAllowance/100D).toInt, previousPeriods, contribution)
 
-  protected def isTaperingApplicable(): Boolean = contribution.amounts.flatMap(_.income.map(_ > _taperStart)).getOrElse(false)
+  protected def isTaperingApplicable(): Boolean = 
+    contribution.amounts.flatMap(_.income.map(_ > _taperStart)).getOrElse(false)
 
   protected def isTriggered(): Boolean = contribution.isTriggered
 
   protected lazy val actualUnused = actualUnusedList(this)(previousPeriods,contribution)
 
-  protected lazy val config: Map[String,Int] = PaacConfiguration.forYear(contribution.taxPeriodStart.taxYear)
+  protected lazy val config: Map[String,Int] = 
+    PaacConfiguration.forYear(contribution.taxPeriodStart.taxYear)
 
-  protected lazy val previousYear = previousPeriods.find(isYear(contribution.taxPeriodStart.taxYear-1))
+  protected lazy val previousYear = 
+    previousPeriods.find(isYear(contribution.taxPeriodStart.taxYear-1))
 
-  protected lazy val previous3YearsUnusedAllowance = actualUnused.drop(1).slice(0,3).foldLeft(0L)(_+_._2)
+  protected lazy val previous3YearsUnusedAllowance: Long = {
+    // we only want previous values so create dummy contribution which does not affect the calculation
+    val c = Contribution(contribution.taxPeriodStart.taxYear, Some(InputAmounts(0L,0L)))
+    val calc = BasicAllowanceCalculator(0,previousPeriods,c)
+    actualUnusedList(calc)(previousPeriods, c).drop(1).slice(0,3).foldLeft(0L)(_+_._2)
+  }
 
   protected lazy val _acaCF = 0L
 
@@ -76,9 +85,17 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
     else 
       0L
 
-  protected lazy val _cumulativeMP = 0L
+  protected lazy val _cumulativeMP = 
+    (for {
+      prev <- previousYear
+      prevResults <- maybeExtended(prev)
+    } yield (definedContribution + prevResults.cumulativeMP)).getOrElse(definedContribution)
 
-  protected lazy val _cumulativeDB = 0L
+  protected lazy val _cumulativeDB = 
+    (for {
+      prev <- previousYear
+      prevResults <- maybeExtended(prev)
+    } yield (definedBenefit + prevResults.cumulativeDB)).getOrElse(definedBenefit)
 
   protected lazy val _exceedingMPAA = 0L
 
@@ -94,7 +111,22 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
 
   protected lazy val _annualAllowanceCF = 0L
 
-  protected lazy val _unusedAllowance = 0L
+  protected lazy val _unusedAllowance = 
+    if (isMPAAApplicable)
+      0L
+    else if (isTriggered) { 
+       val savings = if (defaultChargableAmount >= alternativeChargableAmount) 
+                       preFlexiSavings + definedContribution
+                     else 
+                       preFlexiSavings
+       if (savings > annualAllowance) 
+         0L 
+       else 
+         annualAllowance - savings
+     }.max(0)
+    else
+      basicCalculator.unusedAllowance
+
 
   protected lazy val _exceedingAllowance = 0L
 
@@ -152,7 +184,8 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
 
   protected lazy val _mpa = config.get("mpaa").getOrElse(10000) * 100L
 
-  protected lazy val _preTriggerSavings = preTriggerInputs(previousPeriods).map((c)=>c.definedBenefit+c.moneyPurchase).getOrElse(0L)
+  protected lazy val _preTriggerSavings = 
+    preTriggerInputs(previousPeriods).map((c)=>c.definedBenefit+c.moneyPurchase).getOrElse(0L)
 
   protected lazy val _unusedMPAA = 
     if (isTriggered && !isMPAAApplicable) 
@@ -166,11 +199,16 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
     else 
       0L
 
-  protected lazy val _previousAvailableAAWithCCF = previousYear.map(_.summaryResult.availableAAWithCCF).getOrElse(0L)
+  protected lazy val _previousAvailableAAWithCCF = 
+    previousYear.map(_.summaryResult.availableAAWithCCF).getOrElse(0L)
 
   protected lazy val _dbist =
     if (isTriggered)
-      (definedBenefit-(preTriggerFields(previousPeriods).map(_.unusedAAA).getOrElse(0L) + _previousAvailableAAWithCCF)).max(0)
+      (
+        definedBenefit-
+        (preTriggerFields(previousPeriods).map(_.unusedAAA).getOrElse(0L) + 
+         _previousAvailableAAWithCCF)
+      ).max(0)
     else
       (preFlexiSavings - _previousAvailableAAWithCCF).max(0)
 
@@ -193,5 +231,6 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
 }
 
 case class Post2015TaperedAllowanceCalculator(implicit previousPeriods:Seq[TaxYearResults], 
-                                                       contribution:Contribution) extends TaperedAllowanceCalculator {
+                                                       contribution:Contribution) 
+  extends TaperedAllowanceCalculator {
 }

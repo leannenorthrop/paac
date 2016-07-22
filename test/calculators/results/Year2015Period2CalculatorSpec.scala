@@ -22,6 +22,7 @@ import org.scalatest._
 import org.scalatest.prop._
 import org.scalacheck.Gen
 
+/* Year2015Period1Calculator and Year2015Period2Calculator were test driven from GroupXCalculationsSpec */
 class Year2015Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks {
   "Year 2015 Period 2 Calculator" should {
     "support defined benefits amounts for on 9th July but before 6th April 2016" in {
@@ -91,8 +92,8 @@ class Year2015Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropert
     }
 
     "return none for contributions other than 2015 period 2" in {
-      val invalidContributions = for {taxYear <- Gen.choose(Integer.MIN_VALUE, Integer.MAX_VALUE)
-                                      taxMonth <- Gen.choose(0, 11)
+      val invalidContributions = for {taxYear <- Gen.choose(1, Integer.MAX_VALUE)
+                                      taxMonth <- Gen.choose(1, 12)
                                       taxDay <- Gen.choose(1, 30)} yield Contribution(PensionPeriod(taxYear, taxMonth, taxDay), 
                                                                                       PensionPeriod(taxYear, taxMonth, taxDay+1),
                                                                                       Some(InputAmounts(5000L)))
@@ -107,13 +108,13 @@ class Year2015Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropert
     }
 
     "return some results for contributions in 2015 period 2" in {
-      (0 until 271).foreach {
+      (0 until 241).foreach {
         (day)=>
         // period 2 begins 9th July 2015
         val c = new java.util.GregorianCalendar(2015, 7, 9)
         c.add(java.util.Calendar.DAY_OF_MONTH,day)
         val taxYear = c.get(java.util.Calendar.YEAR)
-        val taxMonth = c.get(java.util.Calendar.MONTH)
+        val taxMonth = c.get(java.util.Calendar.MONTH) + 1
         val taxDay = c.get(java.util.Calendar.DAY_OF_MONTH)
 
         val contribution = Contribution(PensionPeriod(taxYear, taxMonth, taxDay), 
@@ -125,7 +126,7 @@ class Year2015Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropert
 
         // check it
         // With no previous inputs as period 2 has no allowance then exceeding is same as defined benefit input
-        withClue(s"Contributions with date '$taxDay/${taxMonth+1}/$taxYear' should be supported but") { results shouldBe Some(ExtendedSummaryFields(5000,5000,0,0,0,0,0,0,0,0,0,0,0,0,0,5000,0,0,0,0,false,0,0)) }
+        withClue(s"Contributions with date '$taxDay/${taxMonth}/$taxYear' should be supported but") { results shouldBe Some(ExtendedSummaryFields(5000,5000,0,0,0,0,0,0,0,0,0,0,0,0,0,5000,0,0,0,0,false,0,0)) }
       }
     }
 

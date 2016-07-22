@@ -838,4 +838,65 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       results shouldBe 800000L
     }
   }
+
+  "Cumulative MP" should {
+    "return previous + contribution when previous supplied" in {
+      // set up
+      val contribution = Contribution(2017, Some(InputAmounts(123L, 456L)))
+
+      // test
+      val results = Post2015TaperedAllowanceCalculator()(Seq[TaxYearResults](TaxYearResults(Contribution(2016, None), ExtendedSummaryFields(cumulativeMP=888L))), contribution).cumulativeMP
+
+      // check
+      results shouldBe 1344L
+    }
+
+    "return contribution when no previous supplied" in {
+      // set up
+      val contribution = Contribution(2016, Some(InputAmounts(123L, 456L)))
+
+      // test
+      val results = Post2015TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).cumulativeMP
+
+      // check
+      results shouldBe 456L
+    }
+  }
+
+  "Cumulative DB" should {
+    "return previous + benefit when previous supplied" in {
+      // set up
+      val contribution = Contribution(2017, Some(InputAmounts(123L, 456L)))
+
+      // test
+      val results = Post2015TaperedAllowanceCalculator()(Seq[TaxYearResults](TaxYearResults(Contribution(2016, None), ExtendedSummaryFields(cumulativeDB=888L))), contribution).cumulativeDB
+
+      // check
+      results shouldBe 1467L
+    }
+
+    "return benefit when no previous supplied" in {
+      // set up
+      val contribution = Contribution(2016, Some(InputAmounts(123L, 456L)))
+
+      // test
+      val results = Post2015TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).cumulativeDB
+
+      // check
+      results shouldBe 579L
+    }
+  }
+
+  "Unused annual allowance" should {
+    "return 0 when mpa is applicable" in {
+      // set up
+      val contribution = Contribution(2016, Some(InputAmounts(Some(123L), Some(1200000L), None, Some(true))))
+
+      // test
+      val results = Post2015TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).unusedAllowance
+
+      // check
+      results shouldBe 0L
+    }
+  }
 }

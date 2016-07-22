@@ -162,7 +162,7 @@ class CalculatorOutputsSpec extends ModelSpec {
   "TaxYearResults" can {
     "have tax year and input amounts as a contibution" in {
       // setup
-      val contribution = Contribution(PensionPeriod(2011, 0, 1), PensionPeriod(2011, 4, 31), Some(InputAmounts(1, 2)))
+      val contribution = Contribution(PensionPeriod(2011, 1, 1), PensionPeriod(2011, 4, 31), Some(InputAmounts(1, 2)))
 
       // do it
       val results = TaxYearResults(contribution, SummaryResult())
@@ -176,7 +176,7 @@ class CalculatorOutputsSpec extends ModelSpec {
       val summary = SummaryResult(12345, 67890)
 
       // do it
-      val results = TaxYearResults(Contribution(PensionPeriod(2011, 0, 1), PensionPeriod(2011, 4, 31), Some(InputAmounts())), summary)
+      val results = TaxYearResults(Contribution(PensionPeriod(2011, 1, 1), PensionPeriod(2011, 4, 31), Some(InputAmounts())), summary)
 
       // check
       results.summaryResult shouldBe summary
@@ -187,7 +187,7 @@ class CalculatorOutputsSpec extends ModelSpec {
       val taxYear:Short = 2013
       val dbAmountInPounds = 39342
       val mpAmountInPounds = 6789234
-      val contribution = Contribution(PensionPeriod(taxYear, 0, 1), PensionPeriod(taxYear, 4, 31), Some(InputAmounts(dbAmountInPounds,mpAmountInPounds)))
+      val contribution = Contribution(PensionPeriod(taxYear, 1, 1), PensionPeriod(taxYear, 4, 31), Some(InputAmounts(dbAmountInPounds,mpAmountInPounds)))
 
       val chargableAmount : Long = 2468
       val exceedingAAAmount : Long = 13579

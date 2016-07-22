@@ -22,6 +22,7 @@ import org.scalatest._
 import org.scalatest.prop._
 import org.scalacheck.Gen
 
+/* Year2015Period1Calculator and Year2015Period2Calculator were test driven from GroupXCalculationsSpec */
 class Year2015Period1CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks {
   "Year 2015 Period 1 Calculator" should {
     "support defined benefits amounts for on 6 April but before 9th July 2015" in {
@@ -78,7 +79,7 @@ class Year2015Period1CalculatorSpec extends UnitSpec with GeneratorDrivenPropert
     }
 
     "return none for contributions other than 2015 period 1" in {
-      val invalidContributions = for (taxYear <- Gen.choose(Integer.MIN_VALUE, Integer.MAX_VALUE)) yield Contribution(taxYear, 5000)
+      val invalidContributions = for (taxYear <- Gen.choose(1, Integer.MAX_VALUE)) yield Contribution(taxYear, 5000)
 
       forAll(invalidContributions) { (contribution: Contribution) =>
         whenever (contribution.taxPeriodStart.year != 2015) {

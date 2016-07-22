@@ -25,7 +25,7 @@ import org.scalacheck.Gen
 class Year2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks {
   "Year2014Calculator" should {
     "not support calculations for tax years other than 2014" in {
-      val invalidContributions = for (taxYear <- Gen.choose(Integer.MIN_VALUE, Integer.MAX_VALUE)) yield Contribution(taxYear, 5000)
+      val invalidContributions = for (taxYear <- Gen.choose(1, Integer.MAX_VALUE)) yield Contribution(taxYear, 5000)
 
       forAll(invalidContributions) { (contribution: Contribution) =>
         whenever (contribution.taxPeriodStart.year != 2014) {
@@ -83,7 +83,7 @@ class Year2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks
     }
 
     "return none for contributions other than 2014 tax year" in {
-      val invalidContributions = for (taxYear <- Gen.choose(Integer.MIN_VALUE, Integer.MAX_VALUE)) yield Contribution(taxYear, 5000)
+      val invalidContributions = for (taxYear <- Gen.choose(1, Integer.MAX_VALUE)) yield Contribution(taxYear, 5000)
 
       forAll(invalidContributions) { (contribution: Contribution) =>
         whenever (contribution.taxPeriodStart.year != 2014) {

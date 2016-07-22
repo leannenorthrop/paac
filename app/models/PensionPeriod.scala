@@ -24,6 +24,7 @@ import play.api.libs.json._
   Simple date object representing a point in time within a pension period.
 */
 case class PensionPeriod(year: Int, month: Int, day: Int) {
+  require(year > 0 && month > 0 && month < 13 && day > 0 && day < 32)
   def <(that: PensionPeriod): Boolean = 
     if (year == that.year && month == that.month && day == that.day) 
       false 
