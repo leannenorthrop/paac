@@ -952,7 +952,7 @@ class ContributionSpec extends ModelSpec {
         // set up
         implicit val contribution = Contribution(2020, 123)
         implicit val previousPeriods = Seq[TaxYearResults]()
-        implicit val calculator: SummaryCalculator = new BasicAllowanceCalculator(123L, previousPeriods, contribution)
+        implicit val calculator: SummaryCalculator = BasicAllowanceCalculator(123L, previousPeriods, contribution)
 
         // test
         val tuple: SummaryResultsTuple = contribution

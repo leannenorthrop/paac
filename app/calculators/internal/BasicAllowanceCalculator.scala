@@ -19,7 +19,10 @@ package calculators.internal
 import models._
 import calculators.Utilities._
 
-class BasicAllowanceCalculator(annualAllowanceInPounds: Long, previousPeriods:Seq[TaxYearResults], contribution: Contribution) extends SummaryCalculator {
+trait SimpleAllowanceCalculator extends SummaryCalculator {
+  def annualAllowanceInPounds(): Long
+  def previousPeriods(): Seq[TaxYearResults]
+  def contribution(): Contribution
 
   def allowance(): Long = annualAllowanceInPounds
   
@@ -91,3 +94,5 @@ class BasicAllowanceCalculator(annualAllowanceInPounds: Long, previousPeriods:Se
     }
   }
 }
+
+case class BasicAllowanceCalculator(annualAllowanceInPounds: Long, previousPeriods:Seq[TaxYearResults], contribution: Contribution) extends SimpleAllowanceCalculator

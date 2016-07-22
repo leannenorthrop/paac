@@ -260,7 +260,7 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
       val previous = Seq[TaxYearResults](TaxYearResults(Contribution(PensionPeriod.EARLIEST_YEAR_SUPPORTED,500000L),starting))
       val result = Pre2014Calculator.summary(previous, contribution1).get
 
-      val actualUnused = calculators.Utilities.actualUnusedList(new BasicAllowanceCalculator(50000L, previous, contribution1))(previous, contribution1)
+      val actualUnused = calculators.Utilities.actualUnusedList(BasicAllowanceCalculator(50000L, previous, contribution1))(previous, contribution1)
       info(actualUnused.mkString(","))
 
       // check it

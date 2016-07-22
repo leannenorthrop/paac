@@ -69,7 +69,7 @@ protected class Period1Calculator(implicit allowanceInPounds: Long,
   protected lazy val _annualAllowance = if (!isTriggered) AA else if (defaultChargableAmount >= alternativeChargableAmount) AA else AAA
   override def annualAllowance(): Long = _annualAllowance
 
-  def basicCalculator(): SummaryCalculator = new BasicAllowanceCalculator(allowance, previousPeriods, contribution)
+  def basicCalculator(): SummaryCalculator = BasicAllowanceCalculator(allowance, previousPeriods, contribution)
 
   // Chargable Amount (tax due)
   protected lazy val _chargableAmount = if (!isTriggered) basicCalculator().chargableAmount else if (isMPAAApplicable) alternativeChargableAmount.max(defaultChargableAmount) else defaultChargableAmount

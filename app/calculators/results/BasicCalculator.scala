@@ -30,7 +30,7 @@ protected trait BasicCalculator extends AllowanceCalculator {
 
   def summary(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Option[Summary] = if (!contribution.isEmpty)
       if (isSupported(contribution) && contribution.definedBenefit >= 0) 
-        new BasicAllowanceCalculator(getAnnualAllowanceInPounds, previousPeriods, contribution).summary 
+        BasicAllowanceCalculator(getAnnualAllowanceInPounds, previousPeriods, contribution).summary 
       else None
     else None
 }
