@@ -697,7 +697,7 @@ class ContributionSpec extends ModelSpec {
         val c3 = c1 + c2
 
         // check
-        c3 shouldBe Contribution(PensionPeriod(2014,4,6),PensionPeriod(2015,4,5),Some(InputAmounts(579L,0L)))
+        c3 shouldBe Contribution(PensionPeriod(2014,4,6),PensionPeriod(2015,4,5),Some(InputAmounts(579L,0L,0L)))
       }
 
       "not fail if amounts not defined" in {
@@ -721,7 +721,7 @@ class ContributionSpec extends ModelSpec {
         val c3 = c1 + c2
 
         // check
-        c3 shouldBe Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(Some(456L), Some(123L))))
+        c3 shouldBe Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(Some(456L), Some(123L), Some(0L))))
       }
 
       "be added to another contribution summing defined benefit" in {
@@ -733,7 +733,7 @@ class ContributionSpec extends ModelSpec {
         val c3 = c1 + c2
 
         // check
-        c3 shouldBe Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(579L, 0L)))
+        c3 shouldBe Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(579L, 0L, 0L)))
       }
 
       "be added to another contribution summing defined contribution" in {
@@ -745,7 +745,19 @@ class ContributionSpec extends ModelSpec {
         val c3 = c1 + c2
 
         // check
-        c3 shouldBe Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(0L, 579L)))
+        c3 shouldBe Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(0L, 579L, 0L)))
+      }
+
+      "be added to another contribution summing income" in {
+        // set up
+        val c1 = Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(None, None, Some(123L))))
+        val c2 = Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(None, None, Some(456L))))
+
+        // test
+        val c3 = c1 + c2
+
+        // check
+        c3 shouldBe Contribution(PensionPeriod(2008, 2, 11), PensionPeriod(2008, 8, 12), Some(InputAmounts(0L, 0L, 579L)))
       }
 
       "is not added to another contribution when amounts is None" in {

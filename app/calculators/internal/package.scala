@@ -46,6 +46,18 @@ package object Utilities {
   def preTriggerFields(implicit previousPeriods:Seq[TaxYearResults]): Option[ExtendedSummaryFields] = notTriggered.flatMap(maybeExtended(_))
   def preTriggerInputs(implicit previousPeriods:Seq[TaxYearResults]): Option[Contribution] = notTriggered.map(_.input)
 
+  /**
+    Implicit cast function from Contribution to SummaryResultsTuple.
+    Used when calculating actual unused allowance.
+  */
+  implicit def convert(c: Contribution)(implicit calculator:calculators.internal.SummaryCalculator): SummaryResultsTuple = {
+    implicit val contribution = c
+    contribution match {
+      case _ if c.isPeriod1 || c.isPeriod2 => (2015, calculator.exceedingAllowance, calculator.unusedAllowance)
+      case _ => (contribution.taxPeriodStart.year, calculator.exceedingAllowance, calculator.unusedAllowance)
+    }
+  }
+  
   def deductPeriod1Exceeding(list: List[SummaryResultsTuple], sr: Summary): List[SummaryResultsTuple] = {
     // get pre 2015 results
     val pre2015Results = list.filter { case(year,_,_) => year < 2015 }.reverse
