@@ -18,6 +18,7 @@ package calculators.results
 
 import models._
 import calculators.AllowanceCalculator 
+import calculators.internal._ 
 
 /**
  Base trait for calculators that calculate results and create summary objects
@@ -29,7 +30,7 @@ protected trait BasicCalculator extends AllowanceCalculator {
 
   def summary(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Option[Summary] = if (!contribution.isEmpty)
       if (isSupported(contribution) && contribution.definedBenefit >= 0) 
-        new SummaryResultCalculator(getAnnualAllowanceInPounds, previousPeriods, contribution).summary 
+        new BasicAllowanceCalculator(getAnnualAllowanceInPounds, previousPeriods, contribution).summary 
       else None
     else None
 }

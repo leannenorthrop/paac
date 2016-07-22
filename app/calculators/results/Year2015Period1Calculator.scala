@@ -24,7 +24,7 @@ import calculators.internal._
 */
 object Year2015Period1Calculator extends ExtendedCalculator {
   protected def getAnnualAllowanceInPounds: Long = 80000L
-  protected def getCalculator(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): calculators.ExtendedSummaryCalculator = 
+  protected def getCalculator(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): ExtendedSummaryCalculator = 
     PeriodCalculator(getAnnualAllowanceInPounds)
   def isSupported(contribution:Contribution): Boolean = contribution.isPeriod1() && !contribution.isEmpty
 }

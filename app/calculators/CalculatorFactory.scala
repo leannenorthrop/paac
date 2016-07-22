@@ -28,37 +28,6 @@ trait AllowanceCalculator extends Calculator {
   def isSupported(contribution:Contribution):Boolean
 }
 
-trait SummaryCalculator {
-  def allowance(): Long
-  def definedBenefit(): Long 
-  def definedContribution(): Long
-  def annualAllowance(): Long
-  def exceedingAllowance(): Long
-  def unusedAllowance(): Long
-  def annualAllowanceCF(): Long
-  def annualAllowanceCCF(): Long
-  def chargableAmount(): Long
-}
-
-trait ExtendedSummaryCalculator extends SummaryCalculator {
-  def moneyPurchaseAA(): Long = 0L
-  def alternativeAA(): Long = 0L
-  def dbist(): Long = 0L
-  def mpist(): Long = 0L
-  def alternativeChargableAmount(): Long = 0L
-  def defaultChargableAmount(): Long = 0L
-  def cumulativeMP(): Long = 0L
-  def cumulativeDB(): Long = 0L
-  def exceedingMPAA(): Long = 0L
-  def exceedingAAA(): Long = 0L
-  def unusedAAA(): Long = 0L
-  def unusedMPAA(): Long = 0L
-  def preFlexiSavings(): Long = 0L
-  def postFlexiSavings(): Long = 0L
-  def isMPAAApplicable(): Boolean = false
-  def acaCF() : Long = 0L
-  def dcaCF() : Long = 0L
-}
 
 trait CalculatorFactory {
   protected val calculators : List[AllowanceCalculator]

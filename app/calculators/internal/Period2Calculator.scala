@@ -17,7 +17,6 @@
 package calculators.internal
 
 import models._
-import calculators.results.SummaryResultCalculator
 import calculators.internal.Utilities._
 import calculators.Utilities._
 
@@ -89,7 +88,7 @@ protected class Period2Calculator(implicit allowanceInPounds: Long,
   protected lazy val _annualAllowance = period1.unusedAllowance
   override def annualAllowance(): Long = _annualAllowance
 
-  def basicCalculator(): SummaryResultCalculator = new SummaryResultCalculator(allowance, previousPeriods, contribution)
+  def basicCalculator(): SummaryCalculator = new BasicAllowanceCalculator(allowance, previousPeriods, contribution)
 
   // Chargable Amount (tax due)
   protected lazy val _chargableAmount = {

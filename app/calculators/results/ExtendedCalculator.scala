@@ -18,10 +18,9 @@ package calculators.results
 
 import models._
 import calculators.internal._ 
-import calculators.AllowanceCalculator 
 
 protected trait ExtendedCalculator extends BasicCalculator {
-  protected def getCalculator(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): calculators.ExtendedSummaryCalculator
+  protected def getCalculator(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): ExtendedSummaryCalculator
   override def summary(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Option[Summary] = {
     if (isSupported(contribution)) {
       val calculator = getCalculator

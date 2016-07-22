@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package calculators.results
+package calculators.internal
 
 import uk.gov.hmrc.play.test.UnitSpec
 import play.api.Play

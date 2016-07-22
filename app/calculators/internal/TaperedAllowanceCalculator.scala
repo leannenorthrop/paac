@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package calculators.results
+package calculators.internal
 
 import calculators._
 import calculators.Utilities._
@@ -51,7 +51,7 @@ case class TaperedAllowanceCalculator(implicit previousPeriods:Seq[TaxYearResult
   override def unusedAllowance(): Long = _unusedAllowance
   override def unusedMPAA(): Long = _unusedMPAA
 
-  protected def basicCalculator(): SummaryResultCalculator = new SummaryResultCalculator((_annualAllowance/100D).toInt, previousPeriods, contribution)
+  protected def basicCalculator(): SummaryCalculator = new BasicAllowanceCalculator((_annualAllowance/100D).toInt, previousPeriods, contribution)
 
   protected def isTaperingApplicable(): Boolean = contribution.amounts.flatMap(_.income.map(_ > _taperStart)).getOrElse(false)
 

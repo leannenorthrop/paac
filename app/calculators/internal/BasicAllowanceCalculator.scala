@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package calculators.results
+package calculators.internal
 
 import models._
 import calculators.Utilities._
 
-class SummaryResultCalculator(annualAllowanceInPounds: Long, previousPeriods:Seq[TaxYearResults], contribution: Contribution) extends calculators.SummaryCalculator {
+class BasicAllowanceCalculator(annualAllowanceInPounds: Long, previousPeriods:Seq[TaxYearResults], contribution: Contribution) extends SummaryCalculator {
 
   def allowance(): Long = annualAllowanceInPounds
   

@@ -26,6 +26,7 @@ import org.scalatest.Matchers._
 import org.scalatest.OptionValues._
 import calculators.results._
 import calculators._
+import calculators.internal._
 
 class ContributionSpec extends ModelSpec {
   trait TaxPeriodFixture {
@@ -951,7 +952,7 @@ class ContributionSpec extends ModelSpec {
         // set up
         implicit val contribution = Contribution(2020, 123)
         implicit val previousPeriods = Seq[TaxYearResults]()
-        implicit val calculator: SummaryCalculator = new SummaryResultCalculator(123L, previousPeriods, contribution)
+        implicit val calculator: SummaryCalculator = new BasicAllowanceCalculator(123L, previousPeriods, contribution)
 
         // test
         val tuple: SummaryResultsTuple = contribution
@@ -966,7 +967,7 @@ class ContributionSpec extends ModelSpec {
         // set up
         implicit val contribution = Contribution(true, 789, 0)
         implicit val previousPeriods = Seq[TaxYearResults]()
-        implicit val calculator: calculators.SummaryCalculator = calculators.internal.PeriodCalculator(123L)
+        implicit val calculator: SummaryCalculator = PeriodCalculator(123L)
 
         // test
         val tuple: SummaryResultsTuple = contribution
@@ -981,7 +982,7 @@ class ContributionSpec extends ModelSpec {
         // set up
         implicit val contribution = Contribution(false, 245, 0)
         implicit val previousPeriods = Seq[TaxYearResults]()
-        implicit val calculator: calculators.SummaryCalculator = calculators.internal.PeriodCalculator(123L)
+        implicit val calculator: SummaryCalculator = PeriodCalculator(123L)
 
         // test
         val tuple: SummaryResultsTuple = contribution

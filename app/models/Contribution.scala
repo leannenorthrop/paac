@@ -256,7 +256,7 @@ object Contribution {
     Implicit cast function from Contribution to SummaryResultsTuple.
     Used when calculating actual unused allowance.
   */
-  implicit def convert(c: Contribution)(implicit calculator:calculators.SummaryCalculator): SummaryResultsTuple = {
+  implicit def convert(c: Contribution)(implicit calculator:calculators.internal.SummaryCalculator): SummaryResultsTuple = {
     implicit val contribution = c
     contribution match {
       case _ if c.isPeriod1 || c.isPeriod2 => (2015, calculator.exceedingAllowance, calculator.unusedAllowance)

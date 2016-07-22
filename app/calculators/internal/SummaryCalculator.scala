@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package calculators.results
+package calculators.internal
 
-import models._
-import calculators.internal._
-
-/**
-  Calculator for 2015, period 2 (from 9th July 2015 to April 2016)
-*/
-object Year2015Period2Calculator extends ExtendedCalculator {
-  protected def getAnnualAllowanceInPounds: Long = 0L
-  protected def getCalculator(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): ExtendedSummaryCalculator = 
-    PeriodCalculator(getAnnualAllowanceInPounds)
-  def isSupported(contribution:Contribution): Boolean = contribution.isPeriod2() && !contribution.isEmpty
+trait SummaryCalculator {
+  def allowance(): Long
+  def definedBenefit(): Long 
+  def definedContribution(): Long
+  def annualAllowance(): Long
+  def exceedingAllowance(): Long
+  def unusedAllowance(): Long
+  def annualAllowanceCF(): Long
+  def annualAllowanceCCF(): Long
+  def chargableAmount(): Long
 }

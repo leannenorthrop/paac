@@ -17,6 +17,7 @@
 package calculators
 
 import models._
+import calculators.internal._
 
 package object Utilities {
   type SizeConstraint = Int => Boolean
