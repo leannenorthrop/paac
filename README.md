@@ -170,3 +170,7 @@ Run using `sbt it:test`
 Run using `sbt test`
 
 Calculation tests are driven by text files containing a table of input and expected output values. If you find a new test case simply create a new file in the one of the `group1`, `group2`, or `group3` folders under `test\assets\calculators` with the appropriate format and it will be executed on the next `sbt test` run.
+
+### Turning on Full Stack Traces
+
+Turn on full stacktrace in sbt console using `set testOptions in "paac" += Tests.Argument("-oF")`
