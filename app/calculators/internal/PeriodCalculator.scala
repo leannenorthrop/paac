@@ -37,7 +37,7 @@ object PeriodCalculator {
   def apply(allowanceInPounds: Long)(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): PeriodCalculator = {
     implicit val annualAllowanceInPounds = allowanceInPounds
     contribution match {
-      case c if c.isPeriod1 => new Period1Calculator
+      case c if c.isPeriod1 => Period1Calculator()
       case _ => new Period2Calculator
     }
   }
