@@ -21,7 +21,7 @@ import models._
 import calculators.internal.Utilities._
 import calculators.results._
 
-class PeriodCalculatorSpec extends UnitSpec {
+class UtilitiesSpec extends UnitSpec {
   trait TestFixture {
     implicit var contribution = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, Some(true))))
     implicit var previousPeriods = List[TaxYearResults]()
@@ -72,6 +72,19 @@ class PeriodCalculatorSpec extends UnitSpec {
         val c = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, Some(true))))
         val tr = TaxYearResults(c,SummaryResult())
         isTaxResultTriggered(tr) shouldBe true
+      }
+    }
+
+    "maybeExtended" should {
+      "return None when results does not contain extended result" in {
+        // set up
+        val tyr = TaxYearResults(Contribution(2019,0), SummaryResult())
+
+        // test
+        val result = maybeExtended(tyr)
+
+        // check
+        result shouldBe None
       }
     }
   }

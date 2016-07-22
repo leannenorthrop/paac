@@ -39,6 +39,42 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
     } finally Play.stop()
   }
 
+  "ExtendedSummaryCalculator trait" should {
+    "return 0 for all fields" in {
+      // set up
+      val calc = new ExtendedSummaryCalculator() {
+          def allowance(): Long = 0L
+          def definedBenefit(): Long  = 0L
+          def definedContribution(): Long = 0L
+          def annualAllowance(): Long = 0L
+          def exceedingAllowance(): Long = 0L
+          def unusedAllowance(): Long = 0L
+          def annualAllowanceCF(): Long = 0L
+          def annualAllowanceCCF(): Long = 0L
+          def chargableAmount(): Long = 0L
+      }
+
+      // check
+      calc.moneyPurchaseAA shouldBe 0L
+      calc.alternativeAA shouldBe 0L
+      calc.dbist shouldBe 0L
+      calc.mpist shouldBe 0L
+      calc.alternativeChargableAmount shouldBe 0L
+      calc.defaultChargableAmount shouldBe 0L
+      calc.cumulativeMP shouldBe 0L
+      calc.cumulativeDB shouldBe 0L
+      calc.exceedingMPAA shouldBe 0L
+      calc.exceedingAAA shouldBe 0L
+      calc.unusedAAA shouldBe 0L
+      calc.unusedMPAA shouldBe 0L
+      calc.preFlexiSavings shouldBe 0L
+      calc.postFlexiSavings shouldBe 0L
+      calc.isMPAAApplicable shouldBe false
+      calc.acaCF shouldBe 0L
+      calc.dcaCF shouldBe 0L
+    }
+  } 
+
   "definedBenefit" should {
     "if not triggered return sum of db and dc" in {
       // set up

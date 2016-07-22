@@ -37,10 +37,9 @@ object Calculator extends CalculatorFactory {
   
   def apply(contribution:Contribution): Calculator = {
     get(contribution).getOrElse {
-      new FactoryCalculator() {
+      new Calculator() {
         def summary(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution): Option[Summary] = None
         def allowance(contribution:Contribution): Long = 0L
-        def isSupported(contribution:Contribution):Boolean = false
       }
     }
   }

@@ -31,7 +31,6 @@ package object Utilities {
   def every[A](predicates: (A => Boolean)*) = none(predicates.view.map(complement(_)): _*)
 
   val yearConstraint: SizeConstraint => ResultsFilter = constraint => taxYearResult => constraint(taxYearResult.input.taxPeriodStart.taxYear)
-  val afterYear: Int => ResultsFilter = year => yearConstraint(_ >= year)
   val beforeYear: Int => ResultsFilter = year => yearConstraint(_ <= year)
   val isYear: Int => ResultsFilter = year => yearConstraint(_ == year)
 
@@ -156,7 +155,7 @@ package object Utilities {
       values.foldLeft(List[SummaryResultsTuple]()) {
         (lst,tuple)=>
         tuple match {
-          case (_,execeeding,_) if execeeding < 0 => tuple :: lst
+          case (_,execeeding,_) if execeeding <= 0 => tuple :: lst
           case (_,execeeding,_) => {
             // Re-calculate unused allowances 
             // deducting the exceeding from 3rd year ago, then 2nd year ago, then a year ago as appropriate

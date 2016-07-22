@@ -263,22 +263,17 @@ protected trait Year2015Period2Calculator extends PeriodCalculator {
       0L 
     else if (isPeriod1Triggered)
       if (alternativeChargableAmount > defaultChargableAmount)
-        period1.unusedAllowance - contribution.definedBenefit
+        (period1.unusedAllowance - contribution.definedBenefit).max(0L)
       else
-        period1.unusedAllowance - (contribution.definedBenefit + contribution.moneyPurchase)
+        (period1.unusedAllowance - (contribution.definedBenefit + contribution.moneyPurchase)).max(0L)
     else
       previousPeriods.headOption.map(_.input).map {
         (previousSavings) =>
         if (alternativeChargableAmount > defaultChargableAmount)
-          period1.unusedAllowance - (previousSavings.definedBenefit + previousSavings.moneyPurchase) 
+          (period1.unusedAllowance - (previousSavings.definedBenefit + previousSavings.moneyPurchase) ).max(0L)
         else
-          period1.unusedAllowance - (previousSavings.definedBenefit + previousSavings.moneyPurchase + contribution.moneyPurchase)
-      }.getOrElse {
-        if (alternativeChargableAmount > defaultChargableAmount)
-          period1.unusedAllowance
-        else
-          period1.unusedAllowance - contribution.moneyPurchase
-      }
+          (period1.unusedAllowance - (previousSavings.definedBenefit + previousSavings.moneyPurchase + contribution.moneyPurchase)).max(0L)
+      }.getOrElse(0L)
 
   protected lazy val _unusedAllowance =
     if (isTriggered)
