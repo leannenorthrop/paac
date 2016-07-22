@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package calculators.periods
+package calculators.internal
 
 import models._
 import calculators.ExtendedSummaryCalculator
 import calculators.results.SummaryResultCalculator
-import calculators.periods.Utilities._
+import calculators.internal.Utilities._
 import calculators.Utilities._
 
 trait PeriodCalculator extends ExtendedSummaryCalculator {

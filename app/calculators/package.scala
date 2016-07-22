@@ -127,7 +127,7 @@ package object Utilities {
   * taking into consideration 2015 periods 1 and 2
   */
   protected val extractorFn: SummaryCalculator => ToTupleFn = calc => (p,c) => {
-    import calculators.periods.Utilities._
+    import calculators.internal.Utilities._
     implicit val previousPeriods = p
     implicit val contribution = c
     implicit val calculator = calc

@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package calculators.periods
+package calculators.internal
 
 import uk.gov.hmrc.play.test.UnitSpec
 import models._
-import calculators.periods.Utilities._
+import calculators.internal.Utilities._
 import calculators.Utilities._
 import calculators.results._
 

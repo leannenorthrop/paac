@@ -966,7 +966,7 @@ class ContributionSpec extends ModelSpec {
         // set up
         implicit val contribution = Contribution(true, 789, 0)
         implicit val previousPeriods = Seq[TaxYearResults]()
-        implicit val calculator: calculators.SummaryCalculator = calculators.periods.PeriodCalculator(123L)
+        implicit val calculator: calculators.SummaryCalculator = calculators.internal.PeriodCalculator(123L)
 
         // test
         val tuple: SummaryResultsTuple = contribution
@@ -981,7 +981,7 @@ class ContributionSpec extends ModelSpec {
         // set up
         implicit val contribution = Contribution(false, 245, 0)
         implicit val previousPeriods = Seq[TaxYearResults]()
-        implicit val calculator: calculators.SummaryCalculator = calculators.periods.PeriodCalculator(123L)
+        implicit val calculator: calculators.SummaryCalculator = calculators.internal.PeriodCalculator(123L)
 
         // test
         val tuple: SummaryResultsTuple = contribution

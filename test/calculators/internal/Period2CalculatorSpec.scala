@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package calculators.periods
+package calculators.internal
 
 import uk.gov.hmrc.play.test.UnitSpec
 import models._

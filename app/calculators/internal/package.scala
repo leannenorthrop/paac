@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package calculators.periods
+package calculators.internal
 
 import models._
 import calculators.Utilities._

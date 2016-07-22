@@ -17,7 +17,7 @@
 package calculators.results
 
 import models._
-import calculators.periods._ 
+import calculators.internal._ 
 import calculators.AllowanceCalculator 
 
 protected trait ExtendedCalculator extends BasicCalculator {

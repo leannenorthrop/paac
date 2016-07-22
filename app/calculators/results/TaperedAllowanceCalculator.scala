@@ -18,7 +18,7 @@ package calculators.results
 
 import calculators._
 import calculators.Utilities._
-import calculators.periods.Utilities._
+import calculators.internal.Utilities._
 import models._
 import config.PaacConfiguration
 

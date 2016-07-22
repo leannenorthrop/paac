@@ -17,8 +17,7 @@
 package calculators.results
 
 import models._
-import calculators.periods._ 
-import calculators.AllowanceCalculator 
+import calculators.internal._
 
 /**
   Calculator for 2015, period 1 (up to 8th July 2015)
