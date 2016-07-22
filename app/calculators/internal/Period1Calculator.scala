@@ -197,9 +197,9 @@ trait Year2015Period1Calculator extends PeriodCalculator {
 
   // Unused Money Purchase Annual Allowance
   protected lazy val _unusedMPAA = if (isTriggered && !isMPAAApplicable) 
-                                     if ((MPA - definedContribution) > P2MPA) P2MPA 
-                                     else MPA - definedContribution 
-                                   else 0L
+                                     (MPA - definedContribution).min(P2MPA)
+                                   else 
+                                    0L
   override def unusedMPAA(): Long = _unusedMPAA
 }
 
