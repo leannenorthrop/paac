@@ -31,7 +31,7 @@ class CalculatorSpec extends UnitSpec {
       val result = Calculator(contribution)
 
       // check
-      result.allowance shouldBe 0L
+      result.allowance(contribution) shouldBe 0L
       result.summary(Seq[TaxYearResults](), contribution) shouldBe None
     }
 

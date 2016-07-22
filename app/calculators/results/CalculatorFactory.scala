@@ -19,7 +19,7 @@ package calculators.results
 import models._
 
 trait Calculator {
-  def allowance(): Long
+  def allowance(contribution:Contribution): Long
   def summary(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution): Option[Summary]
 }
 
@@ -39,7 +39,7 @@ object Calculator extends CalculatorFactory {
     get(contribution).getOrElse {
       new FactoryCalculator() {
         def summary(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution): Option[Summary] = None
-        def allowance(): Long = 0L
+        def allowance(contribution:Contribution): Long = 0L
         def isSupported(contribution:Contribution):Boolean = false
       }
     }

@@ -159,13 +159,24 @@ object Contribution {
   /**
     Returns 'annual' available allowance for period 1 if given true, and period 2 if given false
   */
-  def periodAllowance(isP1:Boolean):Long = calculators.results.Calculator(Contribution(isP1, 0, 0)).allowance
+  def periodAllowance(isP1:Boolean):Long = {
+    val c = Contribution(isP1, 0, 0)
+    calculators.results.Calculator(c).allowance(c)
+  }
 
   /**
     Returns annual available allowance for given year.
     For 2015 use 20151 for period 1 and 20152 for period 2.
   */
-  def allowance(year:Int):Long = if (year == 20151) periodAllowance(true) else if (year == 20152) periodAllowance(false) else calculators.results.Calculator(Contribution(year,0L)).allowance
+  def allowance(year:Int):Long = 
+    if (year == 20151) 
+      periodAllowance(true) 
+    else if (year == 20152) 
+      periodAllowance(false) 
+    else {
+      val c = Contribution(year,0L)
+      calculators.results.Calculator(c).allowance(c)
+    }
 
   /**
     Helper function to sort pension contributions by pension period start date, considering periods 1 and 2 for 2015.
