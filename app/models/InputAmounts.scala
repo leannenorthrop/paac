@@ -20,6 +20,13 @@ import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json._
 
+trait PensionCalculatorValue {
+  def isEmpty(): Boolean
+  def definedBenefit():  Option[Long]
+  def moneyPurchase():  Option[Long]
+  def income(): Option[Long]
+}
+
 /**
   Calculator inputs for a single year
  */
@@ -45,7 +52,7 @@ object InputAmounts {
     (JsPath \ "income").readNullable[Long](min(0L)) and
     (JsPath \ "triggered").readNullable[Boolean]
   )(InputAmounts.apply(_: Option[Long], _: Option[Long], _: Option[Long], _: Option[Boolean]))
-
+  
   /**
     Simplified apply function
   */

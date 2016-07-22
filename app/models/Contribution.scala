@@ -20,13 +20,6 @@ import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json._
 
-trait PensionCalculatorValue {
-  def isEmpty(): Boolean
-  def definedBenefit():  Option[Long]
-  def moneyPurchase():  Option[Long]
-  def income(): Option[Long]
-}
-
 /**
   Contribution representing pension savings for a single pension period.
 */

@@ -58,6 +58,22 @@ package object Utilities {
     }
   }
   
+  /**
+    Implicit cast function from TaxYearResults to SummaryResultsTuple.
+    Used when calculating actual unused allowance.
+  */
+  implicit def convert(result: TaxYearResults): SummaryResultsTuple = {
+    result match {
+      case TaxYearResults(input, summary) => (result.input.taxPeriodStart.year, summary.exceedingAAAmount, summary.unusedAllowance)
+    }
+  }
+
+  /**
+    Implicit cast function from sequence of TaxYearResults to list of SummaryResultsTuple.
+    Used when calculating acutal unused allowance.
+  */
+  implicit def convert(p:Seq[TaxYearResults]): List[SummaryResultsTuple] = p map { a => a: SummaryResultsTuple } toList
+  
   def deductPeriod1Exceeding(list: List[SummaryResultsTuple], sr: Summary): List[SummaryResultsTuple] = {
     // get pre 2015 results
     val pre2015Results = list.filter { case(year,_,_) => year < 2015 }.reverse
@@ -181,7 +197,7 @@ package object Utilities {
             }.getOrElse(List[SummaryResultsTuple](entry._2: _*))
           }.getOrElse(List[SummaryResultsTuple](entry._2: _*))
         }
-        case "2015" => entry._2.find(_.input.isPeriod2).map(TaxYearResults.convert(_)).toList
+        case "2015" => entry._2.find(_.input.isPeriod2).map(convert(_)).toList
         case _ => List[SummaryResultsTuple](entry._2: _*)
       }
     }.flatten.toList.sortBy(_._1) ++ List[SummaryResultsTuple](contribution)

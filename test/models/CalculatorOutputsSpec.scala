@@ -23,7 +23,7 @@ import play.api.libs.json._
 import org.scalatest._
 import org.scalatest.Matchers._
 
-class PensionResultSpec extends ModelSpec {
+class CalculatorOutputsSpec extends ModelSpec {
   "SummaryResult" can {
     "have default value of 0 for all fields" in {
       // do it

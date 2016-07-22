@@ -28,7 +28,7 @@ import calculators.results._
 import calculators._
 import calculators.internal._
 
-class ContributionSpec extends ModelSpec {
+class CalculatorInputsSpec extends ModelSpec {
   trait TaxPeriodFixture {
     val year : Int = 2016
     val month : Int = 7

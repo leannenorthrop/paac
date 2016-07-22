@@ -24,29 +24,46 @@ import play.api.libs.json._
   Simple date object representing a point in time within a pension period.
 */
 case class PensionPeriod(year: Int, month: Int, day: Int) {
-  def <(that: PensionPeriod): Boolean = if (year == that.year && month == that.month && day == that.day) false else 
-                                    year < that.year || (year == that.year && month < that.month) || (year == that.year && month == that.month && day < that.day) 
-  def >(that: PensionPeriod): Boolean = if (year == that.year && month == that.month && day == that.day) false else 
-                                    year > that.year || (year == that.year && month > that.month) || (year == that.year && month == that.month && day > that.day) 
-  def <=(that: PensionPeriod): Boolean = if (year == that.year && month == that.month && day == that.day) true else this < that
-  def >=(that: PensionPeriod): Boolean = if (year == that.year && month == that.month && day == that.day) true else this > that
-  def isPeriod(s:PensionPeriod, e:PensionPeriod):Boolean = {
+  def <(that: PensionPeriod): Boolean = 
+    if (year == that.year && month == that.month && day == that.day) 
+      false 
+    else 
+      year < that.year || (year == that.year && month < that.month) || (year == that.year && month == that.month && day < that.day) 
+
+  def >(that: PensionPeriod): Boolean = 
+    if (year == that.year && month == that.month && day == that.day) 
+      false 
+    else 
+      year > that.year || (year == that.year && month > that.month) || (year == that.year && month == that.month && day > that.day) 
+
+  def <=(that: PensionPeriod): Boolean = 
+    if (year == that.year && month == that.month && day == that.day) 
+      true 
+    else 
+      this < that
+
+  def >=(that: PensionPeriod): Boolean = 
+    if (year == that.year && month == that.month && day == that.day) 
+      true 
+    else 
+      this > that
+
+  def isPeriod(s:PensionPeriod, e:PensionPeriod):Boolean =
     (this >= s) && (this <= e)
-  }
 
-  def isPeriod1(): Boolean = {
+  def isPeriod1(): Boolean =
     isPeriod(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END)
-  }
 
-  def isPeriod2(): Boolean = {
+  def isPeriod2(): Boolean =
     isPeriod(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END)
-  }
 
-  def taxYear(): Int = {
-    if (this < PensionPeriod(year, 4, 6) && this > PensionPeriod(year-1, 4, 6)) year-1
-    else if (this > PensionPeriod(year, 4, 6) && this < PensionPeriod(year+1, 4, 6)) year
-    else year
-  }
+  def taxYear(): Int =
+    if (this < PensionPeriod(year, 4, 6) && this > PensionPeriod(year-1, 4, 6)) 
+      year-1
+    else if (this > PensionPeriod(year, 4, 6) && this < PensionPeriod(year+1, 4, 6)) 
+      year
+    else 
+      year
 }
 
 object PensionPeriod {
