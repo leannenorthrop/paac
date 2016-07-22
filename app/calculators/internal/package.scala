@@ -89,7 +89,11 @@ package object Utilities {
     before ++ newAfter ++ list.filter { case(year,_,_) => year > 2014 }
   }
 
-  def maybeExtended(t: TaxYearResults): Option[ExtendedSummaryFields] = if (t.summaryResult.isInstanceOf[ExtendedSummaryFields]) Some(t.summaryResult.asInstanceOf[ExtendedSummaryFields]) else None
+  def maybeExtended(t: TaxYearResults): Option[ExtendedSummaryFields] = 
+    t.summaryResult match {
+      case r @ ExtendedSummaryFields(_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_) => Some(r)
+      case _ => None
+    }
   
   /**
   * Use allowances by building new list of 4 years of unused allowances (current year + previous 3 years) for the current year
