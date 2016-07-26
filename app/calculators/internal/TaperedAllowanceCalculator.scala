@@ -52,11 +52,16 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
   override def unusedAllowance(): Long = _unusedAllowance
   override def unusedMPAA(): Long = _unusedMPAA
 
+  protected val income = 
+    if (isTriggered) 
+      previousPeriods.headOption.map(_.input.income).getOrElse(0L)
+    else
+      contribution.income
+
   protected def basicCalculator(): SummaryCalculator = 
     BasicAllowanceCalculator((_annualAllowance/100D).toInt, previousPeriods, contribution)
 
-  protected def isTaperingApplicable(): Boolean = 
-    contribution.amounts.flatMap(_.income.map(_ > _taperStart)).getOrElse(false)
+  protected def isTaperingApplicable(): Boolean = income > _taperStart
 
   protected def isTriggered(): Boolean = contribution.isTriggered
 
@@ -75,13 +80,13 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
     actualUnusedList(calc)(previousPeriods, c).drop(1).slice(0,3).foldLeft(0L)(_+_._2)
   }
 
-  protected lazy val _acaCF = 0L
+  protected lazy val _acaCF = alternativeChargableAmount + previousYear.flatMap(maybeExtended(_).map(_.acaCF)).getOrElse(0L)
 
-  protected lazy val _dcaCF = 0L
+  protected lazy val _dcaCF = defaultChargableAmount + previousYear.flatMap(maybeExtended(_).map(_.dcaCF)).getOrElse(0L)
 
   protected lazy val _postFlexiSavings = 
     if (isTriggered) 
-      definedContribution + definedBenefit 
+      definedContribution + contribution.definedBenefit 
     else 
       0L
 
@@ -107,31 +112,31 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
     else
       (postFlexiSavings - (annualAllowance + previous3YearsUnusedAllowance)).max(0L)
 
-  protected lazy val _annualAllowanceCCF = 0L
+  protected lazy val _annualAllowanceCCF = 
+    if (alternativeChargableAmount >= defaultChargableAmount) 
+      actualUnused.slice(0,3).foldLeft(0L)(_+_._2) 
+    else 
+      0L
 
-  protected lazy val _annualAllowanceCF = 0L
+  protected lazy val _annualAllowanceCF = annualAllowance + previousYear.map(_.summaryResult.availableAAWithCCF).getOrElse(0L)
 
   protected lazy val _unusedAllowance = 
-    if (isMPAAApplicable)
-      0L
-    else if (isTriggered) { 
-       val savings = if (defaultChargableAmount >= alternativeChargableAmount) 
-                       preFlexiSavings + definedContribution
-                     else 
-                       preFlexiSavings
-       if (savings > annualAllowance) 
-         0L 
-       else 
-         annualAllowance - savings
-     }.max(0)
+    if (isTriggered)
+      if (defaultChargableAmount >= alternativeChargableAmount)
+        (annualAllowance - (preFlexiSavings + definedContribution)).max(0L)
+      else
+        unusedAAA
     else
       basicCalculator.unusedAllowance
 
-
-  protected lazy val _exceedingAllowance = 0L
+  protected lazy val _exceedingAllowance = 
+    if (alternativeChargableAmount >= defaultChargableAmount)
+      ((preFlexiSavings + definedContribution) - annualAllowance).max(0L) 
+    else 
+      0L
 
   // taper automatically applied as part of annualAllowance calculation
-  protected lazy val _alternativeAA = (annualAllowance - moneyPurchaseAA).max(0L)
+  protected lazy val _alternativeAA = if (isMPAAApplicable) (annualAllowance - moneyPurchaseAA).max(0L) else 0L
 
   protected lazy val _definedBenefit = 
     if (isTriggered) 
@@ -143,22 +148,19 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
 
   protected lazy val _chargableAmount = 
     if (!isTriggered) basicCalculator.chargableAmount 
-    else if (isMPAAApplicable) alternativeChargableAmount.max(defaultChargableAmount) 
+    else if (isMPAAApplicable) alternativeChargableAmount.max(defaultChargableAmount)
     else defaultChargableAmount
 
   protected lazy val _taperedAllowance = 
     if (isTaperingApplicable) 
-      contribution.amounts.flatMap(_.income.map {
-        (ai)=>
-        ai match {
-          case income if income > _taperStart && income < _taperEnd => {
-            val reduction = Math.floor(((ai - _taperStart)/100L)/2D)*100L
-            (_annualAllowance - reduction).toLong
-          }
-          case income if income > _taperEnd => _taa
-          case _ => _annualAllowance
+      income match {
+        case i if i > _taperStart && i < _taperEnd => {
+          val reduction = Math.floor(((i - _taperStart)/100L)/2D)*100L
+          (_annualAllowance - reduction).toLong
         }
-      }).getOrElse(_annualAllowance)
+        case i if i > _taperEnd => _taa
+        case _ => _annualAllowance
+      }
     else _annualAllowance
 
   protected lazy val isGroup1: Boolean = contribution.amounts.isDefined && 
@@ -180,12 +182,12 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
     else 
       0L
 
-  protected lazy val _isMPAAApplicable = definedContribution > moneyPurchaseAA
+  protected lazy val _isMPAAApplicable = isTriggered && definedContribution > moneyPurchaseAA
 
   protected lazy val _mpa = config.get("mpaa").getOrElse(10000) * 100L
 
-  protected lazy val _preTriggerSavings = 
-    preTriggerInputs(previousPeriods).map((c)=>c.definedBenefit+c.moneyPurchase).getOrElse(0L)
+  protected lazy val _preTriggerSavings =
+    previousPeriods.find((r)=>r.input.taxPeriodStart.taxYear == contribution.taxPeriodStart.taxYear && !r.input.isTriggered).map((r)=>r.input.definedBenefit+r.input.moneyPurchase).getOrElse(0L)
 
   protected lazy val _unusedMPAA = 
     if (isTriggered && !isMPAAApplicable) 
@@ -194,7 +196,7 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
       0L  
 
   protected lazy val _unusedAAA = 
-    if (isMPAAApplicable && isTriggered) 
+    if (isMPAAApplicable)
       (alternativeAA - definedBenefit).max(0) 
     else 
       0L
@@ -203,21 +205,14 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
     previousYear.map(_.summaryResult.availableAAWithCCF).getOrElse(0L)
 
   protected lazy val _dbist =
-    if (isTriggered)
-      (
-        definedBenefit-
-        (preTriggerFields(previousPeriods).map(_.unusedAAA).getOrElse(0L) + 
-         _previousAvailableAAWithCCF)
-      ).max(0)
+    if (isMPAAApplicable)
+      (definedBenefit - (alternativeAA + _previousAvailableAAWithCCF)).max(0)
     else
       (preFlexiSavings - _previousAvailableAAWithCCF).max(0)
 
   protected lazy val _mpist = 
-    if (isTriggered) 
-      if (isMPAAApplicable) 
-        (definedContribution - moneyPurchaseAA).max(0) 
-      else 
-        0L
+    if (isMPAAApplicable) 
+      (definedContribution - moneyPurchaseAA).max(0) 
     else 
       0L
 
