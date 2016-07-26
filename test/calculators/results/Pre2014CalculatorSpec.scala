@@ -110,7 +110,7 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
     }
 
     s"return none for contributions prior to $PensionPeriod.EARLIEST_YEAR_SUPPORTED" in {
-      val invalidContributions = for (taxYear <- Gen.choose(Integer.MIN_VALUE, 2005)) yield Contribution(taxYear, 5000)
+      val invalidContributions = for (taxYear <- Gen.choose(1, 2005)) yield Contribution(taxYear, 5000)
 
       forAll(invalidContributions) { (contribution: Contribution) =>
         whenever (contribution.taxPeriodStart.year < PensionPeriod.EARLIEST_YEAR_SUPPORTED) {

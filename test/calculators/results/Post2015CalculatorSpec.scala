@@ -24,6 +24,7 @@ import models._
 import org.scalatest._
 import org.scalatest.prop._
 import org.scalacheck.Gen
+import calculators.internal.Post2015TaperedAllowanceCalculator
 
 class Post2015CalculatorSpec extends UnitSpec with BeforeAndAfterAll {
   val app = FakeApplication()
@@ -86,18 +87,6 @@ class Post2015CalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       }
     }
 
-    "return all 0 values in results" in {
-      // set up
-      val contribution = Contribution(2016, 0)
-
-      // test
-      val result = Post2015Calculator.summary(Seq[TaxYearResults](), contribution)
-      
-      // check
-      result should not be None
-      result.get shouldBe ExtendedSummaryFields(0,0,4000000,0,0,0,0,0,1000000,3000000,0,0,0,0,0,0,0,0,0,0,false,0,0)
-    }
-
     "annual allowance" should {
       "return 0 for allowance in pounds without a contribution" in {
         // set up
@@ -121,6 +110,12 @@ class Post2015CalculatorSpec extends UnitSpec with BeforeAndAfterAll {
 
         // check
         result shouldBe 4000000L
+      }
+    }
+
+    "calculate summary result" should {
+      "return non-empty summary" in {
+        Post2015Calculator.summary(Seq[TaxYearResults](),Contribution(2016,0)).get.availableAllowance shouldBe 4000000L
       }
     }
   }

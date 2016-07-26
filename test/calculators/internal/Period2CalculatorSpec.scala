@@ -312,4 +312,24 @@ class Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
         result shouldBe 0L
       }
     }
+
+    "Alternative Chargable Amount" should {
+      "return dc - p2mpa when mpa applicable but not applied in period 1" in {
+        // set up
+        val calc = new Year2015Period2Calculator() {
+          def allowanceInPounds(): Long = 0L
+          def previousPeriods(): Seq[TaxYearResults] = Seq[TaxYearResults]()
+          def contribution(): Contribution = Contribution(false, 123L, 1200000L)
+          override protected lazy val isGroup3: Boolean = false
+          override protected lazy val isPeriod1Triggered: Boolean = false
+          override def isMPAAApplicable(): Boolean = true
+        }
+
+        // test
+        val result = calc.alternativeChargableAmount()
+        
+        // check
+        result shouldBe 200000L
+      }
+    }
 }

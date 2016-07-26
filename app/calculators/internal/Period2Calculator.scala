@@ -68,7 +68,7 @@ protected trait Year2015Period2Calculator extends PeriodCalculator {
 
   // Alternative Chargable Amount
   protected lazy val _alternativeChargableAmount =
-    if (isGroup3 && (isMPAAApplicable || (isPeriod1Triggered && period1.isMPA))) 
+    if (isGroup3 && (isMPAAApplicable || period1.isMPA))
       (mpist + dbist).max(0) 
     else if (isGroup2)
       if (isMPAAApplicable)

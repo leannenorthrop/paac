@@ -185,14 +185,19 @@ package object Utilities {
     implicit val contribution = c
     implicit val calculator = calc
     
-    groupedPreTriggerExcluded(p).map {
+    val toConvert = if (c.isTriggered && !p.headOption.map(_.input.isTriggered).getOrElse(false))
+        groupedPreTriggerExcluded(p.drop(1))
+      else 
+        groupedPreTriggerExcluded(p)
+
+    toConvert.map {
       (entry) =>
       entry._1 match {
         case "<2015" => {
           // because we drop 2015 period 1 we need to 
           // deduct any period 1 exceeding amounts from the pre-2015 list
           // if it exists
-          groupedPreTriggerExcluded(p).get("2015").map {
+          toConvert.get("2015").map {
             (year2015)=>
             year2015.find((c) => c.input.isPeriod1 && c.summaryResult.exceedingAAAmount > 0).map {
               (period1) =>
