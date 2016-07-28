@@ -29,6 +29,7 @@ object ControllerConfiguration extends ControllerConfig {
   lazy val controllerConfigs = Play.current.configuration.underlying.as[Config]("controllers")
 }
 
+// scalastyle:off
 object MicroserviceAuditFilter extends AuditFilter with AppName {
   override val auditConnector = MicroserviceAuditConnector
   override def controllerNeedsAuditing(controllerName: String) = ControllerConfiguration.paramsForController(controllerName).needsAuditing
@@ -37,6 +38,7 @@ object MicroserviceAuditFilter extends AuditFilter with AppName {
 object MicroserviceLoggingFilter extends LoggingFilter {
   override def controllerNeedsLogging(controllerName: String) = ControllerConfiguration.paramsForController(controllerName).needsLogging
 }
+// scalastyle:on
 
 object MicroserviceGlobal extends DefaultMicroserviceGlobal with RunMode {
   override val auditConnector = MicroserviceAuditConnector
@@ -52,9 +54,9 @@ object MicroserviceGlobal extends DefaultMicroserviceGlobal with RunMode {
 
 object PaacConfiguration {
   lazy val config:Option[Configuration] = Play.current.configuration.getConfig("microservice.paac")
-  
+
   def forYear(year: Int): Map[String,Int] = {
-    config.map { 
+    config.map {
       (m) =>
       m.getConfig(s"year_${year}").map {
         (subConfig) =>

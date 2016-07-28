@@ -18,17 +18,18 @@ package calculators.internal
 
 import models._
 
-package object Utilities {
+// scalastyle:off magic.number
+package object utilities {
   type SizeConstraint = Int => Boolean
   type ResultsFilter = TaxYearResults => Boolean
   type ToTupleFn = (Seq[TaxYearResults], Contribution) => List[SummaryResultsTuple]
   type SummaryResultsTuple = (Int, Long, Long)
   type YearActualUnusedPair = (Int,Long)
 
-  def complement[A](predicate: A => Boolean) = (a: A) => !predicate(a)
+  def complement[A](predicate: A => Boolean): A => Boolean  = (a: A) => !predicate(a)
   def any[A](predicates: (A => Boolean)*): A => Boolean = a => predicates.exists(pred => pred(a))
-  def none[A](predicates: (A => Boolean)*) = complement(any(predicates: _*))
-  def every[A](predicates: (A => Boolean)*) = none(predicates.view.map(complement(_)): _*)
+  def none[A](predicates: (A => Boolean)*): A => Boolean  = complement(any(predicates: _*))
+  def every[A](predicates: (A => Boolean)*): A => Boolean  = none(predicates.view.map(complement(_)): _*)
 
   val yearConstraint: SizeConstraint => ResultsFilter = constraint => taxYearResult => constraint(taxYearResult.input.taxPeriodStart.taxYear)
   val beforeYear: Int => ResultsFilter = year => yearConstraint(_ <= year)
@@ -36,7 +37,7 @@ package object Utilities {
 
   def isTriggered(implicit contribution: Contribution): Boolean = contribution.isTriggered
   def isTriggered(taxYearResult: TaxYearResults): Boolean = isTriggered(taxYearResult.input)
-  def isPeriod1(taxYearResult: TaxYearResults): Boolean = taxYearResult.input.isPeriod1 
+  def isPeriod1(taxYearResult: TaxYearResults): Boolean = taxYearResult.input.isPeriod1
   def isPeriod2(taxYearResult: TaxYearResults): Boolean = taxYearResult.input.isPeriod2
   def isBefore2015(taxYearResult: TaxYearResults): Boolean = every(complement(any(isPeriod1,isPeriod2)), beforeYear(2015))(taxYearResult)
   def isTaxResultNotTriggered(tx: TaxYearResults): Boolean = complement(isTaxResultTriggered)(tx)
@@ -56,7 +57,7 @@ package object Utilities {
       case _ => (contribution.taxPeriodStart.year, calculator.exceedingAllowance, calculator.unusedAllowance)
     }
   }
-  
+
   /**
     Implicit cast function from TaxYearResults to SummaryResultsTuple.
     Used when calculating actual unused allowance.
@@ -72,7 +73,7 @@ package object Utilities {
     Used when calculating acutal unused allowance.
   */
   implicit def convert(p:Seq[TaxYearResults]): List[SummaryResultsTuple] = p map { a => a: SummaryResultsTuple } toList
-  
+
   def deductPeriod1Exceeding(list: List[SummaryResultsTuple], sr: Summary): List[SummaryResultsTuple] = {
     // get pre 2015 results
     val pre2015Results = list.filter { case(year,_,_) => year < 2015 }.reverse
@@ -88,12 +89,12 @@ package object Utilities {
     before ++ newAfter ++ list.filter { case(year,_,_) => year > 2014 }
   }
 
-  def maybeExtended(t: TaxYearResults): Option[ExtendedSummaryFields] = 
+  def maybeExtended(t: TaxYearResults): Option[ExtendedSummaryFields] =
     t.summaryResult match {
       case r @ ExtendedSummaryFields(_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_) => Some(r)
       case _ => None
     }
-  
+
   /**
   * Use allowances by building new list of 4 years of unused allowances (current year + previous 3 years) for the current year
   * after deducting the exceeding ammount from the allowance list passed in.
@@ -101,14 +102,14 @@ package object Utilities {
   def useAllowances(execeeding: Long, unusedAllowances: List[SummaryResultsTuple]): List[YearActualUnusedPair] = {
     val (thisYear,_,thisYearUnused) = unusedAllowances.head
     val allowances = unusedAllowances.slice(0,4).map { case(year, _, unusedAllowance) => (year,unusedAllowance) }
-    
-    // walk through 'this' year and previous 3 years unused allowances, deducting 
+
+    // walk through 'this' year and previous 3 years unused allowances, deducting
     // exceeding allowance, and creating new list of *actual* unused allowances
     allowances.reverse.foldLeft((execeeding,List[YearActualUnusedPair]())) {
       (pair,allowanceTuple)=>
       val (currentExceeding, yearUnusedTupleLst) = pair
       allowanceTuple match {
-        // have we reached the end of the allowances list? 
+        // have we reached the end of the allowances list?
         //   yes, so add this year and year's unsed allowance to end of lst
         case (year, _) if year == thisYear => (currentExceeding, (year, thisYearUnused) :: yearUnusedTupleLst)
         //   no, so have we reached exceeding of 0?
@@ -137,16 +138,16 @@ package object Utilities {
     }._2
   }
 
-  def actualUnusedList(calculator: SummaryCalculator): (Seq[TaxYearResults], Contribution) => List[YearActualUnusedPair] = 
-    (p,c) => 
+  def actualUnusedList(calculator: SummaryCalculator): (Seq[TaxYearResults], Contribution) => List[YearActualUnusedPair] =
+    (p,c) =>
     actualUnusedAllowancesFn(extractorFn(calculator))(p,c)
 
   def actualUnused(extract: ToTupleFn)(years: Int): (Seq[TaxYearResults], Contribution) => Long =
-    (p,c) => 
-    actualUnusedAllowancesFn(extract)(p,c).slice(0,years).foldLeft(0L)(_+_._2)
+    (p,c) =>
+    actualUnusedAllowancesFn(extract)(p,c).slice(0,years).foldLeft(0L)(_ + _._2)
 
   def actualUnused(calculator: SummaryCalculator)(years: Int): (Seq[TaxYearResults], Contribution) => Long =
-    (p,c) => 
+    (p,c) =>
     actualUnused(extractorFn(calculator))(years)(p,c)
 
   protected val actualUnusedAllowancesFn: ToTupleFn => (Seq[TaxYearResults], Contribution) => List[YearActualUnusedPair]= {
@@ -157,7 +158,7 @@ package object Utilities {
         tuple match {
           case (_,execeeding,_) if execeeding <= 0 => tuple :: lst
           case (_,execeeding,_) => {
-            // Re-calculate unused allowances 
+            // Re-calculate unused allowances
             // deducting the exceeding from 3rd year ago, then 2nd year ago, then a year ago as appropriate
             val unusedAllowances = tuple :: lst
             val newUnusedAllowances = useAllowances(execeeding, unusedAllowances)
@@ -170,31 +171,32 @@ package object Utilities {
         }
       }
     }
-    
+
     extract =>
-      (p,c) => 
+      (p,c) =>
         calculate(extract(p,c)) map { case (year, _, actualUnused) => (year, actualUnused) }
   }
 
   /**
-  * Extractor to convert list of tax year results into a simplified tuple list in forward order (e.g. 2008, 2009, 2010) 
+  * Extractor to convert list of tax year results into a simplified tuple list in forward order (e.g. 2008, 2009, 2010)
   * taking into consideration 2015 periods 1 and 2
   */
   protected val extractorFn: SummaryCalculator => ToTupleFn = calc => (p,c) => {
     implicit val previousPeriods = p
     implicit val contribution = c
     implicit val calculator = calc
-    
-    val toConvert = if (c.isTriggered && !p.headOption.map(_.input.isTriggered).getOrElse(false))
+
+    val toConvert = if (c.isTriggered && !p.headOption.map(_.input.isTriggered).getOrElse(false)) {
         groupedPreTriggerExcluded(p.drop(1))
-      else 
+      } else {
         groupedPreTriggerExcluded(p)
+      }
 
     toConvert.map {
       (entry) =>
       entry._1 match {
         case "<2015" => {
-          // because we drop 2015 period 1 we need to 
+          // because we drop 2015 period 1 we need to
           // deduct any period 1 exceeding amounts from the pre-2015 list
           // if it exists
           toConvert.get("2015").map {
@@ -210,7 +212,7 @@ package object Utilities {
       }
     }.flatten.toList.sortBy(_._1) ++ List[SummaryResultsTuple](contribution)
   }
-  
+
   protected def excludePreTrigger(p:Seq[TaxYearResults]): Seq[TaxYearResults] = {
     val list = p.reverse
     list.find(_.input.isTriggered).map {
@@ -231,3 +233,4 @@ package object Utilities {
       }
     }
 }
+// scalastyle:on magic.number

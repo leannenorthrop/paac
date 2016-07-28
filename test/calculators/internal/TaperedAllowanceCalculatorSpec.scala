@@ -73,7 +73,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       calc.acaCF shouldBe 0L
       calc.dcaCF shouldBe 0L
     }
-  } 
+  }
 
   "definedBenefit" should {
     "if not triggered return sum of db and dc" in {
@@ -700,7 +700,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
     "return 0 when not triggered" in {
       // set up
       val contribution = Contribution(2016, 0)
-      
+
       // test
       val results = Post2015TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).mpist
 

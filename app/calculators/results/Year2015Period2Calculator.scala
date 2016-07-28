@@ -24,8 +24,8 @@ import calculators.internal.ExtendedSummaryCalculator
   Calculator for 2015, period 2 (from 9th July 2015 to April 2016)
 */
 protected trait Year2015Period2Calculator extends ExtendedCalculator {
-  protected def getAnnualAllowanceInPounds: Long = 0L
-  protected def getCalculator(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): ExtendedSummaryCalculator = 
+  protected def getAnnualAllowanceInPounds: Long = 0L // scalastyle:ignore
+  protected def getCalculator(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): ExtendedSummaryCalculator =
     PeriodCalculator(getAnnualAllowanceInPounds)
   def isSupported(contribution:Contribution): Boolean = contribution.isPeriod2() && !contribution.isEmpty
 }

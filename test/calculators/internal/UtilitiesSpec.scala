@@ -18,7 +18,7 @@ package calculators.internal
 
 import uk.gov.hmrc.play.test.UnitSpec
 import models._
-import calculators.internal.Utilities._
+import calculators.internal.utilities._
 import calculators.results._
 
 class UtilitiesSpec extends UnitSpec {

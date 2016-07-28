@@ -28,14 +28,19 @@ trait PensionAllowanceCalculator {
     val inputsByTaxYear = contributions.groupBy(_.taxPeriodStart.year)
 
     def getPeriodContribution(isP1: Boolean): List[Contribution] = {
-      val contributions = if (inputsByTaxYear.contains(2015)) inputsByTaxYear(2015).groupBy(_.isPeriod1) else Map[Boolean,Seq[Contribution]]()
-      contributions.get(isP1).map(_.toList).getOrElse(List(Contribution(isP1, if (missingRowsAreRegistered) 0L else Contribution.periodAllowance(isP1), 0)))
+      val contributions = if (inputsByTaxYear.contains(YEAR_2015)) {
+          inputsByTaxYear(YEAR_2015).groupBy(_.isPeriod1)
+        } else {
+          Map[Boolean,Seq[Contribution]]()
+        }
+      val amount = if (missingRowsAreRegistered) 0L else Contribution.periodAllowance(isP1)
+      contributions.get(isP1).map(_.toList).getOrElse(List(Contribution(isP1, amount, 0)))
     }
 
-    def addContribution(start: PensionPeriod, 
-                        end: PensionPeriod, 
-                        isP1: Boolean, 
-                        lst1: List[Contribution], 
+    def addContribution(start: PensionPeriod,
+                        end: PensionPeriod,
+                        isP1: Boolean,
+                        lst1: List[Contribution],
                         lst2: List[Contribution]): List[Contribution] = {
       val newPreTrigger = Contribution(start, end, if (missingRowsAreRegistered) 0L else Contribution.periodAllowance(isP1), 0, false)
       List(newPreTrigger) ++ lst1 ++ lst2
@@ -44,7 +49,8 @@ trait PensionAllowanceCalculator {
     val p1 = getPeriodContribution(true)
     val p2 = getPeriodContribution(false)
 
-    // whenever there is a triggered contribution then we must have 3 contributions over p1 and p2, one of which must be a pre-trigger contribution even if inputs are 0
+    // whenever there is a triggered contribution then we must have 3 contributions over p1 and p2,
+    // one of which must be a pre-trigger contribution even if inputs are 0
     if (p1.size == 1 && p1(0).isTriggered) {
       addContribution(PERIOD_1_2015_START, p1(0).taxPeriodStart, true, p1, p2)
     } else if (p2.size == 1 && p2(0).isTriggered) {
@@ -65,17 +71,18 @@ trait PensionAllowanceCalculator {
     val allContributions = ((earliestYear).min(inputsByTaxYear.keys.min) to inputsByTaxYear.keys.max).foldLeft(List[Contribution]()) {
       (lst:List[Contribution], year:Int) =>
         if (year != 2015) {
-          val contribution = inputsByTaxYear.get(year).getOrElse(List(Contribution(year,if (missingRowsAreRegistered) 0L else Contribution.allowance(year)))).toList
+          val amount = if (missingRowsAreRegistered) 0L else Contribution.allowance(year)
+          val contribution = inputsByTaxYear.get(year).getOrElse(List(Contribution(year,amount))).toList
           contribution ++ lst
-        } else { 
-          getPeriodContributions(contributions,missingRowsAreRegistered) ++ lst 
+        } else {
+          getPeriodContributions(contributions,missingRowsAreRegistered) ++ lst
         }
     }
     allContributions.sortWith(Contribution.sortByYearAndPeriod _)
   }
 
-  def calculateAllowances(contributions : Seq[Contribution], 
-                          doCollate: Boolean = false, 
+  def calculateAllowances(contributions : Seq[Contribution],
+                          doCollate: Boolean = false,
                           earliestYear: Int = EARLIEST_YEAR_SUPPORTED,
                           missingRowsAreRegistered: Boolean = true) : Seq[TaxYearResults] = {
     // Calculate results
@@ -86,25 +93,26 @@ trait PensionAllowanceCalculator {
       (lst, contribution) =>
 
       val summary: Summary = Calculator(contribution).summary(lst, contribution).getOrElse(SummaryResult())
-      
+
       TaxYearResults(contribution, summary) :: lst
     }.dropWhile(_.input.taxYearLabel > inputsByTaxYear.keys.max).toList.reverse
     val v = results.dropWhile(_.input.taxYearLabel < inputsByTaxYear.keys.min).toList
-    val output = if (doCollate)
+    val output = if (doCollate) {
       collate(v)
-    else
+    } else {
       v
+    }
     output
   }
 
   def collate(calculationResults: Seq[TaxYearResults]): Seq[TaxYearResults] = {
-    def r = calculationResults.toList
-    def fetchTriggered(l:List[TaxYearResults]):Option[TaxYearResults] = l.find(_.input.isTriggered)
-    def fetchNotTriggered(l:List[TaxYearResults]):Option[TaxYearResults] = l.find(!_.input.isTriggered)
+    val r = calculationResults.toList
+    def fetchTriggered(l:List[TaxYearResults]): Option[TaxYearResults] = l.find(_.input.isTriggered)
+    def fetchNotTriggered(l:List[TaxYearResults]): Option[TaxYearResults] = l.find(!_.input.isTriggered)
 
     r.find(_.input.isTriggered).map {
       (_) =>
-      val mappedResults = calculators.internal.Utilities.grouped(r)
+      val mappedResults = calculators.internal.utilities.grouped(r)
       mappedResults.map {
         (entry)=>
         entry._1 match {
@@ -135,8 +143,9 @@ trait PensionAllowanceCalculator {
                 val triggered = fetchTriggered(subentry._2.toList)
                 val notTriggered = fetchNotTriggered(subentry._2.toList)
                 List(TaxYearResults(notTriggered.get.input,triggered.get.summaryResult)).toIndexedSeq
-              } else
+              } else {
                 subentry._2
+              }
             }.flatten.toList
           }
         }

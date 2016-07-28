@@ -21,24 +21,28 @@ import calculators._
 import calculators.internal.Post2015TaperedAllowanceCalculator
 import calculators.internal.ExtendedSummaryCalculator
 import config.PaacConfiguration
+import models.PensionPeriod._
 
 /**
   Calculator for all years from 2008 to 2013.
 */
 protected trait Post2015Calculator extends ExtendedCalculator {
-  override def allowance(contribution:Contribution): Long = PaacConfiguration.forYear(contribution.taxPeriodStart.taxYear).getOrElse("annual", 0) * 100L
+  override def allowance(contribution:Contribution): Long =
+    PaacConfiguration.forYear(contribution.taxPeriodStart.taxYear).getOrElse("annual", 0) * 100L
 
   def isSupported(contribution:Contribution): Boolean = {
     val start = contribution.taxPeriodStart
-    val end = contribution.taxPeriodEnd 
-    val periodStartAfter = PensionPeriod(2015, 4, 5)
-    val periodEndBefore = PensionPeriod(PensionPeriod.LATEST_YEAR_SUPPORTED, 4, 6)
+    val end = contribution.taxPeriodEnd
+    val periodStartAfter = PensionPeriod(YEAR_2015, APRIL, TAX_YEAR_START_DAY - 1)
+    val periodEndBefore = PensionPeriod(PensionPeriod.LATEST_YEAR_SUPPORTED, APRIL, TAX_YEAR_START_DAY)
     start > periodStartAfter && start < periodEndBefore && end > periodStartAfter && end < periodEndBefore
   }
 
   protected def getAnnualAllowanceInPounds: Long = 0L
 
-  protected def getCalculator(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): ExtendedSummaryCalculator = Post2015TaperedAllowanceCalculator()
+  protected def getCalculator(implicit previousPeriods:Seq[TaxYearResults],
+                                       contribution: Contribution): ExtendedSummaryCalculator =
+    Post2015TaperedAllowanceCalculator()
 }
 
 protected object Post2015Calculator extends Post2015Calculator

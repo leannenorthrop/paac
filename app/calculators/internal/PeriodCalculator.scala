@@ -17,17 +17,17 @@
 package calculators.internal
 
 import models._
-import calculators.internal.Utilities._
+import calculators.internal.utilities._
 
 trait PeriodCalculator extends ExtendedSummaryCalculator {
   def previous3YearsUnusedAllowance(implicit previous:Seq[TaxYearResults]): Long = {
     val previousPeriods = previous.filterNot((r)=>r.input.isPeriod1||r.input.isPeriod2)
     previousPeriods.headOption.map {
       (row)=>
-      val pensionPeriod = row.input.taxPeriodStart.copy(year=row.input.taxPeriodStart.year+1)
+      val pensionPeriod = row.input.taxPeriodStart.copy(year=row.input.taxPeriodStart.year + 1)
       implicit val contribution = Contribution(pensionPeriod, pensionPeriod, Some(InputAmounts(0L,0L)))
       // use simple basic extractor since period 1 and 2 are removed above and only dealing with years prior to 2015
-      actualUnusedList(PeriodCalculator(allowance))(previousPeriods, contribution).drop(1).slice(0,3).foldLeft(0L)(_+_._2)
+      actualUnusedList(PeriodCalculator(allowance))(previousPeriods, contribution).drop(1).slice(0,3).foldLeft(0L)(_ + _._2)
     }.getOrElse(0L)
   }
 }

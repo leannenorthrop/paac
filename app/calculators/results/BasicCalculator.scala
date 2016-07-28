@@ -28,8 +28,12 @@ protected trait BasicCalculator extends FactoryCalculator {
   def allowance(contribution:Contribution): Long = getAnnualAllowanceInPounds * 100L
 
   def summary(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Option[Summary] = if (!contribution.isEmpty)
-      if (isSupported(contribution) && contribution.definedBenefit >= 0) 
-        BasicAllowanceCalculator(getAnnualAllowanceInPounds, previousPeriods, contribution).summary 
-      else None
-    else None
+      if (isSupported(contribution) && contribution.definedBenefit >= 0) {
+        BasicAllowanceCalculator(getAnnualAllowanceInPounds, previousPeriods, contribution).summary
+      } else {
+        None
+      }
+    else {
+      None
+    }
 }

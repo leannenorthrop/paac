@@ -55,7 +55,7 @@ class CalculatorOutputsSpec extends ModelSpec {
       val summaryResult = SummaryResult(exceedingAAAmount=exceedingAAAmount)
 
       // check
-      summaryResult.exceedingAAAmount shouldBe exceedingAAAmount 
+      summaryResult.exceedingAAAmount shouldBe exceedingAAAmount
     }
 
     "have available Allowance Amount" in {
@@ -66,7 +66,7 @@ class CalculatorOutputsSpec extends ModelSpec {
       val summaryResult = SummaryResult(availableAllowance=availableAllowanceAmount)
 
       // check
-      summaryResult.availableAllowance shouldBe availableAllowanceAmount 
+      summaryResult.availableAllowance shouldBe availableAllowanceAmount
     }
 
     "have unused Allowance Amount" in {
@@ -77,7 +77,7 @@ class CalculatorOutputsSpec extends ModelSpec {
       val summaryResult = SummaryResult(unusedAllowance=unusedAllowanceAmount)
 
       // check
-      summaryResult.unusedAllowance shouldBe unusedAllowanceAmount 
+      summaryResult.unusedAllowance shouldBe unusedAllowanceAmount
     }
 
     "have available Allowance with Carry Forward Amount" in {
@@ -88,7 +88,7 @@ class CalculatorOutputsSpec extends ModelSpec {
       val summaryResult = SummaryResult(availableAAWithCF=availableAllowanceWithCFAmount)
 
       // check
-      summaryResult.availableAAWithCF shouldBe availableAllowanceWithCFAmount 
+      summaryResult.availableAAWithCF shouldBe availableAllowanceWithCFAmount
     }
 
     "have available Allowance with Cumulative Carry Forward Amount" in {
@@ -99,7 +99,7 @@ class CalculatorOutputsSpec extends ModelSpec {
       val summaryResult = SummaryResult(availableAAWithCCF=availableAllowanceWithCCFAmount)
 
       // check
-      summaryResult.availableAAWithCCF shouldBe availableAllowanceWithCCFAmount 
+      summaryResult.availableAAWithCCF shouldBe availableAllowanceWithCCFAmount
     }
 
     "have available Unused AA" in {
@@ -110,7 +110,7 @@ class CalculatorOutputsSpec extends ModelSpec {
       val summaryResult = SummaryResult(unusedAAA=value)
 
       // check
-      summaryResult.unusedAAA shouldBe value 
+      summaryResult.unusedAAA shouldBe value
     }
 
     "have available Unused MPAA" in {
@@ -121,7 +121,7 @@ class CalculatorOutputsSpec extends ModelSpec {
       val summaryResult = SummaryResult(unusedMPAA=value)
 
       // check
-      summaryResult.unusedMPAA shouldBe value 
+      summaryResult.unusedMPAA shouldBe value
     }
 
     "marshall to JSON" in {
@@ -215,13 +215,13 @@ class CalculatorOutputsSpec extends ModelSpec {
       jsonExceedingMPAA.as[Long] shouldBe 0L
       val jsonExceedingAAA = json \ "summaryResult" \ "exceedingAAA"
       jsonExceedingAAA.as[Long] shouldBe 0L
-    }    
+    }
 
     "unmarshall from JSON" in {
       // setup
-      val json = Json.parse("""{"input": {"taxPeriodStart": {"year":2008, "month" : 2, "day" : 11}, 
-                                          "taxPeriodEnd": {"year":2008, "month" : 8, "day" : 12}, 
-                                          "amounts": {"definedBenefit": 12345, "moneyPurchase": 67890}}, 
+      val json = Json.parse("""{"input": {"taxPeriodStart": {"year":2008, "month" : 2, "day" : 11},
+                                          "taxPeriodEnd": {"year":2008, "month" : 8, "day" : 12},
+                                          "amounts": {"definedBenefit": 12345, "moneyPurchase": 67890}},
                                           "summaryResult": {"chargableAmount": 12345, "exceedingAAAmount": 67890, "availableAllowance":1, "unusedAllowance": 2,
                                           "availableAAWithCF": 3, "availableAAWithCCF":4, "unusedAAA":5, "unusedMPAA": 6,
                                           "exceedingMPAA": 0, "exceedingAAA": 0, "isMPA": true, "moneyPurchaseAA": 12, "alternativeAA": 15}}""")
@@ -245,7 +245,7 @@ class CalculatorOutputsSpec extends ModelSpec {
 
     "Implicit casts" should {
       import models.TaxYearResults._
-      import calculators.internal.Utilities._
+      import calculators.internal.utilities._
 
       "convert tax result to summary tuple" in {
         // setup
@@ -282,5 +282,5 @@ class CalculatorOutputsSpec extends ModelSpec {
         unused2 shouldBe 14
       }
     }
-  }  
+  }
 }
