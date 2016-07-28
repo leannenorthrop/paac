@@ -114,9 +114,9 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
       prevResults <- maybeExtended(prev)
     } yield (definedBenefit + prevResults.cumulativeDB)).getOrElse(definedBenefit)
 
-  protected lazy val _exceedingMPAA = 0L
+  protected lazy val _exceedingMPAA = definedContribution - moneyPurchaseAA
 
-  protected lazy val _exceedingAAA = 0L
+  protected lazy val _exceedingAAA = definedBenefit - alternativeAA
 
   protected lazy val _defaultChargableAmount =
     if (!isTriggered) {
