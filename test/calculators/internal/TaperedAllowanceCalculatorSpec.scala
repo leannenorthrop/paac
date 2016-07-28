@@ -507,7 +507,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       results(5) shouldBe ((2011, 1000000L))
     }
 
-    "return unused for all years where trigger has occurred in 2016" in {
+    "return unused for all years where trigger has occurred in 2016 contribution is in 2017" in {
       // set up
       val c2008 = TaxYearResults(Contribution(2008, 4000000L), ExtendedSummaryFields(exceedingAAAmount=0L,unusedAllowance=1000000L))
       val c2009 = TaxYearResults(Contribution(2009, 4000000L), ExtendedSummaryFields(exceedingAAAmount=0L,unusedAllowance=1000000L))
@@ -533,6 +533,45 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       results(4) shouldBe ((2013, 700000L))
       results(5) shouldBe ((2012, 0L))
       results(6) shouldBe ((2011, 1000000L))
+    }
+
+    "return unused for all years where trigger has occurred in 2016" in {
+      // set up
+      val c2008 = TaxYearResults(Contribution(2008, 4000000L), ExtendedSummaryFields(exceedingAAAmount=0L,unusedAllowance=1000000L))
+      val c2009 = TaxYearResults(Contribution(2009, 4000000L), ExtendedSummaryFields(exceedingAAAmount=0L,unusedAllowance=1000000L))
+      val c2010 = TaxYearResults(Contribution(2010, 4000000L), ExtendedSummaryFields(exceedingAAAmount=0L,unusedAllowance=1000000L))
+      val c2011 = TaxYearResults(Contribution(2011, 4000000L), ExtendedSummaryFields(exceedingAAAmount=0L,unusedAllowance=1000000L))
+      val c2012 = TaxYearResults(Contribution(2012, 4000000L), ExtendedSummaryFields(exceedingAAAmount=0L,unusedAllowance=1000000L))
+      val c2013 = TaxYearResults(Contribution(2013, 4000000L), ExtendedSummaryFields(exceedingAAAmount=0L,unusedAllowance=1000000L))
+      val c2014 = TaxYearResults(Contribution(2014, 3000000L), ExtendedSummaryFields(exceedingAAAmount=0L,unusedAllowance=1000000L))
+      val c2015p1 = TaxYearResults(Contribution(true, 0, 8500000L), ExtendedSummaryFields(exceedingAAAmount=500000L,unusedAllowance=0L))
+      val c2015p2 = TaxYearResults(Contribution(false, 0, 800000L), ExtendedSummaryFields(exceedingAAAmount=800000L,unusedAllowance=0L))
+      val c2016preTrigger = TaxYearResults(Contribution(2016, Some(InputAmounts(definedBenefit=Some(2000000L), triggered=Some(false)))), ExtendedSummaryFields(exceedingAAAmount=0L,unusedAllowance=2000000L))
+      val previousPeriods = Seq(c2016preTrigger, c2015p2, c2015p1, c2015p1, c2014, c2013, c2012, c2011, c2010, c2009, c2008)
+      val contribution = Contribution(2016, Some(InputAmounts(definedBenefit=Some(500000L), triggered=Some(true))))
+
+      // test
+      val results = new Test(previousPeriods, contribution).actualUnusedList
+
+      // check
+      results(0) shouldBe ((2016, 2000000L))
+      results(1) shouldBe ((2015, 0L))
+      results(2) shouldBe ((2014, 1000000L))
+      results(3) shouldBe ((2013, 700000L))
+      results(4) shouldBe ((2012, 0L))
+      results(5) shouldBe ((2011, 1000000L))
+    }
+
+    "return unused where trigger has occurred in 2016" in {
+      // set up
+      val previousPeriods = Seq[TaxYearResults]()
+      val contribution = Contribution(2016, Some(InputAmounts(definedBenefit=Some(500000L), triggered=Some(true))))
+
+      // test
+      val results = new Test(previousPeriods, contribution).actualUnusedList
+
+      // check
+      results(0) shouldBe ((2016, 4000000L))
     }
   }
 
