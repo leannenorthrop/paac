@@ -46,6 +46,129 @@ package object utilities {
   def preTriggerFields(implicit previousPeriods:Seq[TaxYearResults]): Option[ExtendedSummaryFields] = notTriggered.flatMap(maybeExtended(_))
   def preTriggerInputs(implicit previousPeriods:Seq[TaxYearResults]): Option[Contribution] = notTriggered.map(_.input)
 
+  def maybeExtended(t: TaxYearResults): Option[ExtendedSummaryFields] =
+    t.summaryResult match {
+      case r @ ExtendedSummaryFields(_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_) => Some(r)
+      case _ => None
+    }
+
+  def actualUnusedList(calculator: SummaryCalculator): (Seq[TaxYearResults], Contribution) => List[YearActualUnusedPair] =
+    (p,c) =>
+    actualUnusedAllowancesFn(extractorFn(calculator))(p,c)
+
+  def actualUnused(extract: ToTupleFn)(years: Int): (Seq[TaxYearResults], Contribution) => Long =
+    (p,c) =>
+    actualUnusedAllowancesFn(extract)(p,c).slice(0,years).foldLeft(0L)(_ + _._2)
+
+  def actualUnused(calculator: SummaryCalculator)(years: Int): (Seq[TaxYearResults], Contribution) => Long =
+    (p,c) =>
+    actualUnused(extractorFn(calculator))(years)(p,c)
+
+  def grouped(p: Seq[TaxYearResults]): Map[String, Seq[TaxYearResults]] = p.groupBy {
+      (c)=>
+      c.input.taxPeriodStart.taxYear match {
+        case year if year < 2015 => "<2015"
+        case year if year == 2015 => "2015"
+        case year if year > 2015 => ">2015"
+      }
+    }
+
+  protected val actualUnusedAllowancesFn: ToTupleFn => (Seq[TaxYearResults], Contribution) => List[YearActualUnusedPair]= {
+    def calculate(values:List[SummaryResultsTuple]): List[SummaryResultsTuple] = {
+      // walk list of year/exceeding/unused allowance building list of actual unused allowance for each year
+      values.foldLeft(List[SummaryResultsTuple]()) {
+        (lst,tuple)=>
+        tuple match {
+          case (_,execeeding,_) if execeeding <= 0 => tuple :: lst
+          case (_,execeeding,_) => {
+            // Re-calculate unused allowances
+            // deducting the exceeding from 3rd year ago, then 2nd year ago, then a year ago as appropriate
+            val unusedAllowances = tuple :: lst
+            val newUnusedAllowances = useAllowances(execeeding, unusedAllowances)
+
+            // rebuild the actual unused allowance list based on new unused allowances
+            val splitAt = unusedAllowances.indexWhere(_._1 == tuple._1 - 4)
+            val (before, after) = if (splitAt >= 0) {
+              unusedAllowances.splitAt(splitAt)
+            } else {
+              (unusedAllowances,List[SummaryResultsTuple]())
+            }
+            val newBefore = newUnusedAllowances.zip(before).map { case ((_,unused), (year,exceeding,_)) => (year, exceeding, unused) }
+            newBefore ++ after
+          }
+        }
+      }
+    }
+
+    extract =>
+      (p,c) =>
+        calculate(extract(p,c)) map { case (year, _, actualUnused) => (year, actualUnused) }
+  }
+
+  /**
+  * Extractor to convert list of tax year results into a simplified tuple list in forward order (e.g. 2008, 2009, 2010)
+  * taking into consideration 2015 periods 1 and 2
+  */
+  protected val extractorFn: SummaryCalculator => ToTupleFn = calc => (p,c) => {
+    implicit val previousPeriods = p
+    implicit val contribution = c
+    implicit val calculator = calc
+
+    val toConvert = if (c.isTriggered && !p.headOption.map(_.input.isTriggered).getOrElse(false)) {
+        grouped(excludePreTrigger(p.drop(1)))
+      } else {
+        grouped(excludePreTrigger(p))
+      }
+
+    toConvert.map {
+      (entry) =>
+      entry._1 match {
+        case "<2015" => {
+          // because we drop 2015 period 1 we need to
+          // deduct any period 1 exceeding amounts from the pre-2015 list
+          // if it exists
+          toConvert.get("2015").map {
+            (year2015)=>
+            year2015.find((c) => c.input.isPeriod1 && c.summaryResult.exceedingAAAmount > 0).map {
+              (period1) =>
+              val list = List[SummaryResultsTuple](entry._2: _*).reverse
+              val sr = period1.summaryResult
+
+              // get pre 2015 results
+              val pre2015Results = list.filter { case(year,_,_) => year < 2015 }.reverse
+
+              // deduct exceeding amount from previously unused allowances giving new list of unused allowances
+              // dropping the period 1 2015 result from the list
+              val current: SummaryResultsTuple = (2015, 0, sr.unusedAllowance)
+              val newUnusedAllowances = useAllowances(sr.exceedingAAAmount, current::pre2015Results).drop(1).reverse
+
+              // splice in new list of unused allowances to build new complete list of unused allowances
+              val splitAt = pre2015Results.reverse.indexWhere(_._1 == 2012)
+              val (before, after) = if (splitAt >= 0) {
+                pre2015Results.reverse.splitAt(splitAt)
+              } else {
+                (List[SummaryResultsTuple](), pre2015Results.reverse)
+              }
+              val newAfter = newUnusedAllowances.zip(after).map { case ((_,actualUnused), (year,exceeding,_)) => (year, exceeding, actualUnused) }
+              (before ++ newAfter ++ list.filter { case(year,_,_) => year > 2014 }).reverse
+            }.getOrElse(List[SummaryResultsTuple](entry._2: _*))
+          }.getOrElse(List[SummaryResultsTuple](entry._2: _*))
+        }
+        case "2015" => entry._2.find(_.input.isPeriod2).map(convert(_)).toList
+        case _ => List[SummaryResultsTuple](entry._2: _*)
+      }
+    }.flatten.toList.sortBy(_._1) ++ List[SummaryResultsTuple](contribution)
+  }
+
+  protected def excludePreTrigger(p:Seq[TaxYearResults]): Seq[TaxYearResults] = {
+    val list = p.reverse
+    list.find(_.input.isTriggered).map {
+      (firstTriggered) =>
+      val index = list.indexOf(firstTriggered)
+      if (index > 0) list.filterNot(_ == list(index-1)).reverse else p
+    }.getOrElse(p)
+  }
+
   /**
     Implicit cast function from Contribution to SummaryResultsTuple.
     Used when calculating actual unused allowance.
@@ -74,32 +197,11 @@ package object utilities {
   */
   implicit def convert(p:Seq[TaxYearResults]): List[SummaryResultsTuple] = p map { a => a: SummaryResultsTuple } toList
 
-  def deductPeriod1Exceeding(list: List[SummaryResultsTuple], sr: Summary): List[SummaryResultsTuple] = {
-    // get pre 2015 results
-    val pre2015Results = list.filter { case(year,_,_) => year < 2015 }.reverse
-
-    // deduct exceeding amount from previously unused allowances giving new list of unused allowances
-    // dropping the period 1 2015 result from the list
-    val current: SummaryResultsTuple = (2015, 0, sr.unusedAllowance)
-    val newUnusedAllowances = useAllowances(sr.exceedingAAAmount, current::pre2015Results).drop(1).reverse
-
-    // splice in new list of unused allowances to build new complete list of unused allowances
-    val (before,after) = pre2015Results.reverse.splitAt(4) // TODO fix this when less than 8 previous years results are given
-    val newAfter = newUnusedAllowances.zip(after).map { case ((_,actualUnused), (year,exceeding,_)) => (year, exceeding, actualUnused) }
-    before ++ newAfter ++ list.filter { case(year,_,_) => year > 2014 }
-  }
-
-  def maybeExtended(t: TaxYearResults): Option[ExtendedSummaryFields] =
-    t.summaryResult match {
-      case r @ ExtendedSummaryFields(_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_) => Some(r)
-      case _ => None
-    }
-
   /**
   * Use allowances by building new list of 4 years of unused allowances (current year + previous 3 years) for the current year
   * after deducting the exceeding ammount from the allowance list passed in.
   */
-  def useAllowances(execeeding: Long, unusedAllowances: List[SummaryResultsTuple]): List[YearActualUnusedPair] = {
+  protected def useAllowances(execeeding: Long, unusedAllowances: List[SummaryResultsTuple]): List[YearActualUnusedPair] = {
     val (thisYear,_,thisYearUnused) = unusedAllowances.head
     val allowances = unusedAllowances.slice(0,4).map { case(year, _, unusedAllowance) => (year,unusedAllowance) }
 
@@ -137,100 +239,5 @@ package object utilities {
       }
     }._2
   }
-
-  def actualUnusedList(calculator: SummaryCalculator): (Seq[TaxYearResults], Contribution) => List[YearActualUnusedPair] =
-    (p,c) =>
-    actualUnusedAllowancesFn(extractorFn(calculator))(p,c)
-
-  def actualUnused(extract: ToTupleFn)(years: Int): (Seq[TaxYearResults], Contribution) => Long =
-    (p,c) =>
-    actualUnusedAllowancesFn(extract)(p,c).slice(0,years).foldLeft(0L)(_ + _._2)
-
-  def actualUnused(calculator: SummaryCalculator)(years: Int): (Seq[TaxYearResults], Contribution) => Long =
-    (p,c) =>
-    actualUnused(extractorFn(calculator))(years)(p,c)
-
-  protected val actualUnusedAllowancesFn: ToTupleFn => (Seq[TaxYearResults], Contribution) => List[YearActualUnusedPair]= {
-    def calculate(values:List[SummaryResultsTuple]): List[SummaryResultsTuple] = {
-      // walk list of year/exceeding/unused allowance building list of actual unused allowance for each year
-      values.foldLeft(List[SummaryResultsTuple]()) {
-        (lst,tuple)=>
-        tuple match {
-          case (_,execeeding,_) if execeeding <= 0 => tuple :: lst
-          case (_,execeeding,_) => {
-            // Re-calculate unused allowances
-            // deducting the exceeding from 3rd year ago, then 2nd year ago, then a year ago as appropriate
-            val unusedAllowances = tuple :: lst
-            val newUnusedAllowances = useAllowances(execeeding, unusedAllowances)
-
-            // rebuild the actual unused allowance list based on new unused allowances
-            val (before,after) = unusedAllowances.splitAt(4) // todo what to do if no previous results?
-            val newBefore = newUnusedAllowances.zip(before).map { case ((_,unused), (year,exceeding,_)) => (year, exceeding, unused) }
-            newBefore ++ after
-          }
-        }
-      }
-    }
-
-    extract =>
-      (p,c) =>
-        calculate(extract(p,c)) map { case (year, _, actualUnused) => (year, actualUnused) }
-  }
-
-  /**
-  * Extractor to convert list of tax year results into a simplified tuple list in forward order (e.g. 2008, 2009, 2010)
-  * taking into consideration 2015 periods 1 and 2
-  */
-  protected val extractorFn: SummaryCalculator => ToTupleFn = calc => (p,c) => {
-    implicit val previousPeriods = p
-    implicit val contribution = c
-    implicit val calculator = calc
-
-    val toConvert = if (c.isTriggered && !p.headOption.map(_.input.isTriggered).getOrElse(false)) {
-        groupedPreTriggerExcluded(p.drop(1))
-      } else {
-        groupedPreTriggerExcluded(p)
-      }
-
-    toConvert.map {
-      (entry) =>
-      entry._1 match {
-        case "<2015" => {
-          // because we drop 2015 period 1 we need to
-          // deduct any period 1 exceeding amounts from the pre-2015 list
-          // if it exists
-          toConvert.get("2015").map {
-            (year2015)=>
-            year2015.find((c) => c.input.isPeriod1 && c.summaryResult.exceedingAAAmount > 0).map {
-              (period1) =>
-              deductPeriod1Exceeding(List[SummaryResultsTuple](entry._2: _*).reverse, period1.summaryResult).reverse
-            }.getOrElse(List[SummaryResultsTuple](entry._2: _*))
-          }.getOrElse(List[SummaryResultsTuple](entry._2: _*))
-        }
-        case "2015" => entry._2.find(_.input.isPeriod2).map(convert(_)).toList
-        case _ => List[SummaryResultsTuple](entry._2: _*)
-      }
-    }.flatten.toList.sortBy(_._1) ++ List[SummaryResultsTuple](contribution)
-  }
-
-  protected def excludePreTrigger(p:Seq[TaxYearResults]): Seq[TaxYearResults] = {
-    val list = p.reverse
-    list.find(_.input.isTriggered).map {
-      (firstTriggered) =>
-      val index = list.indexOf(firstTriggered)
-      if (index > 0) list.filterNot(_ == list(index-1)).reverse else p
-    }.getOrElse(p)
-  }
-
-  def groupedPreTriggerExcluded(p: Seq[TaxYearResults]): Map[String, Seq[TaxYearResults]] = grouped(excludePreTrigger(p))
-
-  def grouped(p: Seq[TaxYearResults]): Map[String, Seq[TaxYearResults]] = p.groupBy {
-      (c)=>
-      c.input.taxPeriodStart.taxYear match {
-        case year if year < 2015 => "<2015"
-        case year if year == 2015 => "2015"
-        case year if year > 2015 => ">2015"
-      }
-    }
 }
 // scalastyle:on magic.number
