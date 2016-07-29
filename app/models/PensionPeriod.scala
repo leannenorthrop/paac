@@ -24,30 +24,35 @@ import play.api.libs.json._
   Simple date object representing a point in time within a pension period.
 */
 case class PensionPeriod(year: Int, month: Int, day: Int) {
+  val APRIL = 4
+  val TAX_YEAR_START_DAY = 6
+
   require(year > 0 && month > 0 && month < 13 && day > 0 && day < 32)
-  def <(that: PensionPeriod): Boolean = 
-    if (year == that.year && month == that.month && day == that.day) 
-      false 
-    else 
-      year < that.year || (year == that.year && month < that.month) || (year == that.year && month == that.month && day < that.day) 
+  // scalastyle:off
+  def <(that: PensionPeriod): Boolean =
+    if (year == that.year && month == that.month && day == that.day)
+      false
+    else
+      year < that.year || (year == that.year && month < that.month) || (year == that.year && month == that.month && day < that.day)
 
-  def >(that: PensionPeriod): Boolean = 
-    if (year == that.year && month == that.month && day == that.day) 
-      false 
-    else 
-      year > that.year || (year == that.year && month > that.month) || (year == that.year && month == that.month && day > that.day) 
+  def >(that: PensionPeriod): Boolean =
+    if (year == that.year && month == that.month && day == that.day)
+      false
+    else
+      year > that.year || (year == that.year && month > that.month) || (year == that.year && month == that.month && day > that.day)
 
-  def <=(that: PensionPeriod): Boolean = 
-    if (year == that.year && month == that.month && day == that.day) 
-      true 
-    else 
+  def <=(that: PensionPeriod): Boolean =
+    if (year == that.year && month == that.month && day == that.day)
+      true
+    else
       this < that
 
-  def >=(that: PensionPeriod): Boolean = 
-    if (year == that.year && month == that.month && day == that.day) 
-      true 
-    else 
+  def >=(that: PensionPeriod): Boolean =
+    if (year == that.year && month == that.month && day == that.day)
+      true
+    else
       this > that
+  // scalastyle:on
 
   def isPeriod(s:PensionPeriod, e:PensionPeriod):Boolean =
     (this >= s) && (this <= e)
@@ -59,12 +64,11 @@ case class PensionPeriod(year: Int, month: Int, day: Int) {
     isPeriod(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END)
 
   def taxYear(): Int =
-    if (this < PensionPeriod(year, 4, 6) && this > PensionPeriod(year-1, 4, 6)) 
-      year-1
-    else if (this > PensionPeriod(year, 4, 6) && this < PensionPeriod(year+1, 4, 6)) 
+    if (this < PensionPeriod(year, APRIL, TAX_YEAR_START_DAY) && this > PensionPeriod(year - 1, APRIL, TAX_YEAR_START_DAY)) {
+      year - 1
+    } else {
       year
-    else 
-      year
+    }
 }
 
 object PensionPeriod {
@@ -78,12 +82,17 @@ object PensionPeriod {
   val MIN_DAY_VALUE:Int = 1
   val MAX_MONTH_VALUE:Int = 12
   val MAX_DAY_VALUE:Int = 31
+  val APRIL = 4
+  val JULY = 7
+  val TAX_YEAR_START_DAY = 6
+  val PERIOD_1_END_DAY = 8
+  val YEAR_2015 = 2015
 
   // Helpers for constructing pension contributions
-  val PERIOD_1_2015_START = PensionPeriod(2015, 4, 6)
-  val PERIOD_1_2015_END = PensionPeriod(2015, 7, 8)
-  val PERIOD_2_2015_START = PensionPeriod(2015, 7, 9)
-  val PERIOD_2_2015_END = PensionPeriod(2016, 4, 5)  
+  val PERIOD_1_2015_START = PensionPeriod(YEAR_2015, APRIL, TAX_YEAR_START_DAY)
+  val PERIOD_1_2015_END = PensionPeriod(YEAR_2015, JULY, PERIOD_1_END_DAY)
+  val PERIOD_2_2015_START = PensionPeriod(YEAR_2015, JULY, PERIOD_1_END_DAY + 1)
+  val PERIOD_2_2015_END = PensionPeriod(YEAR_2015 + 1, APRIL, TAX_YEAR_START_DAY - 1)
 
   implicit val taxPeriodWrites: Writes[PensionPeriod] = (
     (JsPath \ "year").write[Int] and

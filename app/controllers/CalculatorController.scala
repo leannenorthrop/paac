@@ -35,7 +35,7 @@ import play.api.libs.concurrent.Execution.Implicits._
 trait CalculatorController {
   this: Controller with PensionAllowanceCalculator =>
 
-  def calculate() = Action.async(parse.json) { 
+  def calculate(): Action[JsValue] = Action.async(parse.json) {
     implicit request =>
 
     request.body.validate[BackendRequest].fold(
@@ -46,15 +46,21 @@ trait CalculatorController {
       },
       calculationRequest => {
         val contributions = calculationRequest.contributions
-        if (contributions.exists((contribution)=>(contribution.taxPeriodStart.year < EARLIEST_YEAR_SUPPORTED || 
+        if (contributions.exists((contribution)=>(contribution.taxPeriodStart.year < EARLIEST_YEAR_SUPPORTED ||
                                                   contribution.taxPeriodEnd.year > LATEST_YEAR_SUPPORTED)) ||
-            calculationRequest.startFromYear.getOrElse(EARLIEST_YEAR_SUPPORTED) < EARLIEST_YEAR_SUPPORTED)
+            calculationRequest.startFromYear.getOrElse(EARLIEST_YEAR_SUPPORTED) < EARLIEST_YEAR_SUPPORTED) {
           Future.successful(BadRequest(Json.obj("status" -> JsNumber(BAD_REQUEST),
-                                                "message" -> JsString(s"Unsupported tax year supplied, only tax years between ${EARLIEST_YEAR_SUPPORTED} and ${LATEST_YEAR_SUPPORTED} inclusive, are supported."))))
-        else
-          Future.successful(Ok(Json.obj("status" -> JsNumber(OK), 
+                                                "message" -> JsString(s"""Unsupported tax year supplied,
+                                                                          |only tax years between ${EARLIEST_YEAR_SUPPORTED} and
+                                                                          |${LATEST_YEAR_SUPPORTED} inclusive, are supported.""".stripMargin('|')))))
+        } else {
+          Future.successful(Ok(Json.obj("status" -> JsNumber(OK),
                                         "message" -> JsString("Valid pension calculation request received."),
-                                        "results" -> Json.toJson(calculateAllowances(contributions, true, calculationRequest.startFromYear.getOrElse(EARLIEST_YEAR_SUPPORTED), calculationRequest.missingYearsAreRegistered.getOrElse(true))))))
+                                        "results" -> Json.toJson(calculateAllowances(contributions,
+                                                                 true,
+                                                                 calculationRequest.startFromYear.getOrElse(EARLIEST_YEAR_SUPPORTED),
+                                                                 calculationRequest.missingYearsAreRegistered.getOrElse(true))))))
+        }
       }
     )
   }

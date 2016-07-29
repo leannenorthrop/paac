@@ -17,18 +17,19 @@
 package calculators.results
 
 import models._
+import models.PensionPeriod._
 
 /**
   Calculator for 2014
 */
 protected trait Year2014Calculator extends BasicCalculator {
-  protected def getAnnualAllowanceInPounds: Long = 40000L
+  protected def getAnnualAllowanceInPounds: Long = 40000L // scalastyle:ignore
 
   def isSupported(contribution:Contribution): Boolean = {
     val start = contribution.taxPeriodStart
     val end = contribution.taxPeriodEnd
-    val periodStartAfter = PensionPeriod(2014, 4, 5)
-    val periodStartBefore = PensionPeriod(2015, 4, 6)
+    val periodStartAfter = PensionPeriod(YEAR_2015 - 1, APRIL, TAX_YEAR_START_DAY - 1)
+    val periodStartBefore = PensionPeriod(YEAR_2015, APRIL, TAX_YEAR_START_DAY)
     start > periodStartAfter && start < periodStartBefore && end > periodStartAfter && end < periodStartBefore
   }
 }

@@ -33,8 +33,12 @@ protected trait CalculatorFactory {
 }
 
 object Calculator extends CalculatorFactory {
-  protected override val calculators : List[FactoryCalculator] = List(Pre2014Calculator, Year2014Calculator, Year2015Period1Calculator, Year2015Period2Calculator, Post2015Calculator)
-  
+  protected override val calculators : List[FactoryCalculator] = List(Pre2014Calculator,
+                                                                      Year2014Calculator,
+                                                                      Year2015Period1Calculator,
+                                                                      Year2015Period2Calculator,
+                                                                      Post2015Calculator)
+
   def apply(contribution:Contribution): Calculator = {
     get(contribution).getOrElse {
       new Calculator() {

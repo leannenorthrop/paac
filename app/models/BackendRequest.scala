@@ -32,7 +32,7 @@ sealed trait BackendRequest {
 /**
  Concrete implementation of BackendRequest
  */
-case class CalculationRequest(contributions: List[Contribution], 
+case class CalculationRequest(contributions: List[Contribution],
                               startFromYear: Option[Int] = None,
                               missingYearsAreRegistered: Option[Boolean] = None) extends BackendRequest {
 }

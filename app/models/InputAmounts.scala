@@ -30,8 +30,8 @@ trait PensionCalculatorValue {
 /**
   Calculator inputs for a single year
  */
-case class InputAmounts(definedBenefit: Option[Long] = None, 
-                        moneyPurchase: Option[Long] = None, 
+case class InputAmounts(definedBenefit: Option[Long] = None,
+                        moneyPurchase: Option[Long] = None,
                         income: Option[Long] = None,
                         triggered: Option[Boolean] = None) extends PensionCalculatorValue {
   def isEmpty() : Boolean =
@@ -52,7 +52,7 @@ object InputAmounts {
     (JsPath \ "income").readNullable[Long](min(0L)) and
     (JsPath \ "triggered").readNullable[Boolean]
   )(InputAmounts.apply(_: Option[Long], _: Option[Long], _: Option[Long], _: Option[Boolean]))
-  
+
   /**
     Simplified apply function
   */

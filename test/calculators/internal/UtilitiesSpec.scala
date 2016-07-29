@@ -18,12 +18,16 @@ package calculators.internal
 
 import uk.gov.hmrc.play.test.UnitSpec
 import models._
-import calculators.internal.Utilities._
+import calculators.internal.utilities._
 import calculators.results._
 
+// scalastyle:off number.of.methods
+// scalastyle:off magic.number
 class UtilitiesSpec extends UnitSpec {
   trait TestFixture {
-    implicit var contribution = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, Some(true))))
+    implicit var contribution = Contribution(PensionPeriod.PERIOD_1_2015_START,
+                                            PensionPeriod.PERIOD_1_2015_END,
+                                            Some(InputAmounts(Some(1L), Some(2L), None, Some(true))))
     implicit var previousPeriods = List[TaxYearResults]()
     implicit val annualAllowanceInPounds = 5000000L
   }
@@ -35,18 +39,26 @@ class UtilitiesSpec extends UnitSpec {
       }
 
       "return false if not triggered" in new TestFixture {
-        contribution = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, Some(false))))
+        contribution = Contribution(PensionPeriod.PERIOD_1_2015_START,
+                                    PensionPeriod.PERIOD_1_2015_END,
+                                    Some(InputAmounts(Some(1L), Some(2L), None, Some(false))))
         isTriggered shouldBe false
-        contribution = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, None)))
+        contribution = Contribution(PensionPeriod.PERIOD_1_2015_START,
+                                    PensionPeriod.PERIOD_1_2015_END,
+                                    Some(InputAmounts(Some(1L), Some(2L), None, None)))
         isTriggered shouldBe false
-        contribution = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, None)
+        contribution = Contribution(PensionPeriod.PERIOD_1_2015_START,
+                                    PensionPeriod.PERIOD_1_2015_END,
+                                    None)
         isTriggered shouldBe false
       }
     }
 
     "taxResultNotTriggered" should {
       "return true when not triggered" in new TestFixture {
-        val c = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, Some(false))))
+        val c = Contribution(PensionPeriod.PERIOD_1_2015_START,
+                             PensionPeriod.PERIOD_1_2015_END,
+                             Some(InputAmounts(Some(1L), Some(2L), None, Some(false))))
         val tr = TaxYearResults(c,SummaryResult())
         isTaxResultNotTriggered(tr) shouldBe true
         val c2 = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, None)
@@ -55,7 +67,9 @@ class UtilitiesSpec extends UnitSpec {
       }
 
       "return false when triggered" in new TestFixture {
-        val c = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, Some(true))))
+        val c = Contribution(PensionPeriod.PERIOD_1_2015_START,
+                             PensionPeriod.PERIOD_1_2015_END,
+                             Some(InputAmounts(Some(1L), Some(2L), None, Some(true))))
         val tr = TaxYearResults(c,SummaryResult())
         isTaxResultNotTriggered(tr) shouldBe false
       }
@@ -63,13 +77,17 @@ class UtilitiesSpec extends UnitSpec {
 
     "taxResultTriggered" should {
       "return false when not triggered" in new TestFixture {
-        val c = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, Some(false))))
+        val c = Contribution(PensionPeriod.PERIOD_1_2015_START,
+                              PensionPeriod.PERIOD_1_2015_END,
+                              Some(InputAmounts(Some(1L), Some(2L), None, Some(false))))
         val tr = TaxYearResults(c,SummaryResult())
         isTaxResultTriggered(tr) shouldBe false
       }
 
       "return true when triggered" in new TestFixture {
-        val c = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(1L), Some(2L), None, Some(true))))
+        val c = Contribution(PensionPeriod.PERIOD_1_2015_START,
+                             PensionPeriod.PERIOD_1_2015_END,
+                             Some(InputAmounts(Some(1L), Some(2L), None, Some(true))))
         val tr = TaxYearResults(c,SummaryResult())
         isTaxResultTriggered(tr) shouldBe true
       }
@@ -87,5 +105,54 @@ class UtilitiesSpec extends UnitSpec {
         result shouldBe None
       }
     }
+
+    "Actual Unused" should {
+      class Test(previous: Seq[TaxYearResults], contribution:Contribution) extends Period2Calculator()(80000L, previous, contribution) {
+        def test() = actualUnusedList(this)(previousPeriods,contribution)
+      }
+
+      "return unused for all years where no trigger has occurred" in {
+        // set up
+        val c2008 = TaxYearResults(Contribution(2008, 4000000L), ExtendedSummaryFields(exceedingAAAmount=0L,unusedAllowance=1000000L))
+        val c2009 = TaxYearResults(Contribution(2009, 4000000L), ExtendedSummaryFields(exceedingAAAmount=0L,unusedAllowance=1000000L))
+        val c2010 = TaxYearResults(Contribution(2010, 4000000L), ExtendedSummaryFields(exceedingAAAmount=0L,unusedAllowance=1000000L))
+        val c2011 = TaxYearResults(Contribution(2011, 4000000L), ExtendedSummaryFields(exceedingAAAmount=0L,unusedAllowance=1000000L))
+        val c2012 = TaxYearResults(Contribution(2012, 4000000L), ExtendedSummaryFields(exceedingAAAmount=0L,unusedAllowance=1000000L))
+        val c2013 = TaxYearResults(Contribution(2013, 4000000L), ExtendedSummaryFields(exceedingAAAmount=0L,unusedAllowance=1000000L))
+        val c2014 = TaxYearResults(Contribution(2014, 3000000L), ExtendedSummaryFields(exceedingAAAmount=0L,unusedAllowance=1000000L))
+        val c2015p1 = TaxYearResults(Contribution(true, 0, 8500000L), ExtendedSummaryFields(exceedingAAAmount=500000L,unusedAllowance=0L))
+        val previousPeriods = Seq(c2015p1, c2015p1, c2014, c2013, c2012, c2011, c2010, c2009, c2008)
+        val contribution = Contribution(false, 0, 800000L)
+
+        // test
+        val results = new Test(previousPeriods, contribution).test
+
+        // check
+        results(0) shouldBe ((2015, 0L))
+        results(1) shouldBe ((2014, 1000000L))
+        results(2) shouldBe ((2013, 700000L))
+        results(3) shouldBe ((2012, 0L))
+        results(4) shouldBe ((2011, 1000000L))
+      }
+
+      "return unused for all years where no trigger has occurred with only 2 previous years" in {
+        // set up
+        val c2013 = TaxYearResults(Contribution(2013, 4000000L), ExtendedSummaryFields(exceedingAAAmount=0L,unusedAllowance=1000000L))
+        val c2014 = TaxYearResults(Contribution(2014, 3000000L), ExtendedSummaryFields(exceedingAAAmount=0L,unusedAllowance=1000000L))
+        val c2015p1 = TaxYearResults(Contribution(true, 0, 8500000L), ExtendedSummaryFields(exceedingAAAmount=500000L,unusedAllowance=0L))
+        val previousPeriods = Seq(c2015p1, c2015p1, c2014, c2013)
+        val contribution = Contribution(false, 0, 0L)
+
+        // test
+        val results = new Test(previousPeriods, contribution).test
+
+        // check
+        results(0) shouldBe ((2015, 0L))
+        results(1) shouldBe ((2014, 1000000L))
+        results(2) shouldBe ((2013, 500000L))
+      }
+    }
   }
 }
+// scalastyle:on number.of.methods
+// scalastyle:on magic.number

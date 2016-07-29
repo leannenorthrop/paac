@@ -385,7 +385,7 @@ class CalculatorInputsSpec extends ModelSpec {
         // set up
         val c = Contribution(2008, 0)
 
-        // do it 
+        // do it
         val label = c.taxYearLabel
 
         // check
@@ -396,7 +396,7 @@ class CalculatorInputsSpec extends ModelSpec {
         // set up
         val c = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(0,0)))
 
-        // do it 
+        // do it
         val label = c.taxYearLabel
 
         // check
@@ -407,7 +407,7 @@ class CalculatorInputsSpec extends ModelSpec {
         // set up
         val c = Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(0,0)))
 
-        // do it 
+        // do it
         val label = c.taxYearLabel
 
         // check
@@ -418,7 +418,7 @@ class CalculatorInputsSpec extends ModelSpec {
         // set up
         val c = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod(2015, 4, 12), Some(InputAmounts(0,0)))
 
-        // do it 
+        // do it
         val label = c.taxYearLabel
 
         // check
@@ -429,7 +429,7 @@ class CalculatorInputsSpec extends ModelSpec {
         // set up
         val c = Contribution(PensionPeriod(2015, 9, 12), PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(0,0)))
 
-        // do it 
+        // do it
         val label = c.taxYearLabel
 
         // check
@@ -461,7 +461,7 @@ class CalculatorInputsSpec extends ModelSpec {
         // set up
         val c = Contribution(2008, 0)
 
-        // do it 
+        // do it
         val label = c.label
 
         // check
@@ -472,7 +472,7 @@ class CalculatorInputsSpec extends ModelSpec {
         // set up
         val c = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(0,0)))
 
-        // do it 
+        // do it
         val label = c.label
 
         // check
@@ -483,18 +483,18 @@ class CalculatorInputsSpec extends ModelSpec {
         // set up
         val c = Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(0,0)))
 
-        // do it 
+        // do it
         val label = c.label
 
         // check
         label shouldBe "15/16 P2 B"
-      }      
+      }
 
       "have a 2015 Period 1 triggered label" in {
         // set up
         val c = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(0), Some(0), None, Some(true))))
 
-        // do it 
+        // do it
         val label = c.label
 
         // check
@@ -505,7 +505,7 @@ class CalculatorInputsSpec extends ModelSpec {
         // set up
         val c = Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(0), Some(0), None, Some(true))))
 
-        // do it 
+        // do it
         val label = c.label
 
         // check
@@ -796,7 +796,7 @@ class CalculatorInputsSpec extends ModelSpec {
         // check
         val jsonTaxYear = json \ "taxPeriodStart" \ "year"
         jsonTaxYear.as[Int] shouldBe 2010
-        val v = json \ "amounts" 
+        val v = json \ "amounts"
         v.as[Option[InputAmounts]] shouldBe Some(InputAmounts(None,None))
       }
 
@@ -929,7 +929,7 @@ class CalculatorInputsSpec extends ModelSpec {
 
         // test
         val db = contribution.definedBenefit
-        
+
         // check
         db shouldBe 123L
       }
@@ -947,7 +947,7 @@ class CalculatorInputsSpec extends ModelSpec {
 
         // test
         val db = contribution.moneyPurchase
-        
+
         // check
         db shouldBe 123L
       }
@@ -959,7 +959,7 @@ class CalculatorInputsSpec extends ModelSpec {
     }
 
     "do implicit cast which" should {
-      import calculators.internal.Utilities._
+      import calculators.internal.utilities._
       "cast from contribution to SummaryResultsTuple" in {
         // set up
         implicit val contribution = Contribution(2020, 123)

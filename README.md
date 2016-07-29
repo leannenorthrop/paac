@@ -35,8 +35,8 @@ of the format where amounts are in pence:
  "taxPeriodEnd": {"year": 2015, "month": 4, "day": 5},
  "amounts":{"definedBenefit":1200000,"moneyPurchase":0}
 }
-], 
-"startFromYear": 2012, 
+],
+"startFromYear": 2012,
 "missingYearsAreRegistered": false }
 ```
 
@@ -58,8 +58,8 @@ of the format where amounts are in pence:
  "taxPeriodEnd": {"year": 2016, "month": 4, "day": 5},
  "amounts":{"definedBenefit":0,"moneyPurchase":12000,"income":0,"triggered":true}
 }
-], 
-"startFromYear": 2012, 
+],
+"startFromYear": 2012,
 "missingYearsAreRegistered": false }
 ```
 
@@ -81,8 +81,8 @@ of the format where amounts are in pence:
 "taxPeriodEnd":{"year": 2016, "month": 4, "day": 5},
 "amounts":{"definedBenefit":0,"moneyPurchase":12000,"income":0,"triggered":true}
 }
-], 
-"startFromYear": 2012, 
+],
+"startFromYear": 2012,
 "missingYearsAreRegistered": false }
 ```
 
@@ -104,8 +104,8 @@ of the format where amounts are in pence:
 "taxPeriodEnd":{"year": 2016, "month": 4, "day": 5},
 "amounts":{"definedBenefit":0,"moneyPurchase":12000,"income":0,"triggered":true}
 }
-], 
-"startFromYear": 2012, 
+],
+"startFromYear": 2012,
 "missingYearsAreRegistered": false }
 ```
 
@@ -139,8 +139,8 @@ using the correct start end dates in the input JSON e.g.
  "taxPeriodEnd": {"year": 2016, "month": 4, "day": 5},
  "amounts":{"definedBenefit":12000,"moneyPurchase":0}
 }
-], 
-"startFromYear": 2012, 
+],
+"startFromYear": 2012,
 "missingYearsAreRegistered": false }
 ```
 
@@ -174,3 +174,7 @@ Calculation tests are driven by text files containing a table of input and expec
 ### Turning on Full Stack Traces
 
 Turn on full stacktrace in sbt console using `set testOptions in "paac" += Tests.Argument("-oF")`
+
+# Other
+
+Scalastyle is enabled for this project. To run use `sbt scalastyle` on the command line.

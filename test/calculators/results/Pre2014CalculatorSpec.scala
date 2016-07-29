@@ -24,7 +24,7 @@ import org.scalacheck.Gen
 import calculators.internal.BasicAllowanceCalculator
 
 class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks {
-  
+
   trait ContributionPre2014Fixture {
     val contribution0 = Contribution(2008, 500000)
     val contribution1 = Contribution(2009, 600000)
@@ -46,7 +46,7 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
       // do it
       val isSupported = Pre2014Calculator.isSupported(contribution)
 
-      // check it 
+      // check it
       isSupported shouldBe false
     }
 
@@ -98,7 +98,7 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
       // end date after supported range
       Pre2014Calculator.isSupported(Contribution(PensionPeriod(2014, 4, 5),
                                         PensionPeriod(2014, 4, 6),
-                                        Some(InputAmounts(5000L)))) shouldBe false 
+                                        Some(InputAmounts(5000L)))) shouldBe false
       // start and end date before supported range
       Pre2014Calculator.isSupported(Contribution(PensionPeriod(PensionPeriod.EARLIEST_YEAR_SUPPORTED, 4, 5),
                                         PensionPeriod(PensionPeriod.EARLIEST_YEAR_SUPPORTED, 4, 5),
@@ -260,7 +260,7 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
       val previous = Seq[TaxYearResults](TaxYearResults(Contribution(PensionPeriod.EARLIEST_YEAR_SUPPORTED,500000L),starting))
       val result = Pre2014Calculator.summary(previous, contribution1).get
 
-      val actualUnused = calculators.internal.Utilities.actualUnusedList(BasicAllowanceCalculator(50000L, previous, contribution1))(previous, contribution1)
+      val actualUnused = calculators.internal.utilities.actualUnusedList(BasicAllowanceCalculator(50000L, previous, contribution1))(previous, contribution1)
       info(actualUnused.mkString(","))
 
       // check it
@@ -293,4 +293,4 @@ class Pre2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
       results shouldBe Some(SummaryResult(-1,0,5000000,4999877,5000000,4999877,0))
     }
   }
-} 
+}

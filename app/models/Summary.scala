@@ -22,11 +22,11 @@ import play.api.libs.json._
 
 /**
   Base trait for all summary result row objects. All amounts are in pence,
-  therefore divide by 100 to get pounds and pence. 
+  therefore divide by 100 to get pounds and pence.
 */
 trait Summary {
   /** Tax due */
-  def chargableAmount: Long     
+  def chargableAmount: Long
   /** Amount exceeding annual allowance. Not always equal to chargable amount. */
   def exceedingAAAmount: Long
   /** Annual allowance available */
@@ -36,7 +36,7 @@ trait Summary {
   /** total available allowance for current year should be renamed to totalAA */
   def availableAAWithCF: Long
   /** available allowance carried forward to following year */
-  def availableAAWithCCF: Long 
+  def availableAAWithCCF: Long
   /** Alternative annual allowance that wasn't used. Only applicable from 2015 onwards. */
   def unusedAAA: Long
   /** Money purchase annual allowance amount not used. Only applicable when flexi-access event has occured. */
@@ -48,28 +48,28 @@ trait Summary {
   /** True if mpa was applied */
   def isMPA: Boolean
   /** Money purchase annual allowance. */
-  def moneyPurchaseAA: Long 
+  def moneyPurchaseAA: Long
   /** Alternative annual allowance */
   def alternativeAA: Long
 }
 
 /**
- Summary object providing read/write for JSON values. JSON is marshalled/unmarshalled from generic interface 
+ Summary object providing read/write for JSON values. JSON is marshalled/unmarshalled from generic interface
  not the case class.
  */
 object Summary {
   implicit val summaryResultWrites: Writes[Summary] = (
     (JsPath \ "chargableAmount").write[Long] and
-    (JsPath \ "exceedingAAAmount").write[Long] and 
+    (JsPath \ "exceedingAAAmount").write[Long] and
     (JsPath \ "availableAllowance").write[Long] and
-    (JsPath \ "unusedAllowance").write[Long] and 
+    (JsPath \ "unusedAllowance").write[Long] and
     (JsPath \ "availableAAWithCF").write[Long] and
     (JsPath \ "availableAAWithCCF").write[Long] and
     (JsPath \ "unusedAAA").write[Long] and
-    (JsPath \ "unusedMPAA").write[Long] and 
-    (JsPath \ "exceedingMPAA").write[Long] and 
+    (JsPath \ "unusedMPAA").write[Long] and
+    (JsPath \ "exceedingMPAA").write[Long] and
     (JsPath \ "exceedingAAA").write[Long] and
-    (JsPath \ "isMPA").write[Boolean] and 
+    (JsPath \ "isMPA").write[Boolean] and
     (JsPath \ "moneyPurchaseAA").write[Long] and
     (JsPath \ "alternativeAA").write[Long]
   )(Summary.unapply _ )
@@ -83,7 +83,7 @@ object Summary {
     (JsPath \ "availableAAWithCCF").read[Long] and
     (JsPath \ "unusedAAA").read[Long] and
     (JsPath \ "unusedMPAA").read[Long] and
-    (JsPath \ "exceedingMPAA").read[Long] and 
+    (JsPath \ "exceedingMPAA").read[Long] and
     (JsPath \ "exceedingAAA").read[Long] and
     (JsPath \ "isMPA").read[Boolean] and
     (JsPath \ "moneyPurchaseAA").read[Long] and
@@ -91,9 +91,23 @@ object Summary {
   )(Summary.apply _)
 
   def unapply(summary: Summary): (Long, Long, Long, Long, Long, Long, Long, Long, Long, Long, Boolean, Long, Long) =
-    (summary.chargableAmount, summary.exceedingAAAmount, summary.availableAllowance, summary.unusedAllowance, summary.availableAAWithCF, summary.availableAAWithCCF, summary.unusedAAA, summary.unusedMPAA, summary.exceedingMPAA, summary.exceedingAAA, summary.isMPA, summary.moneyPurchaseAA, summary.alternativeAA)
+    // scalastyle:off
+    (summary.chargableAmount,
+      summary.exceedingAAAmount,
+      summary.availableAllowance,
+      summary.unusedAllowance,
+      summary.availableAAWithCF,
+      summary.availableAAWithCCF,
+      summary.unusedAAA,
+      summary.unusedMPAA,
+      summary.exceedingMPAA,
+      summary.exceedingAAA,
+      summary.isMPA,
+      summary.moneyPurchaseAA,
+      summary.alternativeAA)
+    // scalastyle:on
 
-
+  // scalastyle:off
   def apply(chargableAmount: Long = 0,
             exceedingAAAmount: Long = 0,
             availableAllowance: Long = 0,
@@ -105,7 +119,7 @@ object Summary {
             exceedingMPAA: Long = 0,
             exceedingAAA: Long = 0,
             isMPA: Boolean = false,
-            moneyPurchaseAA: Long = 0, 
+            moneyPurchaseAA: Long = 0,
             alternativeAA: Long = 0): Summary =
     SummaryResult(chargableAmount,
                   exceedingAAAmount,
@@ -120,4 +134,5 @@ object Summary {
                   isMPA,
                   moneyPurchaseAA,
                   alternativeAA)
+  // scalastyle:on
 }

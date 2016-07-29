@@ -18,7 +18,7 @@ package calculators.internal
 
 trait SummaryCalculator {
   def allowance(): Long
-  def definedBenefit(): Long 
+  def definedBenefit(): Long
   def definedContribution(): Long
   def annualAllowance(): Long
   def exceedingAllowance(): Long

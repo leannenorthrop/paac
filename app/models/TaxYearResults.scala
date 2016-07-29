@@ -22,20 +22,22 @@ import play.api.libs.json._
 
 /**
   Container class for a single 'row' of calculation results 'table'.
-  Originally intended to be expanded to include a detailed result object to 
-  explain results as is the case with the original javascript based 
+  Originally intended to be expanded to include a detailed result object to
+  explain results as is the case with the original javascript based
   extended calculator.
  */
+// scalastyle:off magic.number
 case class TaxYearResults(input: Contribution = Contribution(2008,0L),
                           summaryResult: Summary = SummaryResult())
+// scalastyle:on magic.number
 
-/** 
+/**
  TaxYearResults providing read/write for JSON and implicit casts.
  */
 object TaxYearResults {
   implicit val summaryWrites: Writes[TaxYearResults] = (
     (JsPath \ "input").write[Contribution] and
-    (JsPath \ "summaryResult").write[Summary] 
+    (JsPath \ "summaryResult").write[Summary]
   )(unlift(TaxYearResults.unapply))
 
   implicit val summaryReads: Reads[TaxYearResults] = (
