@@ -31,7 +31,7 @@ class Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
     implicit var contribution = Contribution(2015, 0)
     val period2Contribution = Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, None)
   }
-  
+
   "period1" should {
 
     val period1Value = PrivateMethod[ExtendedSummaryFields]('period1)
@@ -168,7 +168,7 @@ class Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
 
     "exceedingAllowance should be 0" in new TestFixture {
       new Period2Calculator().exceedingAllowance shouldBe 0L
-    } 
+    }
 
     "unusedAllowance" should {
       "return 0 if no previous periods supplied" in new TestFixture {
@@ -192,7 +192,7 @@ class Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
 
         // test
         val result = calc.test
-        
+
         // check
         result shouldBe 0L
       }
@@ -209,7 +209,7 @@ class Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
 
         // test
         val result = calc.test
-        
+
         // check
         result shouldBe 0L
       }
@@ -229,7 +229,7 @@ class Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
       "return defined contribution if no previous periods supplied" in new TestFixture {
         // set up
         contribution = period2Contribution.copy(amounts = Some(InputAmounts(Some(0L), Some(1200000L))))
-        
+
         // test
         val result = new Period2Calculator().cumulativeMP
 
@@ -307,7 +307,7 @@ class Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
 
         // test
         val result = calc.mpist()
-        
+
         // check
         result shouldBe 0L
       }
@@ -327,9 +327,45 @@ class Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks 
 
         // test
         val result = calc.alternativeChargableAmount()
-        
+
         // check
         result shouldBe 200000L
       }
     }
+
+  "isACA" should {
+    "return true when ACA is applicable" in {
+      // set up
+      val calculator = new Year2015Period2Calculator() {
+        def allowanceInPounds(): Long = 0
+        def previousPeriods(): Seq[TaxYearResults] = Seq[TaxYearResults]()
+        def contribution(): Contribution = Contribution(2015, 0)
+        override def alternativeChargableAmount(): Long = 50000
+        override def defaultChargableAmount(): Long = 0
+      }
+
+      // test
+      val result = calculator.isACA
+
+      // check
+      result shouldBe true
+    }
+
+    "return false when ACA is not applicable" in {
+      // set up
+      val calculator = new Year2015Period2Calculator() {
+        def allowanceInPounds(): Long = 0
+        def previousPeriods(): Seq[TaxYearResults] = Seq[TaxYearResults]()
+        def contribution(): Contribution = Contribution(2015, 0)
+        override def alternativeChargableAmount(): Long = 0
+        override def defaultChargableAmount(): Long = 50000
+      }
+
+      // test
+      val result = calculator.isACA
+
+      // check
+      result shouldBe false
+    }
+  }
 }

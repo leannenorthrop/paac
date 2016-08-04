@@ -115,5 +115,11 @@ class BasicAllowanceCalculatorSpec extends UnitSpec with GeneratorDrivenProperty
         new BasicAllowanceCalculator(50000L, Seq[TaxYearResults](), Contribution(2000, 0)).allowance shouldBe 50000L
       }
     }
+
+    "isACA" should {
+      "return false" in {
+        new BasicAllowanceCalculator(50000L, Seq[TaxYearResults](), Contribution(2000, 0)).summary.get.isACA shouldBe false
+      }
+    }
   }
 }

@@ -32,6 +32,7 @@ trait ExtendedSummaryCalculator extends SummaryCalculator {
   def preFlexiSavings(): Long = 0L
   def postFlexiSavings(): Long = 0L
   def isMPAAApplicable(): Boolean = false
-  def acaCF() : Long = 0L
-  def dcaCF() : Long = 0L
+  def acaCF(): Long = 0L
+  def dcaCF(): Long = 0L
+  def isACA(): Boolean = false
 }
