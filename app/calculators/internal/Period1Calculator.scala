@@ -188,6 +188,10 @@ trait Year2015Period1Calculator extends PeriodCalculator {
                                       }
   override def exceedingMPAA(): Long = _exceedingMPAA
 
+  // Is ACA Applicable
+  protected lazy val _isACA = alternativeChargableAmount >= defaultChargableAmount
+  override def isACA(): Boolean = _isACA
+
   // Is MPA Applicable
   protected lazy val _isMPAAApplicable = definedContribution > MPA
   override def isMPAAApplicable(): Boolean = _isMPAAApplicable
