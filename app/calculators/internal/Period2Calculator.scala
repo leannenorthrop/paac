@@ -241,7 +241,7 @@ protected trait Year2015Period2Calculator extends PeriodCalculator {
   protected lazy val isPeriod2Triggered: Boolean = isTriggered && !isPeriod1Triggered
 
   // Money Purchase Annual Allowance
-  protected lazy val _moneyPurchaseAA = period1.unusedMPAA
+  protected lazy val _moneyPurchaseAA = if (isPeriod1Triggered) period1.unusedMPAA else MPA
   override def moneyPurchaseAA(): Long = _moneyPurchaseAA
 
   // MPIST

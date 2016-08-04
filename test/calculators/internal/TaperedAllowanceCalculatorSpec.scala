@@ -74,6 +74,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       calc.isMPAAApplicable shouldBe false
       calc.acaCF shouldBe 0L
       calc.dcaCF shouldBe 0L
+      calc.isACA shouldBe false
     }
   }
 
