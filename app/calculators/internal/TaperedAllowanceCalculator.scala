@@ -51,6 +51,7 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
   override def exceedingAAA(): Long = _exceedingAAA
   override def exceedingAllowance(): Long = _exceedingAllowance
   override def exceedingMPAA(): Long = _exceedingMPAA
+  override def isACA(): Boolean = _isACA
   override def isMPAAApplicable(): Boolean = _isMPAAApplicable
   override def moneyPurchaseAA(): Long = _mpa
   override def mpist(): Long = _mpist
@@ -265,6 +266,9 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
   protected lazy val _taperEnd = config.get("taperEnd").getOrElse(DEAFULT_TAPER_END) * 100L
 
   protected lazy val _annualAllowance: Long = config.get("annual").getOrElse(DEAFULT_AA) * 100L
+
+  // Is ACA Applicable
+  protected lazy val _isACA = alternativeChargableAmount >= defaultChargableAmount
 }
 // scalastyle:on number.of.methods
 

@@ -1023,7 +1023,41 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       }
     }
   }
+  "isACA" should {
+    "return true when ACA is applicable" in {
+      // set up
+      val calculator = new TaperedAllowanceCalculator() {
+        def allowanceInPounds(): Long = 0
+        def previousPeriods(): Seq[TaxYearResults] = Seq[TaxYearResults]()
+        def contribution(): Contribution = Contribution(2015, 0)
+        override def alternativeChargableAmount(): Long = 50000
+        override def defaultChargableAmount(): Long = 0
+      }
 
+      // test
+      val result = calculator.isACA
+
+      // check
+      result shouldBe true
+    }
+
+    "return false when ACA is not applicable" in {
+      // set up
+      val calculator = new TaperedAllowanceCalculator() {
+        def allowanceInPounds(): Long = 0
+        def previousPeriods(): Seq[TaxYearResults] = Seq[TaxYearResults]()
+        def contribution(): Contribution = Contribution(2015, 0)
+        override def alternativeChargableAmount(): Long = 0
+        override def defaultChargableAmount(): Long = 50000
+      }
+
+      // test
+      val result = calculator.isACA
+
+      // check
+      result shouldBe false
+    }
+  }
 }
 // scalastyle:on magic.number
 // scalastyle:on line.size.limit
