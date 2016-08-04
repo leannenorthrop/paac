@@ -51,6 +51,8 @@ trait Summary {
   def moneyPurchaseAA: Long
   /** Alternative annual allowance */
   def alternativeAA: Long
+  /** True if ACA is applicable */
+  def isACA: Boolean
 }
 
 /**
@@ -71,7 +73,8 @@ object Summary {
     (JsPath \ "exceedingAAA").write[Long] and
     (JsPath \ "isMPA").write[Boolean] and
     (JsPath \ "moneyPurchaseAA").write[Long] and
-    (JsPath \ "alternativeAA").write[Long]
+    (JsPath \ "alternativeAA").write[Long] and
+    (JsPath \ "isACA").write[Boolean]
   )(Summary.unapply _ )
 
   implicit val summaryResultReads: Reads[Summary] = (
@@ -87,10 +90,11 @@ object Summary {
     (JsPath \ "exceedingAAA").read[Long] and
     (JsPath \ "isMPA").read[Boolean] and
     (JsPath \ "moneyPurchaseAA").read[Long] and
-    (JsPath \ "alternativeAA").read[Long]
+    (JsPath \ "alternativeAA").read[Long] and
+    (JsPath \ "isACA").read[Boolean]
   )(Summary.apply _)
 
-  def unapply(summary: Summary): (Long, Long, Long, Long, Long, Long, Long, Long, Long, Long, Boolean, Long, Long) =
+  def unapply(summary: Summary): (Long, Long, Long, Long, Long, Long, Long, Long, Long, Long, Boolean, Long, Long, Boolean) =
     // scalastyle:off
     (summary.chargableAmount,
       summary.exceedingAAAmount,
@@ -104,7 +108,8 @@ object Summary {
       summary.exceedingAAA,
       summary.isMPA,
       summary.moneyPurchaseAA,
-      summary.alternativeAA)
+      summary.alternativeAA,
+      summary.isACA)
     // scalastyle:on
 
   // scalastyle:off
@@ -120,7 +125,8 @@ object Summary {
             exceedingAAA: Long = 0,
             isMPA: Boolean = false,
             moneyPurchaseAA: Long = 0,
-            alternativeAA: Long = 0): Summary =
+            alternativeAA: Long = 0,
+            isACA: Boolean = false): Summary =
     SummaryResult(chargableAmount,
                   exceedingAAAmount,
                   availableAllowance,
@@ -133,6 +139,7 @@ object Summary {
                   exceedingAAA,
                   isMPA,
                   moneyPurchaseAA,
-                  alternativeAA)
+                  alternativeAA,
+                  isACA)
   // scalastyle:on
 }
