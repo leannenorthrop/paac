@@ -74,6 +74,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       calc.isMPAAApplicable shouldBe false
       calc.acaCF shouldBe 0L
       calc.dcaCF shouldBe 0L
+      calc.isACA shouldBe false
     }
   }
 
@@ -92,6 +93,9 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
 
   "isTaperingApplicable" should {
     class Test(contribution:Contribution) extends Post2015TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution) {
+      def test(): Boolean = super.isTaperingApplicable
+    }
+    class TestWithPrevious(contribution:Contribution, previousPeriods: Seq[TaxYearResults]) extends Post2015TaperedAllowanceCalculator()(previousPeriods, contribution) {
       def test(): Boolean = super.isTaperingApplicable
     }
 
@@ -126,6 +130,30 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
 
       // check
       result shouldBe false
+    }
+
+    "should be true if triggered in current year and income > 150K" in {
+      // set up
+      val contribution = Contribution(2016, Some(InputAmounts(triggered=Some(true))))
+      val previous = TaxYearResults(Contribution(2016, Some(InputAmounts(income=Some(15000100L),triggered=Some(false)))), ExtendedSummaryFields())
+
+      // test
+      val result = new TestWithPrevious(contribution, Seq(previous)).test
+
+      // check
+      result shouldBe true
+    }
+
+    "should be true if triggered in previous year and income > 150K" in {
+      // set up
+      val contribution = Contribution(2016, Some(InputAmounts(income=Some(15000100L),triggered=Some(true))))
+      val previous = TaxYearResults(Contribution(2015, Some(InputAmounts(triggered=Some(true)))), ExtendedSummaryFields())
+
+      // test
+      val result = new TestWithPrevious(contribution, Seq(previous)).test
+
+      // check
+      result shouldBe true
     }
   }
 

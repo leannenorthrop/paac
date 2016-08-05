@@ -61,16 +61,23 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
   override def unusedAllowance(): Long = _unusedAllowance
   override def unusedMPAA(): Long = _unusedMPAA
 
-  protected val income =
+  protected lazy val income: Long =
     if (isTriggered) {
-      previousPeriods.headOption.map(_.input.income).getOrElse(0L)
+      previousPeriods.headOption.map {
+        (previous) =>
+        if (previous.input.isTriggered) {
+          contribution.income
+        } else {
+          previous.input.income
+        }
+      }.getOrElse(contribution.income)
     }
     else {
       contribution.income
     }
 
   protected def basicCalculator(): SummaryCalculator =
-    BasicAllowanceCalculator((_annualAllowance/100D).toInt, previousPeriods, contribution)
+    BasicAllowanceCalculator((annualAllowance/100D).toInt, previousPeriods, contribution)
 
   protected def isTaperingApplicable(): Boolean = income > _taperStart
 
@@ -135,7 +142,7 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
       0L
     }
 
-  protected lazy val _annualAllowanceCF = annualAllowance + previousYear.map(_.summaryResult.availableAAWithCCF).getOrElse(0L)
+  protected lazy val _annualAllowanceCF = annualAllowance() + previousYear.map(_.summaryResult.availableAAWithCCF).getOrElse(0L)
 
   protected lazy val _unusedAllowance =
     if (isTriggered) {
