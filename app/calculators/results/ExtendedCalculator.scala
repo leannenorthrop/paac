@@ -46,7 +46,8 @@ protected trait ExtendedCalculator extends BasicCalculator {
                                  calculator.postFlexiSavings,
                                  calculator.isMPAAApplicable,
                                  calculator.acaCF,
-                                 calculator.dcaCF))
+                                 calculator.dcaCF,
+                                 calculator.isACA))
     } else {
       None
     }

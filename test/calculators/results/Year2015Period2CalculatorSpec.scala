@@ -126,7 +126,7 @@ class Year2015Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropert
 
         // check it
         // With no previous inputs as period 2 has no allowance then exceeding is same as defined benefit input
-        withClue(s"Contributions with date '$taxDay/${taxMonth}/$taxYear' should be supported but") { results shouldBe Some(ExtendedSummaryFields(5000,5000,0,0,0,0,0,0,1000000,0,0,0,0,0,0,5000,0,0,0,0,false,0,0)) }
+        withClue(s"Contributions with date '$taxDay/${taxMonth}/$taxYear' should be supported but") { results shouldBe Some(ExtendedSummaryFields(5000,5000,0,0,0,0,0,0,1000000,0,0,0,0,0,0,5000,0,0,0,0,false,0,0,true)) }
       }
     }
 
@@ -136,7 +136,7 @@ class Year2015Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropert
         // do it
         val results = Year2015Period2Calculator.summary(Seq[TaxYearResults](), Contribution(false,0,0))
         // check it
-        results shouldBe Some(ExtendedSummaryFields(0,0,0,0,0,0,0,0,1000000,0,0,0,0,0,0,0,0,0,0,0,false,0,0))
+        results shouldBe Some(ExtendedSummaryFields(0,0,0,0,0,0,0,0,1000000,0,0,0,0,0,0,0,0,0,0,0,false,0,0,true))
       }
 
 
