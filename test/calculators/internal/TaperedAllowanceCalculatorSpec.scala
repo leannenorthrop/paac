@@ -1057,7 +1057,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       val calculator = new TaperedAllowanceCalculator() {
         def allowanceInPounds(): Long = 0
         def previousPeriods(): Seq[TaxYearResults] = Seq[TaxYearResults]()
-        def contribution(): Contribution = Contribution(2015, 0)
+        def contribution(): Contribution = Contribution(2015, 0).copy(amounts=Some(InputAmounts(triggered=Some(true))))
         override def alternativeChargableAmount(): Long = 50000
         override def defaultChargableAmount(): Long = 0
       }

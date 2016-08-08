@@ -275,7 +275,7 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
   protected lazy val _annualAllowance: Long = config.get("annual").getOrElse(DEAFULT_AA) * 100L
 
   // Is ACA Applicable
-  protected lazy val _isACA = alternativeChargableAmount >= defaultChargableAmount
+  protected lazy val _isACA = isTriggered && alternativeChargableAmount >= defaultChargableAmount
 }
 // scalastyle:on number.of.methods
 

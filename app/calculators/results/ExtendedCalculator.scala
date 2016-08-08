@@ -17,6 +17,7 @@
 package calculators.results
 
 import models._
+import play.api.Logger
 import calculators.internal.ExtendedSummaryCalculator
 
 protected trait ExtendedCalculator extends BasicCalculator {
@@ -24,6 +25,9 @@ protected trait ExtendedCalculator extends BasicCalculator {
   override def summary(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Option[Summary] = {
     if (isSupported(contribution)) {
       val calculator = getCalculator
+      // $COVERAGE-OFF$
+      Logger.trace(s"isACA = ${calculator.isACA} ACA = ${calculator.alternativeChargableAmount} DCA = ${calculator.defaultChargableAmount} AA = ${calculator.annualAllowance} AAA = ${calculator.alternativeAA}")
+      // $COVERAGE-ON$
       Some(ExtendedSummaryFields(calculator.chargableAmount,
                                  calculator.exceedingAllowance,
                                  calculator.annualAllowance,
