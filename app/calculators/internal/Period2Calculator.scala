@@ -217,7 +217,7 @@ protected trait Year2015Period2Calculator extends PeriodCalculator {
   protected lazy val isGroup3: Boolean = contribution.isGroup3
 
   // Is ACA Applicable
-  protected lazy val _isACA = isTriggered && alternativeChargableAmount >= defaultChargableAmount
+  protected lazy val _isACA = isTriggered && alternativeChargableAmount > defaultChargableAmount
   override def isACA(): Boolean = _isACA
 
   // Is MPA Applicable

@@ -20,6 +20,7 @@ import calculators._
 import calculators.internal.utilities._
 import models._
 import config.PaacConfiguration
+import play.api.Logger
 
 // scalastyle:off number.of.methods
 trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
@@ -93,9 +94,12 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
 
   protected lazy val previous3YearsUnusedAllowance: Long = {
     // we only want previous values so create dummy contribution which does not affect the calculation
-    val c = Contribution(contribution.taxPeriodStart.taxYear, Some(InputAmounts(0L,0L)))
+    val taxYear = contribution.taxPeriodStart.taxYear
+    val c = Contribution(taxYear, Some(InputAmounts(0L,0L)))
     val calc = BasicAllowanceCalculator(0,previousPeriods,c)
-    actualUnusedList(calc)(previousPeriods, c).drop(1).slice(0,3).foldLeft(0L)(_ + _._2)
+    val unused = actualUnusedList(calc)(previousPeriods, c).dropWhile(_._1 == taxYear).slice(0,3)
+    Logger.debug(s"""3 Years Unused: ${unused.mkString("\n")}""")
+    unused.foldLeft(0L)(_ + _._2)
   }
 
   protected lazy val _acaCF = alternativeChargableAmount + previousYear.flatMap(maybeExtended(_).map(_.acaCF)).getOrElse(0L)
@@ -104,7 +108,7 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
 
   protected lazy val _postFlexiSavings =
     if (isTriggered) {
-      definedContribution + contribution.definedBenefit
+      contribution.moneyPurchase + contribution.definedBenefit
     }
     else {
       0L
@@ -126,12 +130,26 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
 
   protected lazy val _exceedingAAA = definedBenefit - alternativeAA
 
+  protected lazy val _isPreviousTriggered: Boolean =
+    previousPeriods.headOption.map{
+      (previous)=>
+      previous.input.isTriggered
+    }.getOrElse(false)
+
+
   protected lazy val _defaultChargableAmount =
     if (!isTriggered) {
+      Logger.debug(s"DCA: 0")
       0L
     }
     else {
-      (postFlexiSavings - (annualAllowance + previous3YearsUnusedAllowance)).max(0L)
+      if (_isPreviousTriggered) {
+        Logger.debug(s"DCA: ${postFlexiSavings} - (${annualAllowance} + ${previous3YearsUnusedAllowance}")
+        (postFlexiSavings - (annualAllowance + previous3YearsUnusedAllowance)).max(0L)
+      } else {
+        Logger.debug(s"DCA: (${postFlexiSavings} + ${preFlexiSavings}) - (${annualAllowance} + ${previous3YearsUnusedAllowance}")
+        ((postFlexiSavings + preFlexiSavings) - (annualAllowance + previous3YearsUnusedAllowance)).max(0L)
+      }
     }
 
   protected lazy val _annualAllowanceCCF =
@@ -216,13 +234,18 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
 
   protected lazy val _alternativeChargableAmount =
     if (isMPAAApplicable && isTriggered) {
+      Logger.debug(s"ACA: ${mpist} + ${dbist}")
       mpist + dbist
     }
     else {
+      Logger.debug(s"ACA: 0")
       0L
     }
 
-  protected lazy val _isMPAAApplicable = isTriggered && definedContribution > moneyPurchaseAA
+  protected lazy val _isMPAAApplicable = {
+    Logger.debug(s"isMPA: ${isTriggered} && ${definedContribution} > ${moneyPurchaseAA}")
+    isTriggered && definedContribution > moneyPurchaseAA
+  }
 
   protected lazy val _mpa = config.get("mpaa").getOrElse(DEFAULT_MPA) * 100L
 
@@ -254,15 +277,19 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
 
   protected lazy val _dbist =
     if (isMPAAApplicable) {
+      Logger.debug(s"DBIST: ${definedBenefit} - (${alternativeAA} + ${_previousAvailableAAWithCCF})")
       (definedBenefit - (alternativeAA + _previousAvailableAAWithCCF)).max(0)
     } else {
+      Logger.debug(s"DBIST: ${preFlexiSavings} - ${_previousAvailableAAWithCCF}")
       (preFlexiSavings - _previousAvailableAAWithCCF).max(0)
     }
 
   protected lazy val _mpist =
     if (isMPAAApplicable) {
+      Logger.debug(s"MPIST: ${definedContribution} - ${moneyPurchaseAA}")
       (definedContribution - moneyPurchaseAA).max(0)
     } else {
+      Logger.debug(s"MPIST: 0")
       0L
     }
 
@@ -275,7 +302,7 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
   protected lazy val _annualAllowance: Long = config.get("annual").getOrElse(DEAFULT_AA) * 100L
 
   // Is ACA Applicable
-  protected lazy val _isACA = isTriggered && alternativeChargableAmount >= defaultChargableAmount
+  protected lazy val _isACA = isTriggered && alternativeChargableAmount > defaultChargableAmount
 }
 // scalastyle:on number.of.methods
 

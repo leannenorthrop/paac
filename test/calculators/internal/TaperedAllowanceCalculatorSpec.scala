@@ -858,7 +858,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       // set up
       val period2 = TaxYearResults(Contribution(false, 0, 0), ExtendedSummaryFields(availableAAWithCCF=0L))
       val preTrigger = TaxYearResults(Contribution(2016, 4500000L), ExtendedSummaryFields(unusedAAA=1238200L))
-      val contribution = Contribution(2016, Some(InputAmounts(Some(4500000L),Some(1500000L),Some(0L),Some(true))))
+      val contribution = Contribution(2016, Some(InputAmounts(Some(0L),Some(1500000L),Some(0L),Some(true))))
 
       // test
       val results = Post2015TaperedAllowanceCalculator()(Seq[TaxYearResults](preTrigger,period2), contribution).defaultChargableAmount
@@ -866,17 +866,17 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       // check
       results shouldBe 2000000L
     }
-    "return £127,618 when no carry forwards but adjusted income present" in {
+    "return £37,618 when no carry forwards but adjusted income present" in {
       // set up
       val period2 = TaxYearResults(Contribution(false, 0, 0), ExtendedSummaryFields())
       val preTrigger = TaxYearResults(Contribution(2016, Some(InputAmounts(definedBenefit=Some(4500000L),income=Some(18523700L)))), ExtendedSummaryFields())
-      val contribution = Contribution(2016, Some(InputAmounts(moneyPurchase=Some(15000000L),triggered=Some(true))))
+      val contribution = Contribution(2016, Some(InputAmounts(moneyPurchase=Some(1500000L),triggered=Some(true))))
 
       // test
       val results = Post2015TaperedAllowanceCalculator()(Seq[TaxYearResults](preTrigger,period2), contribution).defaultChargableAmount
 
       // check
-      results shouldBe 12761800L
+      results shouldBe 3761800L
     }
   }
 
@@ -895,13 +895,13 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
     "if triggered but mpa is not applicable return default chargeable amount" in {
       // set up
       val preTrigger = TaxYearResults(Contribution(2016, 6500000L), ExtendedSummaryFields())
-      val contribution = Contribution(2016, Some(InputAmounts(Some(5000000L),Some(0L),None,Some(true))))
+      val contribution = Contribution(2016, Some(InputAmounts(Some(0L),Some(900000L),None,Some(true))))
 
       // test
       val results = Post2015TaperedAllowanceCalculator()(Seq[TaxYearResults](preTrigger), contribution).chargableAmount
 
       // check
-      results shouldBe 1000000L
+      results shouldBe 3400000L
     }
 
     "if mpa is applicable return the higher of dca and aca (DCA applies)" in {
