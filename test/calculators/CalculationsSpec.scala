@@ -62,8 +62,8 @@ class CalculationsSpec extends FunSpec with BeforeAndAfterAll {
   describe ("Tapered Allowance") {
     info(s"Tests in $dir:")
     val tests = getListOfFiles(dir)
-    info(s"""    ${tests.mkString(", ")}""")
-    tests foreach { case (testFilename) =>
+    tests foreach {
+      (testFilename) =>
       val maybeFileContents = readTextFile(testFilename)
       if (maybeFileContents.isDefined) {
         val lines = maybeFileContents.get

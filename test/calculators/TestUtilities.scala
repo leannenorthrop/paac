@@ -42,12 +42,15 @@ object TestUtilities {
 
   def readTextFile(filename: String): Option[List[String]] = {
     try {
-        val lines = using(io.Source.fromFile(filename)) { source =>
+        val lines = using(io.Source.fromFile(filename, "UTF-8")) { source =>
             (for (line <- source.getLines) yield line).toList
         }
         Some(lines)
     } catch {
-        case e: Exception => None
+        case e: Exception => {
+          e.printStackTrace
+          None
+        }
     }
   }
 

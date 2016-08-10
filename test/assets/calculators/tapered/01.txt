@@ -1,4 +1,4 @@
-No Tapered Allowance: £55k pre-flexi access, £3k post-flexi access
+No Tapered Allowance: £55k pre-flexi access £3k post-flexi access
 year    | Defined Benefit | Money Purchase  | Income         | Is Triggered | Tax    | AA      | Alt. AA | MPA   | Unused AA | Unused AAA |
 2013    | 39000           | 0               |                | false        | 0      | 50000   | 0       | 0     | 11000     | 0          |
 2014    | 32000           | 0               |                | false        | 0      | 40000   | 0       | 0     | 8000      | 0          |
