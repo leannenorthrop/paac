@@ -61,12 +61,12 @@ object TestUtilities {
     map.keys.toList.map {
       (key)=>
       key match {
-        case "2015P1" => Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(map(key)*100L))) 
-        case "2015P2" => Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(map(key)*100L))) 
-        case "2015P1B" => Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(map(key)*100L), None, None, Some(false)))) 
-        case "2015P1A" => Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(map(key)*100L), None, None, Some(true)))) 
-        case "2015P2B" => Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(map(key)*100L), None, None, Some(false)))) 
-        case "2015P2A" => Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(map(key)*100L), None, None, Some(true)))) 
+        case "2015P1" => Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(map(key)*100L)))
+        case "2015P2" => Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(map(key)*100L)))
+        case "2015P1B" => Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(map(key)*100L), None, None, Some(false))))
+        case "2015P1A" => Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(Some(map(key)*100L), None, None, Some(true))))
+        case "2015P2B" => Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(map(key)*100L), None, None, Some(false))))
+        case "2015P2A" => Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(Some(map(key)*100L), None, None, Some(true))))
         case _ => Contribution(key.toInt, map(key)*100L)
       }
     }
@@ -93,6 +93,33 @@ object TestUtilities {
         case "2015P2B" => Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(maybeDB, maybeDC, None, Some(false))))
         case "2015P2A" => Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(maybeDB, maybeDC, None, Some(true))))
         case _ => Contribution(key.toInt, Some(InputAmounts(maybeDB, maybeDC, None, Some(false))))
+      }
+    }
+  }
+  def generate(map:Map[String,(Long,Long,Option[Long],Boolean)]): List[Contribution] = {
+    map.keys.toList.map {
+      (key)=>
+      val (db,dc,maybeIncome,triggered) = map(key)
+      val maybeDB = if (map(key)._1 == -1) {
+        None
+      } else {
+        Some(map(key)._1*100L)
+      }
+      val maybeDC = if (map(key)._2 == -1) {
+        None
+      } else {
+        Some(map(key)._2*100L)
+      }
+      val maybeTriggered = if (triggered) Some(true) else None
+      key match {
+        case "2015P1" => Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(maybeDB, maybeDC, maybeIncome, maybeTriggered)))
+        case "2015P2" => Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(maybeDB, maybeDC, maybeIncome, maybeTriggered)))
+        case "2015P1B" => Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(maybeDB, maybeDC, maybeIncome, maybeTriggered)))
+        case "2015P1A" => Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(maybeDB, maybeDC, maybeIncome, maybeTriggered)))
+        case "2015P2B" => Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(maybeDB, maybeDC, maybeIncome, maybeTriggered)))
+        case "2015P2A" => Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(maybeDB, maybeDC, maybeIncome, maybeTriggered)))
+        case k if k.matches("\\d+(A|B)$") => Contribution(key.replaceAll("[A,B]","").toInt, Some(InputAmounts(maybeDB, maybeDC, maybeIncome, maybeTriggered)))
+        case _ => Contribution(key.toInt, Some(InputAmounts(maybeDB, maybeDC, maybeIncome, maybeTriggered)))
       }
     }
   }
@@ -140,65 +167,50 @@ object TestUtilities {
     message
   }
 
-  def assertResults(table:String, results:Seq[TaxYearResults], print:Boolean = false):Unit = {
-    def getInts() = {
-      table.split("\n").drop(2).toList.map(_.split('|').toList.map{
-        (v)=>
-        if (v.contains("2015P1B")) 
-          4 
-        else if (v.contains("2015P1A")) 
-          5 
-        else if (v.contains("2015P1")) 
-          2015 
-        else if (v.contains("2015P2B")) 
-          6 
-        else if (v.contains("2015P2A")) 
-          7 
-        else if (v.contains("2015P2")) 
-          15 
-        else { 
-          Try[Int](v.trim.toInt) match {
-            case Success(v) => v
-            case Failure(_) => -2
-          }
-        }
-      })
-    }
-
+  def assertResults(table:String, results:Seq[TaxYearResults], print:Boolean = true):Unit = {
     if (print) println(TestUtilities.toString(results))
 
     val valueFor = Map("Amount Exceeding AA"-> { (r:TaxYearResults) => r.summaryResult.exceedingAAAmount },
                        "Liable to Charge"-> { (r:TaxYearResults) => r.summaryResult.chargableAmount },
+                       "Tax"-> { (r:TaxYearResults) => r.summaryResult.chargableAmount },
                        "Available Annual Allowance"-> { (r:TaxYearResults) => r.summaryResult.availableAAWithCF },
+                       "AA"-> { (r:TaxYearResults) => r.summaryResult.availableAllowance },
+                       "Alt. AA"-> { (r:TaxYearResults) => r.summaryResult.alternativeAA },
                        "Unused AA CF"-> { (r:TaxYearResults) => r.summaryResult.unusedAllowance },
+                       "Unused AA"-> { (r:TaxYearResults) => r.summaryResult.unusedAllowance },
+                       "Unused AAA"-> { (r:TaxYearResults) => r.summaryResult.unusedAAA },
                        "Cumulative Carry Forward"-> { (r:TaxYearResults) => r.summaryResult.availableAAWithCCF },
                        "Available Allowance"-> { (r:TaxYearResults) => r.summaryResult.availableAllowance },
-                       "MPAA"-> { 
-                        (r:TaxYearResults) => 
+                       "MPA"-> { (r:TaxYearResults) => r.summaryResult.moneyPurchaseAA },
+                       "MPAA"-> {
+                        (r:TaxYearResults) =>
                         if (r.summaryResult.isInstanceOf[ExtendedSummaryFields])
                           r.summaryResult.asInstanceOf[ExtendedSummaryFields].unusedMPAA
-                        else 
+                        else
                           0L
                        }
                        )
     val headings = table.split("\n")(1).split('|').map(_.trim)
-    val expectedResults = getInts
-    val expected = expectedResults.map(headings.zip(_).groupBy(_._1).map{case (k,v)=>(k,v.map(_._2))})
+    val expectedResults = table.split("\n").drop(2).toList.map(_.split('|').toList)
+    val expected = expectedResults.map {headings.zip(_).groupBy(_._1).map{case (k,v)=>(k,v.map(_._2))}}
     expected.foreach {
       (row) =>
-      val year = row("year")(0)
+      val year = row("year")(0).trim
       val result = year match {
-        case 4 => results.find((r)=>r.input.isPeriod1() && r.input.label.contains("B")).get
-        case 5 => results.find((r)=>r.input.isPeriod1() && r.input.label.contains("A")).get
-        case 6 => results.find((r)=>r.input.isPeriod2() && r.input.label.contains("B")).get
-        case 7 => results.find((r)=>r.input.isPeriod2() && r.input.label.contains("A")).get
-        case 15 => results.find(_.input.isPeriod2()).get
-        case 2015 => results.find(_.input.isPeriod1()).get
-        case _ => results.find(_.input.taxPeriodStart.year == year).get
+        case y if y == "2015P1B" => results.find((r)=>r.input.isPeriod1() && !r.input.isTriggered).get
+        case y if y == "2015P1A" => results.find((r)=>r.input.isPeriod1() && r.input.isTriggered).get
+        case y if y == "2015P2B" => results.find((r)=>r.input.isPeriod2() && !r.input.isTriggered).get
+        case y if y == "2015P2A" => results.find((r)=>r.input.isPeriod2() && r.input.isTriggered).get
+        case y if y == "2015P1" => results.find((r)=>r.input.isPeriod1()).get
+        case y if y == "2015P2" => results.find((r)=>r.input.isPeriod2()).get
+        case y if y.matches("\\d+A$") => results.find((r)=>r.input.taxYear == year.replaceAll("(A|B)$","").toInt && r.input.isTriggered).get
+        case y if y.matches("\\d+B$") => results.find((r)=>r.input.taxYear == year.replaceAll("(A|B)$","").toInt && !r.input.isTriggered).get
+        case _ => results.find(_.input.taxYear == year.toInt).get
       }
-      row.foreach {
+      val rowValues = ((row - "year") - "Is Triggered").map((t)=>(t._1,t._2.map((v)=>if(v.trim.isEmpty) 0 else v.trim.toInt)))
+      rowValues.foreach {
         case (k:String,v:Array[Int])=>
-        if (k != "year" && k != "Defined Benefit" && k != "Defined Contribution" && k != "Money Purchase" && k != "Is Triggered")
+        if (k != "year" && k != "Defined Benefit" && k != "Defined Contribution" && k != "Money Purchase" && k != "Is Triggered" && k != "Income")
           assertResult(if (v(0) != (-1)) v(0)*100 else v(0),s"${result.input.label} ${k} (Pound values Expected: ${v(0)} Got: ${valueFor(k)(result)/100})")(valueFor(k).apply(result))
       }
     }

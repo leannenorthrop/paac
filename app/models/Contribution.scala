@@ -49,11 +49,13 @@ trait CalculationParam {
     Helper function for tests.
   */
   def label() : String = {
-    val beforeAfter = if (amounts.getOrElse(InputAmounts()).triggered.getOrElse(false)) "A" else "B"
+    val beforeAfter = if (isTriggered) "A" else "B"
     if (isPeriod2) {
       s"15/16 P2 $beforeAfter"
     } else if (isPeriod1) {
       s"15/16 P1 $beforeAfter"
+    } else if(isTriggered) {
+      s"${taxPeriodStart.year.toString().drop(2)}/${taxPeriodEnd.year.toString().drop(2)} $beforeAfter "
     } else {
       s"${taxPeriodStart.year.toString().drop(2)}/${taxPeriodEnd.year.toString().drop(2)}   "
     }
@@ -108,6 +110,8 @@ trait CalculationParam {
       inputs <- amounts
       income <- inputs.income
     } yield income) getOrElse 0L
+
+  def taxYear(): Int = taxPeriodStart.taxYear
 }
 
 case class Contribution(taxPeriodStart: PensionPeriod, taxPeriodEnd: PensionPeriod, amounts: Option[InputAmounts]) extends CalculationParam {
