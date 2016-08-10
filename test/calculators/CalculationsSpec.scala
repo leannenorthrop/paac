@@ -46,10 +46,11 @@ class CalculationsSpec extends FunSpec with BeforeAndAfterAll {
     val years = tableLines.map(_.split('|').toList(0).trim)
     val definedBenefit = tableLines.map(_.split('|').toList(1).trim.toLong)
     val moneyPurchase = tableLines.map(_.split('|').toList(2).trim.toLong)
-    val income = tableLines.map(_.split('|').toList(3)).map((v)=>if(v.trim.isEmpty) None else Some(v.trim.toLong))
+    val income = tableLines.map(_.split('|').toList(3)).map((v)=>if(v.trim.isEmpty) None else Some(v.trim.toLong*100))
     val isTriggered = tableLines.map(_.split('|').toList(4).trim.toBoolean)
     val inputs = Map(years.zip((definedBenefit,moneyPurchase).zipped.toList.zip((income,isTriggered).zipped.toList).map((t)=>(t._1._1,t._1._2,t._2._1,t._2._2))): _*)
     val contributions = generate(inputs).sortBy(_.taxPeriodStart.year)
+    //info(contributions.mkString("\n"))
     contributions
   }
 
