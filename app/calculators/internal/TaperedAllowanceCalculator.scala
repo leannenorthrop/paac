@@ -98,7 +98,7 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
     val c = Contribution(taxYear, Some(InputAmounts(0L,0L)))
     val calc = BasicAllowanceCalculator(0,previousPeriods,c)
     val unused = actualUnusedList(calc)(previousPeriods, c).dropWhile(_._1 == taxYear).slice(0,3)
-    Logger.debug(s"""3 Years Unused: ${unused.mkString("\n")}""")
+    Logger.debug(s"""3 Years Unused: ${unused.mkString(", ")}""")
     unused.foldLeft(0L)(_ + _._2)
   }
 
@@ -126,7 +126,7 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
       prevResults <- maybeExtended(prev)
     } yield (definedBenefit + prevResults.cumulativeDB)).getOrElse(definedBenefit)
 
-  protected lazy val _exceedingMPAA = definedContribution - moneyPurchaseAA
+  protected lazy val _exceedingMPAA = (definedContribution - moneyPurchaseAA).max(0L)
 
   protected lazy val _exceedingAAA = definedBenefit - alternativeAA
 
@@ -192,6 +192,7 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
 
   protected lazy val _definedBenefit =
     if (isTriggered) {
+      Logger.debug(s"DB(te): ${contribution.definedBenefit} + ${preFlexiSavings}")
       contribution.definedBenefit + preFlexiSavings
     }
     else {
@@ -255,8 +256,12 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
       r.input.taxPeriodStart.taxYear == contribution.taxPeriodStart.taxYear && !r.input.isTriggered
     }.map{
       (r)=>
+      Logger.debug(s"PTS: ${r.input.definedBenefit} + ${r.input.moneyPurchase}")
       r.input.definedBenefit + r.input.moneyPurchase
-    }.getOrElse(0L)
+    }.getOrElse {
+      Logger.debug(s"PTS: 0")
+      0L
+    }
 
   protected lazy val _unusedMPAA =
     if (isTriggered && !isMPAAApplicable) {
@@ -277,7 +282,7 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
 
   protected lazy val _dbist =
     if (isMPAAApplicable) {
-      Logger.debug(s"DBIST: ${definedBenefit} - (${alternativeAA} + ${_previousAvailableAAWithCCF})")
+      Logger.debug(s"DBIST(mpa): ${definedBenefit} - (${alternativeAA} + ${_previousAvailableAAWithCCF})")
       (definedBenefit - (alternativeAA + _previousAvailableAAWithCCF)).max(0)
     } else {
       Logger.debug(s"DBIST: ${preFlexiSavings} - ${_previousAvailableAAWithCCF}")
@@ -286,7 +291,7 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
 
   protected lazy val _mpist =
     if (isMPAAApplicable) {
-      Logger.debug(s"MPIST: ${definedContribution} - ${moneyPurchaseAA}")
+      Logger.debug(s"MPIST(mpa): ${definedContribution} - ${moneyPurchaseAA}")
       (definedContribution - moneyPurchaseAA).max(0)
     } else {
       Logger.debug(s"MPIST: 0")
