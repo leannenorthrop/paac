@@ -274,8 +274,9 @@ protected trait Year2015Period2Calculator extends PeriodCalculator {
 
   protected lazy val previous2YearsUnusedAllowance: Long = {
     // we only want previous values so create dummy contribution which does not affect the calculation
-    val c = Contribution(contribution.taxPeriodStart, contribution.taxPeriodEnd, Some(InputAmounts(0L,0L)))
-    actualUnusedList(this)(previousPeriods.drop(1), c).drop(1).slice(0,2).foldLeft(0L)(_ + _._2)
+    val c = Contribution(2015, Some(InputAmounts(0L,0L)))
+    val pp = previousPeriods.dropWhile(_.input.isPeriod2)
+    actualUnusedList(this)(pp, c).dropWhile(_._1 == 2015).slice(0,2).foldLeft(0L)(_ + _._2)
   }
 
   protected lazy val _previous3YearsUnusedAllowance = base.previous3YearsUnusedAllowance(previousPeriods)

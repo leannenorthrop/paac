@@ -17,6 +17,7 @@
 package calculators.internal
 
 import models._
+import play.api.Logger
 
 // scalastyle:off magic.number
 package object utilities {
@@ -80,7 +81,7 @@ package object utilities {
         (lst,tuple)=>
         tuple match {
           case (_,execeeding,_) if execeeding <= 0 => tuple :: lst
-          case (_,execeeding,_) => {
+          case (y,execeeding,_) => {
             // Re-calculate unused allowances
             // deducting the exceeding from 3rd year ago, then 2nd year ago, then a year ago as appropriate
             val unusedAllowances = tuple :: lst
@@ -101,8 +102,14 @@ package object utilities {
     }
 
     extract =>
-      (p,c) =>
-        calculate(extract(p,c)) map { case (year, _, actualUnused) => (year, actualUnused) }
+      (p,c) => {
+        val lst = extract(p,c)
+        val r = calculate(lst) map { case (year, _, actualUnused) => (year, actualUnused) }
+        // $COVERAGE-OFF$
+        Logger.trace(s"""actualUnusedAllowancesFn: ${lst.mkString(", ")} => ${r.mkString(", ")}""")
+        // $COVERAGE-ON$
+        r
+      }
   }
 
   /**

@@ -96,8 +96,9 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
     // we only want previous values so create dummy contribution which does not affect the calculation
     val taxYear = contribution.taxPeriodStart.taxYear
     val c = Contribution(taxYear, Some(InputAmounts(0L,0L)))
-    val calc = BasicAllowanceCalculator(0,previousPeriods,c)
-    val unused = actualUnusedList(calc)(previousPeriods, c).dropWhile(_._1 == taxYear).slice(0,3)
+    val pp = previousPeriods.dropWhile(_._1 == taxYear)
+    val calc = BasicAllowanceCalculator(0,pp,c)
+    val unused = actualUnusedList(calc)(pp, c).dropWhile(_._1 == taxYear).slice(0,3)
     Logger.debug(s"""3 Years Unused: ${unused.mkString(", ")}""")
     unused.foldLeft(0L)(_ + _._2)
   }
@@ -152,10 +153,10 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
     }
     else {
       if (_isPreviousTriggered) {
-        Logger.debug(s"DCA: ${postFlexiSavings} - (${annualAllowance} + ${previous3YearsUnusedAllowance}")
+        Logger.debug(s"DCA(te < ${contribution.taxYear}): ${postFlexiSavings} - (${annualAllowance} + ${previous3YearsUnusedAllowance}")
         (postFlexiSavings - (annualAllowance + previous3YearsUnusedAllowance)).max(0L)
       } else {
-        Logger.debug(s"DCA: (${postFlexiSavings} + ${preFlexiSavings}) - (${annualAllowance} + ${previous3YearsUnusedAllowance}")
+        Logger.debug(s"DCA(te == ${contribution.taxYear}): (${postFlexiSavings} + ${preFlexiSavings}) - (${annualAllowance} + ${previous3YearsUnusedAllowance}")
         ((postFlexiSavings + preFlexiSavings) - (annualAllowance + previous3YearsUnusedAllowance)).max(0L)
       }
     }
@@ -219,10 +220,19 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
 
   protected lazy val _definedContribution = contribution.moneyPurchase
 
-  protected lazy val _chargableAmount =
-    if (!isTriggered) { basicCalculator.chargableAmount }
-    else if (isMPAAApplicable) { alternativeChargableAmount.max(defaultChargableAmount) }
-    else { defaultChargableAmount }
+  protected lazy val _chargableAmount = {
+    if (!isTriggered) {
+      val v = basicCalculator.chargableAmount
+      Logger.debug(s"Tax(!te): ${v}")
+      v
+    } else if (isMPAAApplicable) {
+      Logger.debug(s"Tax(mpa): ${alternativeChargableAmount.max(defaultChargableAmount)}")
+      alternativeChargableAmount.max(defaultChargableAmount)
+    } else {
+      Logger.debug(s"Tax(!mpa): ${defaultChargableAmount}")
+      defaultChargableAmount
+    }
+  }
 
   protected lazy val _taperedAllowance =
     if (isTaperingApplicable) {
