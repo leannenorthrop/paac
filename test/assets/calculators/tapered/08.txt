@@ -1,0 +1,8 @@
+Tapered Allowance (Income £185k): £5k pre-flexi access £11k post-flexi access
+year    | Defined Benefit | Money Purchase  | Income         | Is Triggered | Tax    | AA      | Alt. AA | MPA   | Unused AA | Unused AAA |
+2013    | 48000           | 0               |                | false        | 0      | 50000   | 0       | 0     | 2000      | 0          |
+2014    | 40000           | 0               |                | false        | 0      | 40000   | 0       | 0     | 0         | 0          |
+2015P1  | 40000           | 0               |                | false        | 0      | 80000   | 0       | 20000 | 40000     | 0          |
+2015P2  | 37000           | 0               |                | false        | 0      | 40000   | 0       | 10000 | 3000      | 0          |
+2016B   | 2500            | 2500            | 185237         | false        | 0      | 22382   | 0       | 10000 | 19882     | 0          |
+2016A   | 0               | 11000           |                | true         | 1000   | 22382   | 12382   | 10000 | 7382      | 7382       |

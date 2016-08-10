@@ -96,21 +96,30 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
     // we only want previous values so create dummy contribution which does not affect the calculation
     val taxYear = contribution.taxPeriodStart.taxYear
     val c = Contribution(taxYear, Some(InputAmounts(0L,0L)))
-    val calc = BasicAllowanceCalculator(0,previousPeriods,c)
-    val unused = actualUnusedList(calc)(previousPeriods, c).dropWhile(_._1 == taxYear).slice(0,3)
-    Logger.debug(s"""3 Years Unused: ${unused.mkString("\n")}""")
+    val pp = previousPeriods.dropWhile(_._1 == taxYear)
+    val calc = BasicAllowanceCalculator(0,pp,c)
+    val unused = actualUnusedList(calc)(pp, c).dropWhile(_._1 == taxYear).slice(0,3)
+    Logger.debug(s"""3 Years Unused: ${unused.mkString(", ")}""")
     unused.foldLeft(0L)(_ + _._2)
   }
 
-  protected lazy val _acaCF = alternativeChargableAmount + previousYear.flatMap(maybeExtended(_).map(_.acaCF)).getOrElse(0L)
+  protected lazy val _acaCF = {
+    Logger.debug(s"""ACACF: ${alternativeChargableAmount} +  ${previousYear.flatMap(maybeExtended(_).map(_.acaCF)).getOrElse(0L)}""")
+    alternativeChargableAmount + previousYear.flatMap(maybeExtended(_).map(_.acaCF)).getOrElse(0L)
+  }
 
-  protected lazy val _dcaCF = defaultChargableAmount + previousYear.flatMap(maybeExtended(_).map(_.dcaCF)).getOrElse(0L)
+  protected lazy val _dcaCF = {
+    Logger.debug(s"""DCACF: ${defaultChargableAmount} +  ${previousYear.flatMap(maybeExtended(_).map(_.dcaCF)).getOrElse(0L)}""")
+    defaultChargableAmount + previousYear.flatMap(maybeExtended(_).map(_.dcaCF)).getOrElse(0L)
+  }
 
   protected lazy val _postFlexiSavings =
     if (isTriggered) {
+      Logger.debug(s"PostFlexiSavings(te): ${contribution.moneyPurchase} ${contribution.definedBenefit}")
       contribution.moneyPurchase + contribution.definedBenefit
     }
     else {
+      Logger.debug(s"PostFlexiSavings: 0")
       0L
     }
 
@@ -126,7 +135,7 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
       prevResults <- maybeExtended(prev)
     } yield (definedBenefit + prevResults.cumulativeDB)).getOrElse(definedBenefit)
 
-  protected lazy val _exceedingMPAA = definedContribution - moneyPurchaseAA
+  protected lazy val _exceedingMPAA = (definedContribution - moneyPurchaseAA).max(0L)
 
   protected lazy val _exceedingAAA = definedBenefit - alternativeAA
 
@@ -144,19 +153,22 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
     }
     else {
       if (_isPreviousTriggered) {
-        Logger.debug(s"DCA: ${postFlexiSavings} - (${annualAllowance} + ${previous3YearsUnusedAllowance}")
+        Logger.debug(s"DCA(te < ${contribution.taxYear}): ${postFlexiSavings} - (${annualAllowance} + ${previous3YearsUnusedAllowance}")
         (postFlexiSavings - (annualAllowance + previous3YearsUnusedAllowance)).max(0L)
       } else {
-        Logger.debug(s"DCA: (${postFlexiSavings} + ${preFlexiSavings}) - (${annualAllowance} + ${previous3YearsUnusedAllowance}")
+        Logger.debug(s"DCA(te == ${contribution.taxYear}): (${postFlexiSavings} + ${preFlexiSavings}) - (${annualAllowance} + ${previous3YearsUnusedAllowance}")
         ((postFlexiSavings + preFlexiSavings) - (annualAllowance + previous3YearsUnusedAllowance)).max(0L)
       }
     }
 
   protected lazy val _annualAllowanceCCF =
     if (alternativeChargableAmount >= defaultChargableAmount) {
-      actualUnused.slice(0,3).foldLeft(0L)(_ + _._2)
+      val v = actualUnused.slice(0,3).foldLeft(0L)(_ + _._2)
+      Logger.debug(s"AACCF(aca): ${v}")
+      v
     }
     else {
+      Logger.debug(s"AACCF: 0")
       0L
     }
 
@@ -165,13 +177,17 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
   protected lazy val _unusedAllowance =
     if (isTriggered) {
       if (defaultChargableAmount >= alternativeChargableAmount) {
+        Logger.debug(s"Unused AA: ${annualAllowance} - (${preFlexiSavings} + ${definedContribution})")
         (annualAllowance - (preFlexiSavings + definedContribution)).max(0L)
       }
       else {
+        Logger.debug(s"Unused AA: ${unusedAAA}")
         unusedAAA
       }
     } else {
-      basicCalculator.unusedAllowance
+      val v = basicCalculator.unusedAllowance
+      Logger.debug(s"Unused AA: ${v}")
+      v
     }
 
   protected lazy val _exceedingAllowance =
@@ -185,37 +201,59 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
   // taper automatically applied as part of annualAllowance calculation
   protected lazy val _alternativeAA =
     if (isMPAAApplicable) {
-      (annualAllowance - moneyPurchaseAA).max(0L)
+      Logger.debug(s"AAA: ${annualAllowance()} - ${moneyPurchaseAA}")
+      (annualAllowance() - moneyPurchaseAA).max(0L)
     } else {
+      Logger.debug(s"AAA: 0")
       0L
     }
 
   protected lazy val _definedBenefit =
     if (isTriggered) {
+      Logger.debug(s"DB(te): ${contribution.definedBenefit} + ${preFlexiSavings}")
       contribution.definedBenefit + preFlexiSavings
     }
     else {
+      Logger.debug(s"DB: ${contribution.definedBenefit} + ${contribution.moneyPurchase}")
       contribution.definedBenefit + contribution.moneyPurchase
     }
 
   protected lazy val _definedContribution = contribution.moneyPurchase
 
-  protected lazy val _chargableAmount =
-    if (!isTriggered) { basicCalculator.chargableAmount }
-    else if (isMPAAApplicable) { alternativeChargableAmount.max(defaultChargableAmount) }
-    else { defaultChargableAmount }
+  protected lazy val _chargableAmount = {
+    if (!isTriggered) {
+      val v = basicCalculator.chargableAmount
+      Logger.debug(s"Tax(!te): ${v}")
+      v
+    } else if (isMPAAApplicable) {
+      Logger.debug(s"Tax(mpa): ${alternativeChargableAmount.max(defaultChargableAmount)}")
+      alternativeChargableAmount.max(defaultChargableAmount)
+    } else {
+      Logger.debug(s"Tax(!mpa): ${defaultChargableAmount}")
+      defaultChargableAmount
+    }
+  }
 
   protected lazy val _taperedAllowance =
     if (isTaperingApplicable) {
       income match {
         case i if i > _taperStart && i < _taperEnd => {
           val reduction = Math.floor(((i - _taperStart)/100L)/2D)*100L
-          (_annualAllowance - reduction).toLong
+          val v = (_annualAllowance - reduction).toLong
+          Logger.debug(s"AA(tapered): ${v}")
+          v
         }
-        case i if i > _taperEnd => _taa
-        case _ => _annualAllowance
+        case i if i > _taperEnd => {
+          Logger.debug(s"AA(max tapered): ${_taa}")
+          _taa
+        }
+        case _ => {
+          Logger.debug(s"AA(no taper): ${_annualAllowance}")
+          _annualAllowance
+        }
       }
     } else {
+      Logger.debug(s"AA(no taper): ${_annualAllowance}")
       _annualAllowance
     }
 
@@ -255,8 +293,12 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
       r.input.taxPeriodStart.taxYear == contribution.taxPeriodStart.taxYear && !r.input.isTriggered
     }.map{
       (r)=>
+      Logger.debug(s"PTS: ${r.input.definedBenefit} + ${r.input.moneyPurchase}")
       r.input.definedBenefit + r.input.moneyPurchase
-    }.getOrElse(0L)
+    }.getOrElse {
+      Logger.debug(s"PTS: 0")
+      0L
+    }
 
   protected lazy val _unusedMPAA =
     if (isTriggered && !isMPAAApplicable) {
@@ -277,7 +319,7 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
 
   protected lazy val _dbist =
     if (isMPAAApplicable) {
-      Logger.debug(s"DBIST: ${definedBenefit} - (${alternativeAA} + ${_previousAvailableAAWithCCF})")
+      Logger.debug(s"DBIST(mpa): ${definedBenefit} - (${alternativeAA} + ${_previousAvailableAAWithCCF})")
       (definedBenefit - (alternativeAA + _previousAvailableAAWithCCF)).max(0)
     } else {
       Logger.debug(s"DBIST: ${preFlexiSavings} - ${_previousAvailableAAWithCCF}")
@@ -286,7 +328,7 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
 
   protected lazy val _mpist =
     if (isMPAAApplicable) {
-      Logger.debug(s"MPIST: ${definedContribution} - ${moneyPurchaseAA}")
+      Logger.debug(s"MPIST(mpa): ${definedContribution} - ${moneyPurchaseAA}")
       (definedContribution - moneyPurchaseAA).max(0)
     } else {
       Logger.debug(s"MPIST: 0")
