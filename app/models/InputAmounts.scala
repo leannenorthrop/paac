@@ -47,9 +47,9 @@ object InputAmounts {
   )(unlift(InputAmounts.unapply))
 
   implicit val inputAmountsReads: Reads[InputAmounts] = (
-    (JsPath \ "definedBenefit").readNullable[Long](min(0L)) and
-    (JsPath \ "moneyPurchase").readNullable[Long](min(0L)) and
-    (JsPath \ "income").readNullable[Long](min(0L)) and
+    (JsPath \ "definedBenefit").readNullable[Long](min(0L) keepAnd max(1000000000L)) and
+    (JsPath \ "moneyPurchase").readNullable[Long](min(0L) keepAnd max(1000000000L)) and
+    (JsPath \ "income").readNullable[Long](min(0L) keepAnd max(1000000000L)) and
     (JsPath \ "triggered").readNullable[Boolean]
   )(InputAmounts.apply(_: Option[Long], _: Option[Long], _: Option[Long], _: Option[Boolean]))
 
