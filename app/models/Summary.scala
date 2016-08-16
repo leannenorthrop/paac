@@ -35,6 +35,8 @@ trait Summary {
   def unusedAllowance: Long
   /** total available allowance for current year should be renamed to totalAA */
   def availableAAWithCF: Long
+  /** total alternative available allowance for current year should be renamed to totalAA */
+  def availableAAAWithCF: Long
   /** available allowance carried forward to following year */
   def availableAAWithCCF: Long
   /** Alternative annual allowance that wasn't used. Only applicable from 2015 onwards. */
@@ -74,7 +76,8 @@ object Summary {
     (JsPath \ "isMPA").write[Boolean] and
     (JsPath \ "moneyPurchaseAA").write[Long] and
     (JsPath \ "alternativeAA").write[Long] and
-    (JsPath \ "isACA").write[Boolean]
+    (JsPath \ "isACA").write[Boolean] and
+    (JsPath \ "availableAAAWithCF").write[Long]
   )(Summary.unapply _ )
 
   implicit val summaryResultReads: Reads[Summary] = (
@@ -91,10 +94,11 @@ object Summary {
     (JsPath \ "isMPA").read[Boolean] and
     (JsPath \ "moneyPurchaseAA").read[Long] and
     (JsPath \ "alternativeAA").read[Long] and
-    (JsPath \ "isACA").read[Boolean]
+    (JsPath \ "isACA").read[Boolean] and
+    (JsPath \ "availableAAAWithCF").read[Long]
   )(Summary.apply _)
 
-  def unapply(summary: Summary): (Long, Long, Long, Long, Long, Long, Long, Long, Long, Long, Boolean, Long, Long, Boolean) =
+  def unapply(summary: Summary): (Long, Long, Long, Long, Long, Long, Long, Long, Long, Long, Boolean, Long, Long, Boolean, Long) =
     // scalastyle:off
     (summary.chargableAmount,
       summary.exceedingAAAmount,
@@ -109,7 +113,8 @@ object Summary {
       summary.isMPA,
       summary.moneyPurchaseAA,
       summary.alternativeAA,
-      summary.isACA)
+      summary.isACA,
+      summary.availableAAAWithCF)
     // scalastyle:on
 
   // scalastyle:off
@@ -126,7 +131,8 @@ object Summary {
             isMPA: Boolean = false,
             moneyPurchaseAA: Long = 0,
             alternativeAA: Long = 0,
-            isACA: Boolean = false): Summary =
+            isACA: Boolean = false,
+            availableAAAWithCF: Long = 0): Summary =
     SummaryResult(chargableAmount,
                   exceedingAAAmount,
                   availableAllowance,
@@ -140,6 +146,7 @@ object Summary {
                   isMPA,
                   moneyPurchaseAA,
                   alternativeAA,
-                  isACA)
+                  isACA,
+                  availableAAAWithCF)
   // scalastyle:on
 }

@@ -24,6 +24,7 @@ import play.api.Logger
 
 // scalastyle:off number.of.methods
 trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
+  Logger.debug("\n*****************************")
   private val DEFAULT_MPA = 10000
   private val DEFAULT_TAA = 10000
   private val DEAFULT_TAPER_START = 150000
@@ -41,6 +42,7 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
   override def annualAllowance(): Long = _taperedAllowance
   override def annualAllowanceCF(): Long = _annualAllowanceCF
   override def annualAllowanceCCF(): Long = _annualAllowanceCCF
+  override def availableAAAWithCF(): Long = _alternativeAACF
   override def chargableAmount(): Long = _chargableAmount
   override def cumulativeDB(): Long = _cumulativeDB
   override def cumulativeMP(): Long = _cumulativeMP
@@ -171,6 +173,21 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
       Logger.debug(s"AACCF: 0")
       0L
     }
+
+  protected lazy val _alternativeAACF = {
+    contribution.taxPeriodStart.taxYear match {
+      case year if year <= 2018 => {
+        val v = _alternativeAA + previous3YearsUnusedAllowance
+        Logger.debug(s"AAACF(<=2018): ${_alternativeAA} + ${previous3YearsUnusedAllowance}")
+        v
+      }
+      case _ => {
+        val v = _alternativeAA + _previousAvailableAAWithCCF
+        Logger.debug(s"AAACF(>2018): ${_alternativeAA} + ${_previousAvailableAAWithCCF}")
+        v
+      }
+    }
+  }
 
   protected lazy val _annualAllowanceCF = annualAllowance() + previousYear.map(_.summaryResult.availableAAWithCCF).getOrElse(0L)
 
