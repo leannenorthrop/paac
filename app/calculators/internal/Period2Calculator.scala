@@ -42,6 +42,12 @@ protected trait Year2015Period2Calculator extends PeriodCalculator {
                              }
   override def annualAllowanceCF(): Long = _aaCF
 
+  override def availableAAAWithCF(): Long = if (!isTriggered) {
+         0L
+       } else {
+         alternativeAA() + _previous3YearsUnusedAllowance
+       }
+
   // Annual Allowance With Carry Forwards
   protected lazy val _aaCCF =
     if (!isTriggered) {

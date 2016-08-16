@@ -51,7 +51,8 @@ protected trait ExtendedCalculator extends BasicCalculator {
                                  calculator.isMPAAApplicable,
                                  calculator.acaCF,
                                  calculator.dcaCF,
-                                 calculator.isACA))
+                                 calculator.isACA,
+                                 calculator.availableAAAWithCF))
     } else {
       None
     }
