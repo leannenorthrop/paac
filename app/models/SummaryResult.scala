@@ -31,4 +31,5 @@ case class SummaryResult(chargableAmount: Long = 0,
                          moneyPurchaseAA: Long = 0,
                          alternativeAA: Long = 0,
                          isACA: Boolean = false,
-                         availableAAAWithCF: Long = 0) extends Summary
+                         availableAAAWithCF: Long = 0,
+                         availableAAAWithCCF: Long = 0) extends Summary

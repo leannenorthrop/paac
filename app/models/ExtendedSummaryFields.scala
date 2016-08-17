@@ -41,4 +41,5 @@ case class ExtendedSummaryFields(chargableAmount: Long = 0,
                                  acaCF: Long = 0,
                                  dcaCF: Long = 0,
                                  isACA: Boolean = false,
-                                 availableAAAWithCF: Long = 0) extends Summary
+                                 availableAAAWithCF: Long = 0,
+                                 availableAAAWithCCF: Long = 0) extends Summary

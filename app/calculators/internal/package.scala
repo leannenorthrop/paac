@@ -49,7 +49,7 @@ package object utilities {
 
   def maybeExtended(t: TaxYearResults): Option[ExtendedSummaryFields] =
     t.summaryResult match {
-      case r @ ExtendedSummaryFields(_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_) => Some(r)
+      case r @ ExtendedSummaryFields(_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_) => Some(r)
       case _ => None
     }
 

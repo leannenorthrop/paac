@@ -43,6 +43,7 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
   override def annualAllowanceCF(): Long = _annualAllowanceCF
   override def annualAllowanceCCF(): Long = _annualAllowanceCCF
   override def availableAAAWithCF(): Long = _alternativeAACF
+  override def availableAAAWithCCF(): Long = (_annualAllowanceCCF - (annualAllowance() - alternativeAA())).max(0)
   override def chargableAmount(): Long = _chargableAmount
   override def cumulativeDB(): Long = _cumulativeDB
   override def cumulativeMP(): Long = _cumulativeMP
