@@ -36,4 +36,5 @@ trait ExtendedSummaryCalculator extends SummaryCalculator {
   def dcaCF(): Long = 0L
   def isACA(): Boolean = false
   def availableAAAWithCF(): Long = 0L
+  def availableAAAWithCCF(): Long = 0L
 }

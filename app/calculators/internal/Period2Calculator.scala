@@ -75,10 +75,13 @@ protected trait Year2015Period2Calculator extends PeriodCalculator {
     }
   override def annualAllowanceCCF(): Long = _aaCCF
 
+  override def availableAAAWithCCF(): Long = (_aaCCF - (MAXAACF - AAA)).max(0)
+
   // Alternative Annual Allowance
   protected lazy val _alternativeAA = if (isGroup3 || (isGroup2 && isTriggered)) {
-                                        if (isPeriod1Triggered)
+                                        if (isPeriod1Triggered && period1.isMPA) {
                                           previous.unusedAAA
+                                        }
                                         else
                                           AAA
                                       } else {
