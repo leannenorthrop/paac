@@ -889,7 +889,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       val results = Post2015TaperedAllowanceCalculator()(Seq[TaxYearResults](), contribution).chargableAmount
 
       // check
-      results shouldBe 500000L
+      results shouldBe 1000000L
     }
 
     "if triggered but mpa is not applicable return default chargeable amount" in {

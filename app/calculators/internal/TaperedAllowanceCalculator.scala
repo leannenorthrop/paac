@@ -79,9 +79,6 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
       contribution.income
     }
 
-  protected def basicCalculator(): SummaryCalculator =
-    BasicAllowanceCalculator((annualAllowance/100D).toInt, previousPeriods, contribution)
-
   protected def isTaperingApplicable(): Boolean = income > _taperStart
 
   protected def isTriggered(): Boolean = contribution.isTriggered
@@ -239,7 +236,7 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
 
   protected lazy val _chargableAmount = {
     if (!isTriggered) {
-      val v = basicCalculator.chargableAmount
+      val v = (_definedBenefit - annualAllowanceCF()).max(0)
       Logger.debug(s"Tax(!te): ${v}")
       v
     } else if (isMPAAApplicable) {
