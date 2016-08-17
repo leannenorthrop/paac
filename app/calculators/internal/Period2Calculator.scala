@@ -77,7 +77,10 @@ protected trait Year2015Period2Calculator extends PeriodCalculator {
 
   // Alternative Annual Allowance
   protected lazy val _alternativeAA = if (isGroup3 || (isGroup2 && isTriggered)) {
-                                        previous.unusedAAA
+                                        if (isPeriod1Triggered)
+                                          previous.unusedAAA
+                                        else
+                                          AAA
                                       } else {
                                         0L
                                       }
