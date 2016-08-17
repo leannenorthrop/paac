@@ -194,16 +194,16 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
   protected lazy val _unusedAllowance =
     if (isTriggered) {
       if (defaultChargableAmount >= alternativeChargableAmount) {
-        Logger.debug(s"Unused AA: ${annualAllowance} - (${preFlexiSavings} + ${definedContribution})")
+        Logger.debug(s"Unused AA (dca): ${annualAllowance} - (${preFlexiSavings} + ${definedContribution})")
         (annualAllowance - (preFlexiSavings + definedContribution)).max(0L)
       }
       else {
-        Logger.debug(s"Unused AA: ${unusedAAA}")
+        Logger.debug(s"Unused AA (aca): ${unusedAAA}")
         unusedAAA
       }
     } else {
-      val v = basicCalculator.unusedAllowance
-      Logger.debug(s"Unused AA: ${v}")
+      val v = (annualAllowance - definedBenefit).max(0)
+      Logger.debug(s"Unused AA(nte): ${annualAllowance} - ${definedBenefit}")
       v
     }
 
