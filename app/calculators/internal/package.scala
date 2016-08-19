@@ -106,7 +106,7 @@ package object utilities {
         val lst = extract(p,c)
         val r = calculate(lst) map { case (year, _, actualUnused) => (year, actualUnused) }
         // $COVERAGE-OFF$
-        Logger.trace(s"""actualUnusedAllowancesFn: ${lst.mkString(", ")} => ${r.mkString(", ")}""")
+        Logger.debug(s"""actualUnusedAllowancesFn: ${lst.mkString(", ")} => ${r.mkString(", ")}""")
         // $COVERAGE-ON$
         r
       }

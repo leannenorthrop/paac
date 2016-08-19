@@ -89,6 +89,7 @@ trait PensionAllowanceCalculator {
     val inputsByTaxYear = contributions.groupBy(_.taxYearLabel)
     val allContributions = provideMissingYearContributions(contributions, earliestYear, missingRowsAreRegistered)
 
+    Logger.debug(s"""Calculating for:\n${allContributions.mkString("\n")}""")
     val results = allContributions.foldLeft(List[TaxYearResults]()) {
       (lst, contribution) =>
 
@@ -97,6 +98,7 @@ trait PensionAllowanceCalculator {
       TaxYearResults(contribution, summary) :: lst
     }.dropWhile(_.input.taxYearLabel > inputsByTaxYear.keys.max).toList.reverse
     val v = results.dropWhile(_.input.taxYearLabel < inputsByTaxYear.keys.min).toList
+    Logger.debug(s"""Results:\n${v.mkString("\n")}""")
     val output = if (doCollate) {
       collate(v)
     } else {

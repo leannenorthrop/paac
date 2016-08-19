@@ -26,7 +26,7 @@ protected trait ExtendedCalculator extends BasicCalculator {
     if (isSupported(contribution)) {
       val calculator = getCalculator
       // $COVERAGE-OFF$
-      Logger.trace(s"isACA = ${calculator.isACA} ACA = ${calculator.alternativeChargableAmount} DCA = ${calculator.defaultChargableAmount} AA = ${calculator.annualAllowance} AAA = ${calculator.alternativeAA}")
+      Logger.debug(s"${this.getClass} isACA = ${calculator.isACA} ACA = ${calculator.alternativeChargableAmount} DCA = ${calculator.defaultChargableAmount} AA = ${calculator.annualAllowance} AAA = ${calculator.alternativeAA} AACCF = ${calculator.annualAllowanceCCF}")
       // $COVERAGE-ON$
       Some(ExtendedSummaryFields(calculator.chargableAmount,
                                  calculator.exceedingAllowance,
