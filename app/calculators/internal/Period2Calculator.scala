@@ -48,7 +48,11 @@ protected trait Year2015Period2Calculator extends PeriodCalculator {
   override def availableAAAWithCF(): Long = if (!isTriggered) {
          0L
        } else {
-         alternativeAA() + _previous3YearsUnusedAllowance
+         //val v = alternativeAA() + _previous3YearsUnusedAllowance
+         //Logger.debug(s"AAACF: ${alternativeAA()} + ${_previous3YearsUnusedAllowance} = ${v}")
+         val v = _aaCF
+         Logger.debug(s"AAACF: ${v}")
+         v
        }
 
   // Annual Allowance With Carry Forwards
