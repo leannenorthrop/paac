@@ -18,9 +18,12 @@ package calculators.internal
 
 import models._
 import calculators.internal.utilities._
+import play.api.Logger
 
 protected trait Year2015Period2Calculator extends PeriodCalculator {
   base: PeriodCalculator =>
+
+  Logger.debug(s"\n***************************** 2015 Period 2 ${contribution.amounts} *****************************")
 
   def allowanceInPounds(): Long
   def previousPeriods(): Seq[TaxYearResults]
@@ -51,23 +54,32 @@ protected trait Year2015Period2Calculator extends PeriodCalculator {
   // Annual Allowance With Carry Forwards
   protected lazy val _aaCCF =
     if (!isTriggered) {
-      actualUnused(this)(3)(previousPeriods,contribution)
+      val v = actualUnused(this)(3)(previousPeriods,contribution)
+      Logger.debug(s"AACCF (nte): ${v}")
+      v
     } else {
       if (previous.unusedAAA > 0) {
         if (contribution.isGroup3) {
-          previous2YearsUnusedAllowance + period1.availableAAWithCCF - definedBenefit
+          val v = previous2YearsUnusedAllowance + previous.unusedAAA - definedBenefit
+          Logger.debug(s"AACCF(g3): ${previous2YearsUnusedAllowance} + ${previous.unusedAAA} + ${definedBenefit} = ${v}")
+          v
         } else {
-          previous2YearsUnusedAllowance + period1.availableAAWithCCF
+          val v = previous2YearsUnusedAllowance + previous.unusedAAA
+          Logger.debug(s"AACCF(g2): ${previous2YearsUnusedAllowance} + ${previous.unusedAAA} = ${v}")
+          v
         }
       } else {
         if (unusedAllowance > 0) {
-          previous2YearsUnusedAllowance + unusedAllowance
+          val v = previous2YearsUnusedAllowance + unusedAllowance
+          Logger.debug(s"AACCF(ua): ${previous2YearsUnusedAllowance} + ${unusedAllowance} = ${v}")
+          v
         } else {
           val exceedingAAAmount = preTriggerFields(previousPeriods).map(_.exceedingAAAmount).getOrElse(0L)
           val ccf = (previous2YearsUnusedAllowance - exceedingAAAmount).max(0L)
           if (ccf > previous.availableAAWithCCF) {
             0L
           } else {
+            Logger.debug(s"AACCF(>): ${previous2YearsUnusedAllowance} - ${exceedingAAAmount} = ${ccf}")
             ccf
           }
         }
@@ -75,7 +87,7 @@ protected trait Year2015Period2Calculator extends PeriodCalculator {
     }
   override def annualAllowanceCCF(): Long = _aaCCF
 
-  override def availableAAAWithCCF(): Long = (_aaCCF - (MAXAACF - AAA)).max(0)
+  override def availableAAAWithCCF(): Long = _aaCCF
 
   // Alternative Annual Allowance
   protected lazy val _alternativeAA = if (isGroup3 || (isGroup2 && isTriggered)) {
@@ -358,6 +370,7 @@ protected trait Year2015Period2Calculator extends PeriodCalculator {
 
   // Unused Money Purchase Annual Allowance
   override def unusedMPAA(): Long = 0
+  Logger.debug(s"\n***************************** 2015 Period 2 (end) *****************************")
 }
 
 protected case class Period2Calculator(implicit allowanceInPounds: Long,

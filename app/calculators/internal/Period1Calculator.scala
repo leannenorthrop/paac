@@ -18,10 +18,13 @@ package calculators.internal
 
 import models._
 import calculators.internal.utilities._
+import play.api.Logger
 
 // scalastyle:off number.of.methods
 trait Year2015Period1Calculator extends PeriodCalculator {
   base: PeriodCalculator =>
+
+  Logger.debug(s"\n***************************** 2015 Period 1 ${contribution.amounts} *****************************")
 
   def allowanceInPounds(): Long
   def previousPeriods(): Seq[TaxYearResults]
@@ -39,23 +42,26 @@ trait Year2015Period1Calculator extends PeriodCalculator {
   // Annual Allowance Cumulative Carry Forwards
   protected lazy val _aaCCF =
     if (!isTriggered) {
-      actualUnused(this)(4)(previousPeriods,contribution) // scalastyle:ignore
+      val v = actualUnused(this)(4)(previousPeriods,contribution) // scalastyle:ignore
+      Logger.debug(s"AACCF (nte): ${v}")
+      v
     }
     else if (isMPAAApplicable) {
-      val aaa = (AAA + _previous3YearsUnusedAllowance - preTriggerSavings)
-      if (preTriggerSavings > AAA) {
-        (aaa).max(0)
-      } else {
-        (aaa).min(P2AAA)
-      }
+      val aaa = ((AAA - preTriggerSavings).min(P2AAA) + _previous3YearsUnusedAllowance)
+      Logger.debug(s"AACCF(mp1): (${AAA} - ${preTriggerSavings}).min(${P2AAA}) + ${_previous3YearsUnusedAllowance} = ${aaa}")
+      (aaa).max(0)
     } else if (definedBenefit >= AA) {
-      (AA + _previous3YearsUnusedAllowance - postFlexiSavings).max(0)
+      val v = (AA + _previous3YearsUnusedAllowance - postFlexiSavings).max(0)
+      Logger.debug(s"AACCF(>): ${AA} + ${_previous3YearsUnusedAllowance} - ${postFlexiSavings} = ${v}")
+      v
     } else {
-      (unusedAllowance.min(MAX_CF) + _previous3YearsUnusedAllowance).max(0)
+      val v = (unusedAllowance.min(MAX_CF) + _previous3YearsUnusedAllowance).max(0)
+      Logger.debug(s"AACCF(<): ${unusedAllowance.min(MAX_CF)} + ${_previous3YearsUnusedAllowance} = ${v}")
+      v
     }
-  override def annualAllowanceCCF(): Long = _aaCCF
+  override def annualAllowanceCCF(): Long = { Logger.debug(s"********************** annualAllowanceCCF() = ${_aaCCF}"); _aaCCF }
 
-  override def availableAAAWithCCF(): Long = (_aaCCF - (AA - AAA)).max(0)
+  override def availableAAAWithCCF(): Long = _aaCCF // same value as aaCCF considers AAA in calculation
 
   // Annual Allowance With Carry Forwards
   protected lazy val _aaCF = if (!isTriggered) {
@@ -280,6 +286,8 @@ trait Year2015Period1Calculator extends PeriodCalculator {
                                      0L
                                    }
   override def unusedMPAA(): Long = _unusedMPAA
+
+  Logger.debug(s"\n***************************** 2015 Period 1 (end) *****************************")
 }
 // scalastyle:on number.of.methods
 

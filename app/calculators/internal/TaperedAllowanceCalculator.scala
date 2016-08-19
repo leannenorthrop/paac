@@ -24,7 +24,7 @@ import play.api.Logger
 
 // scalastyle:off number.of.methods
 trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
-  Logger.debug("\n*****************************")
+  Logger.debug(s"\n***************************** ${contribution.taxYear} *****************************")
   private val DEFAULT_MPA = 10000
   private val DEFAULT_TAA = 10000
   private val DEAFULT_TAPER_START = 150000
@@ -162,14 +162,15 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
     }
 
   protected lazy val _annualAllowanceCCF =
-    if (alternativeChargableAmount >= defaultChargableAmount) {
+    if (isTriggered && alternativeChargableAmount >= defaultChargableAmount) {
       val v = actualUnused.slice(0,3).foldLeft(0L)(_ + _._2)
       Logger.debug(s"AACCF(aca): ${v}")
       v
     }
     else {
-      Logger.debug(s"AACCF: 0")
-      0L
+      val v = unusedAllowance() + previous3YearsUnusedAllowance
+      Logger.debug(s"AACCF (nte): ${unusedAllowance()} + ${previous3YearsUnusedAllowance} = ${v}")
+      v
     }
 
   protected lazy val _alternativeAACF = {
