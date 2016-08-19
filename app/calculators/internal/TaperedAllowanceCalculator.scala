@@ -43,7 +43,7 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
   override def annualAllowanceCF(): Long = _annualAllowanceCF
   override def annualAllowanceCCF(): Long = _annualAllowanceCCF
   override def availableAAAWithCF(): Long = _alternativeAACF
-  override def availableAAAWithCCF(): Long = (_annualAllowanceCCF - (annualAllowance() - alternativeAA())).max(0)
+  override def availableAAAWithCCF(): Long = _annualAllowanceCCF
   override def chargableAmount(): Long = _chargableAmount
   override def cumulativeDB(): Long = _cumulativeDB
   override def cumulativeMP(): Long = _cumulativeMP
@@ -100,6 +100,17 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
     val calc = BasicAllowanceCalculator(0,pp,c)
     val unused = actualUnusedList(calc)(pp, c).dropWhile(_._1 == taxYear).slice(0,3)
     Logger.debug(s"""3 Years Unused: ${unused.mkString(", ")}""")
+    unused.foldLeft(0L)(_ + _._2)
+  }
+
+  protected lazy val previous2YearsUnusedAllowance: Long = {
+    // we only want previous values so create dummy contribution which does not affect the calculation
+    val taxYear = contribution.taxPeriodStart.taxYear
+    val c = Contribution(taxYear, Some(InputAmounts(0L,0L)))
+    val pp = previousPeriods.dropWhile(_._1 == taxYear)
+    val calc = BasicAllowanceCalculator(0,pp,c)
+    val unused = actualUnusedList(calc)(pp, c).dropWhile(_._1 == taxYear).slice(0,2)
+    Logger.debug(s"""2 Years Unused: ${unused.mkString(", ")}""")
     unused.foldLeft(0L)(_ + _._2)
   }
 
@@ -168,8 +179,8 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
       v
     }
     else {
-      val v = unusedAllowance() + previous3YearsUnusedAllowance
-      Logger.debug(s"AACCF (nte): ${unusedAllowance()} + ${previous3YearsUnusedAllowance} = ${v}")
+      val v = unusedAllowance() + previous2YearsUnusedAllowance
+      Logger.debug(s"AACCF (nte): ${unusedAllowance()} + ${previous2YearsUnusedAllowance} = ${v}")
       v
     }
 
@@ -181,8 +192,8 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
         v
       }
       case _ => {
-        val v = _alternativeAA + _previousAvailableAAWithCCF
-        Logger.debug(s"AAACF(>2018): ${_alternativeAA} + ${_previousAvailableAAWithCCF}")
+        val v = _alternativeAA + previous3YearsUnusedAllowance
+        Logger.debug(s"AAACF(>2018): ${_alternativeAA} + ${previous3YearsUnusedAllowance}")
         v
       }
     }
