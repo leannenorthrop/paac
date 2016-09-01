@@ -11,7 +11,7 @@ private object AppDependencies {
   import play.PlayImport._
   import play.core.PlayVersion
 
-  private val microserviceBootstrapVersion = "4.2.1"
+  private val microserviceBootstrapVersion = "4.4.0"
   private val playHealthVersion = "1.1.0"
   private val playJsonLoggerVersion = "2.1.1"
   private val playUrlBindersVersion = "1.0.0"
