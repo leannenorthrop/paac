@@ -219,10 +219,14 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
 
   protected lazy val _exceedingAllowance =
     if (alternativeChargableAmount >= defaultChargableAmount) {
-      ((preFlexiSavings + definedContribution) - annualAllowance).max(0L)
+      val v = ((preFlexiSavings + definedContribution) - annualAllowance).max(0L)
+      Logger.debug(s"Exceeding (aca): ((${preFlexiSavings} + ${definedContribution}) - ${annualAllowance}) = ${v}")
+      v
     }
     else {
-      0L
+      val v = 0L
+      Logger.debug(s"Exceeding (dca): ${v}")
+      v
     }
 
   // taper automatically applied as part of annualAllowance calculation
@@ -323,8 +327,13 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
       Logger.debug(s"PTS: ${r.input.definedBenefit} + ${r.input.moneyPurchase}")
       r.input.definedBenefit + r.input.moneyPurchase
     }.getOrElse {
-      Logger.debug(s"PTS: 0")
-      0L
+      if (!isTriggered) {
+        Logger.debug(s"PTS (nte): ${_definedBenefit}")
+        _definedBenefit
+      } else {
+        Logger.warn(s"PTS: 0")
+        0L
+      }
     }
 
   protected lazy val _unusedMPAA =
