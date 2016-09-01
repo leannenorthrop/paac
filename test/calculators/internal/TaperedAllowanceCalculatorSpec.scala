@@ -606,6 +606,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
   "Previous 3 years unused allowance" should {
     class Test(previous: Seq[TaxYearResults], contribution:Contribution) extends Post2015TaperedAllowanceCalculator()(previous, contribution) {
       def prev3YearsUnusedAllowance() = previous3YearsUnusedAllowance
+      def testActualUnused() = actualUnused
     }
 
     "return correct value when previous year has execeeded allowance" in {
@@ -629,6 +630,24 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
 
       // check
       results shouldBe 2500000L
+    }
+
+    "return correct value when previous and current year has execeeded allowance" in {
+      // set up
+      val c2012 = TaxYearResults(Contribution(2012, 0L), ExtendedSummaryFields(exceedingAAAmount=0L,unusedAllowance=1000000L))
+      val c2013 = TaxYearResults(Contribution(2013, 1000000L), ExtendedSummaryFields(exceedingAAAmount=0L,unusedAllowance=1000000L))
+      val c2014 = TaxYearResults(Contribution(2014, 15000000L), ExtendedSummaryFields(exceedingAAAmount=2000000L,unusedAllowance=0L))
+      val c2015p1 = TaxYearResults(Contribution(true, 0, 1000000L), ExtendedSummaryFields(exceedingAAAmount=0L,unusedAllowance=4000000L))
+      val c2015p2 = TaxYearResults(Contribution(false, 0, 1000000L), ExtendedSummaryFields(exceedingAAAmount=0L,unusedAllowance=3000000L))
+
+      val previousPeriods = Seq(c2015p2, c2015p1, c2015p1, c2014, c2013, c2012)
+      val contribution = Contribution(2016, 5000000L)
+
+      // test
+      val results = new Test(previousPeriods, contribution).testActualUnused.foldLeft(0L)(_ + _._2)
+
+      // check
+      results shouldBe 2000000L
     }
   }
 
@@ -745,7 +764,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       results shouldBe 4500000L
     }
 
-    "be £0 when savings are £45k but not triggered" in {
+    "be £4500000 when savings are £45k but not triggered" in {
       // set up
       val preTrigger = Contribution(2016, 4500000L)
 
@@ -753,7 +772,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       val results = Post2015TaperedAllowanceCalculator()(Seq[TaxYearResults](), preTrigger).dbist
 
       // check
-      results shouldBe 0L
+      results shouldBe 4500000L
     }
 
     "be £0 when pre-trigger savings are £14k and no taper allowance and with carry forwards" in {
