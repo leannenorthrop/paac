@@ -80,9 +80,19 @@ protected trait Year2015Period2Calculator extends PeriodCalculator {
         } else {
           val exceedingAAAmount = preTriggerFields(previousPeriods).map(_.exceedingAAAmount).getOrElse(0L)
           if (exceedingAAAmount > 0) {
-            (_previous3YearsUnusedAllowance - exceedingAAAmount).max(0L)
+            if (_isACA) {
+              val v = (_previous3YearsUnusedAllowance - exceedingAAAmount).max(0L)
+              Logger.debug(s"AACCF(>1)= ${_previous3YearsUnusedAllowance} - ${exceedingAAAmount} = ${v}")
+              v
+            } else {
+              val v = (_previous3YearsUnusedAllowance - exceedingAAAmount - contribution.moneyPurchase).max(0L)
+              Logger.debug(s"AACCF(>2)= ${_previous3YearsUnusedAllowance} - ${exceedingAAAmount} - ${contribution.moneyPurchase} = ${v}")
+              v
+            }
           } else {
-            (previous2YearsUnusedAllowance - exceedingAAAmount).max(0L)
+            val v = (previous2YearsUnusedAllowance - exceedingAAAmount).max(0L)
+            Logger.debug(s"AACCF(>3)= ${previous2YearsUnusedAllowance} - ${exceedingAAAmount} = ${v}")
+            v
           }
         }
       }
@@ -305,7 +315,6 @@ protected trait Year2015Period2Calculator extends PeriodCalculator {
     actualUnusedList(this)(pp, c).dropWhile(_._1 == 2015).slice(0,2).foldLeft(0L)(_ + _._2)
   }
 
-  //protected lazy val _previous3YearsUnusedAllowance = base.previous3YearsUnusedAllowance(previousPeriods)
   protected lazy val _previous3YearsUnusedAllowance = {
     // we only want previous values so create dummy contribution which does not affect the calculation
     val c = Contribution(2015, Some(InputAmounts(0L,0L)))
