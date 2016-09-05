@@ -1,0 +1,8 @@
+New Scenario 17
+year    | Defined Benefit | Money Purchase  | Income         | Is Triggered | Tax    | AA      | Alt. AA | MPA   | Unused AA | Unused AAA |
+2012    | 37000           | 0               |                | false        | 0      | 50000   | 0       | 0     | 13000     | 0          |
+2013    | 33000           | 0               |                | false        | 0      | 50000   | 0       | 0     | 17000     | 0          |
+2014    | 22000           | 0               |                | false        | 0      | 40000   | 0       | 0     | 18000     | 0          |
+2015P1B | 75000           | 15000           |                | false        | 0      | 80000   | 0       | 20000 | 0         | 0          |
+2015P2B | 6000            | 5000            |                | false        | 0      | 0       | 0       | 10000 | 0         | 0          |
+2015P2A | 0               | 23000           |                | true         | 13000  | 0       | 30000   | 10000 | 0         | 0          |
