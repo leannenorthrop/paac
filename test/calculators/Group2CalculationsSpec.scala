@@ -33,10 +33,10 @@ trait Group2TestBase extends Informing {
     val definedBenefit = table.split('\n').drop(2).toList.map(_.split('|').toList(1).trim.toLong)
     val moneyPurchase = table.split('\n').drop(2).toList.map(_.split('|').toList(2).trim.toLong)
     val isTriggered = table.split('\n').drop(2).toList.map(_.split('|').toList(3).trim.toBoolean)
-    val inputs = Map(years.zip((definedBenefit,moneyPurchase,isTriggered).zipped.toList): _*)    
+    val inputs = Map(years.zip((definedBenefit,moneyPurchase,isTriggered).zipped.toList): _*)
     val contributions = generateDBandMPContributions(inputs).sortBy(_.taxPeriodStart.year)
     contributions
-  }  
+  }
 
   def doGroup2Test(table: String, print: Boolean = false): Unit = {
     val results = PensionAllowanceCalculator.calculateAllowances(group2Contributions(table))
@@ -57,7 +57,7 @@ class Group2CalculationsSpec extends FunSpec with Group2TestBase {
         val lines = maybeFileContents.get
         val filename = testFilename.split(java.io.File.separator).reverse(0)
         it (s"$filename: ${lines(0)}") {
-          doGroup2Test(lines.mkString("\n"), false)
+          doGroup2Test(lines.mkString("\n"), true)
         }
       }
     }
@@ -67,10 +67,10 @@ class Group2CalculationsSpec extends FunSpec with Group2TestBase {
 class Group2CalculationsUnitSpec extends UnitSpec with Group2TestBase {
 
   "Group 2 calculators" should {
-    "in Period 2" can {     
+    "in Period 2" can {
       "do Scenario 14 using trigger date" in {
         val table = """:
-                       :year    | Defined Benefit | Money Purchase  | Is Triggered | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward | MPAA 
+                       :year    | Defined Benefit | Money Purchase  | Is Triggered | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward | MPAA
                        :2012    | 50000           | 0               | false        | 0                   | 0                | 200000                     | 0            | 100000                   | 0
                        :2013    | 50000           | 0               | false        | 0                   | 0                | 150000                     | 0            | 50000                    | 0
                        :2014    | 40000           | 0               | false        | 0                   | 0                | 90000                      | 0            | 0                        | 0
@@ -88,7 +88,7 @@ class Group2CalculationsUnitSpec extends UnitSpec with Group2TestBase {
 
       "do Scenario 14 using trigger date in p2" in {
         val table = """:
-                       :year    | Defined Benefit | Money Purchase  | Is Triggered | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward | MPAA 
+                       :year    | Defined Benefit | Money Purchase  | Is Triggered | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward | MPAA
                        :2012    | 50000           | 0               | false        | 0                   | 0                | 200000                     | 0            | 100000                   | 0
                        :2013    | 50000           | 0               | false        | 0                   | 0                | 150000                     | 0            | 50000                    | 0
                        :2014    | 40000           | 0               | false        | 0                   | 0                | 90000                      | 0            | 0                        | 0
