@@ -32,10 +32,10 @@ class Group3CalculationsSpec extends FunSpec {
     val definedBenefit = table.split('\n').drop(2).toList.map(_.split('|').toList(1).trim.toLong)
     val moneyPurchase = table.split('\n').drop(2).toList.map(_.split('|').toList(2).trim.toLong)
     val isTriggered = table.split('\n').drop(2).toList.map(_.split('|').toList(3).trim.toBoolean)
-    val inputs = Map(years.zip((definedBenefit,moneyPurchase,isTriggered).zipped.toList): _*)    
+    val inputs = Map(years.zip((definedBenefit,moneyPurchase,isTriggered).zipped.toList): _*)
     val contributions = generateDBandMPContributions(inputs).sortBy(_.taxPeriodStart.year)
     contributions
-  }  
+  }
 
   def doGroup3Test(table: String, print: Boolean = false): Unit = {
     val results = PensionAllowanceCalculator.calculateAllowances(group2Contributions(table))
@@ -52,14 +52,14 @@ class Group3CalculationsSpec extends FunSpec {
         val lines = maybeFileContents.get
         val filename = testFilename.split(java.io.File.separator).reverse(0)
         it (s"$filename: ${lines(0)}") {
-          doGroup3Test(lines.mkString("\n"), false)
+          doGroup3Test(lines.mkString("\n"), true)
         }
       }
     }
   }
 
   /* Scenario 26 contents to be checked with the business
-:year    | Defined Benefit | Money Purchase  | Is Triggered | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward | MPAA 
+:year    | Defined Benefit | Money Purchase  | Is Triggered | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward | MPAA
 :2012    | 10000           | 5000            | false        | 0                   | 0                | 200000                     | 35000        | 135000                   | 0
 :2013    | 20000           | 3000            | false        | 0                   | 0                | 185000                     | 27000        | 112000                   | 0
 :2014    | 20000           | 6000            | false        | 0                   | 0                | 152000                     | 14000        | 76000                    | 0

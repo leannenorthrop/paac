@@ -56,6 +56,32 @@ protected trait Year2015Period2Calculator extends PeriodCalculator {
        }
 
   // Annual Allowance With Carry Forwards
+  protected lazy val _unusedccf = {
+    // TODO: Simplify
+    val list = _previous3YearsUnusedAllowanceList
+
+    val exceeding = (if (isPeriod1Triggered) (definedBenefit - period1.unusedAllowance) else (preFlexiSavings) - (if (_isACA) AAA else unusedAllowance))
+    val year2012AA = if (list.length >= 3) list(2)._2 else 0
+    val year2013AA = if (list.length >= 2) list(1)._2 else 0
+    val year2014AA = if (list.length >= 1) list(0)._2 else 0
+    if (exceeding > year2012AA) {
+      val exceeding2 = exceeding - year2012AA
+      if (exceeding2 > year2013AA) {
+        val exceeding3 = exceeding2 - year2013AA
+        if (exceeding3 > year2014AA) {
+          val exceeding4 = exceeding3 - year2014AA
+          if (exceeding4 > 0) 0 else exceeding4
+        } else {
+          (year2014AA - exceeding3)
+        }
+      } else {
+        (year2013AA - exceeding2) + year2014AA
+      }
+    } else {
+      (year2013AA + year2014AA)
+    }
+  }
+
   protected lazy val _aaCCF =
     if (!isTriggered) {
       val v = actualUnused(this)(3)(previousPeriods,contribution)
@@ -78,13 +104,31 @@ protected trait Year2015Period2Calculator extends PeriodCalculator {
           Logger.debug(s"AACCF(ua): ${previous2YearsUnusedAllowance} + ${unusedAllowance} = ${v}")
           v
         } else {
-          val exceedingAAAmount = preTriggerFields(previousPeriods).map(_.exceedingAAAmount).getOrElse(0L)
-          val ccf = (previous2YearsUnusedAllowance - exceedingAAAmount).max(0L)
-          if (ccf > previous.availableAAWithCCF) {
-            0L
+          if (isPeriod1Triggered && _isACA) {
+            _unusedccf
           } else {
-            Logger.debug(s"AACCF(>): ${previous2YearsUnusedAllowance} - ${exceedingAAAmount} = ${ccf}")
-            ccf
+            val exceedingAAAmount = preTriggerFields(previousPeriods).map(_.exceedingAAAmount).getOrElse(0L)
+            Logger.debug(s"!!!!!!!!!!!!!!! ${exceedingAAAmount}")
+            if (exceedingAAAmount > 0) {
+              if (_isACA) {
+                val isNotRegisteredInP1 = previousPeriods.find(_.input.isPeriod1).map((r)=>r.input.moneyPurchase == 0 && r.input.definedBenefit == 0).getOrElse(false)
+                if (isNotRegisteredInP1) {
+                  Logger.debug(s"AACCF(>1): ${_unusedccf}")
+                  _unusedccf
+                } else {
+                  val v = (_previous3YearsUnusedAllowance - exceedingAAAmount).max(0L)
+                  Logger.debug(s"AACCF(>2): ${_previous3YearsUnusedAllowance} - ${exceedingAAAmount} = ${v}")
+                  v
+                }
+              } else {
+                val v = (_previous3YearsUnusedAllowance - exceedingAAAmount - contribution.moneyPurchase).max(0L)
+                Logger.debug(s"AACCF(>3): ${_previous3YearsUnusedAllowance} - ${exceedingAAAmount} - ${contribution.moneyPurchase} = ${v}")
+                v
+              }
+            } else {
+              Logger.debug(s"AACCF(<): ${previous2YearsUnusedAllowance}")
+              previous2YearsUnusedAllowance
+            }
           }
         }
       }
@@ -159,11 +203,14 @@ protected trait Year2015Period2Calculator extends PeriodCalculator {
   protected lazy val _dbist =
     if (isGroup3) {
       if (isPeriod1Triggered) {
+        Logger.debug(s"DBIST(p1te): ${definedBenefit} - (${preTriggerFields(previousPeriods).get.unusedAAA} + ${period1.availableAAWithCCF})")
         (definedBenefit - (preTriggerFields(previousPeriods).get.unusedAAA + period1.availableAAWithCCF)).max(0)
       } else {
+        Logger.debug(s"DBIST(te): ${preFlexiSavings} - ${period1.availableAAWithCCF}")
         (preFlexiSavings - period1.availableAAWithCCF).max(0)
       }
     } else {
+      Logger.debug(s"DBIST(nte): 0")
       0L
     }
   override def dbist(): Long = _dbist
@@ -307,7 +354,21 @@ protected trait Year2015Period2Calculator extends PeriodCalculator {
     actualUnusedList(this)(pp, c).dropWhile(_._1 == 2015).slice(0,2).foldLeft(0L)(_ + _._2)
   }
 
-  protected lazy val _previous3YearsUnusedAllowance = base.previous3YearsUnusedAllowance(previousPeriods)
+  protected lazy val _previous3YearsUnusedAllowance = {
+    // we only want previous values so create dummy contribution which does not affect the calculation
+    val c = Contribution(2015, Some(InputAmounts(0L,0L)))
+    val pp = previousPeriods.dropWhile(_.input.isPeriod2)
+    Logger.debug(s"""Pre-3Years Unused: ${actualUnusedList(this)(pp, c).dropWhile(_._1 == 2015).slice(0,3).mkString("\n")}""")
+    actualUnusedList(this)(pp, c).dropWhile(_._1 == 2015).slice(0,3).foldLeft(0L)(_ + _._2)
+  }
+
+  protected lazy val _previous3YearsUnusedAllowanceList = {
+    // we only want previous values so create dummy contribution which does not affect the calculation
+    val c = Contribution(2015, Some(InputAmounts(0L,0L)))
+    val pp = previousPeriods.dropWhile(_.input.isPeriod2)
+    Logger.debug(s"""Pre-3Years Unused: ${actualUnusedList(this)(pp, c).dropWhile(_._1 == 2015).slice(0,3).mkString("\n")}""")
+    actualUnusedList(this)(pp, c).dropWhile(_._1 == 2015)
+  }
 
   // Post Flexi Access Savings
   protected lazy val _postFlexiSavings =

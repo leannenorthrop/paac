@@ -117,11 +117,11 @@ object TestUtilities {
       key match {
         case "2015P1" => Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(maybeDB, maybeDC, maybeIncome, maybeTriggered)))
         case "2015P2" => Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(maybeDB, maybeDC, maybeIncome, maybeTriggered)))
-        case "2015P1B" => Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(maybeDB, maybeDC, maybeIncome, maybeTriggered)))
+        case "2015P1B" => Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(maybeDB, maybeDC, maybeIncome, Some(false))))
         case "2015P1A" => Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END, Some(InputAmounts(maybeDB, maybeDC, maybeIncome, maybeTriggered)))
-        case "2015P2B" => Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(maybeDB, maybeDC, maybeIncome, maybeTriggered)))
+        case "2015P2B" => Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(maybeDB, maybeDC, maybeIncome, Some(false))))
         case "2015P2A" => Contribution(PensionPeriod.PERIOD_2_2015_START, PensionPeriod.PERIOD_2_2015_END, Some(InputAmounts(maybeDB, maybeDC, maybeIncome, maybeTriggered)))
-        case k if k.matches("\\d+(A|B)$") => Contribution(key.replaceAll("[A,B]","").toInt, Some(InputAmounts(maybeDB, maybeDC, maybeIncome, maybeTriggered)))
+        case k if k.matches("\\d+(A|B)$") => Contribution(key.replaceAll("[A,B]","").toInt, Some(InputAmounts(maybeDB, maybeDC, maybeIncome, Some(triggered))))
         case _ => Contribution(key.toInt, Some(InputAmounts(maybeDB, maybeDC, maybeIncome, maybeTriggered)))
       }
     }

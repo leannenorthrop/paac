@@ -70,7 +70,7 @@ class CalculationsSpec extends FunSpec with BeforeAndAfterAll {
         val lines = maybeFileContents.get
         val filename = testFilename.split(java.io.File.separator).reverse(0)
         it (s"$filename: ${lines(0)}") {
-          doTest(lines.mkString("\n"), false)
+          doTest(lines.mkString("\n"), true)
         }
       }
     }
