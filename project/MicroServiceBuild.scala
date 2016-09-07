@@ -17,13 +17,13 @@ private object AppDependencies {
   private val playUrlBindersVersion = "1.0.0"
   private val playConfigVersion = "2.0.1"
   private val domainVersion = "3.3.0"
-  private val hmrcTestVersion = "1.4.0"
-  private val scalaTestVersion = "2.2.2"
-  private val pegDownVersion = "1.4.2"
+  private val hmrcTestVersion = "1.8.0"
+  private val scalaTestVersion = "2.2.6"
+  private val pegDownVersion = "1.6.0"
   private val scalacheckVersion = "1.12.5"
   private val mockitoVersion = "1.10.19"
-  private val playMetrics = "2.3.0_0.2.1"
-  private val metricsGraphite = "3.0.2"
+  private val metricsPlayVersion = "0.2.1"
+  private val metricsGraphiteVersion = "3.0.2"
 
   val compile = Seq(
 
@@ -34,8 +34,8 @@ private object AppDependencies {
     "uk.gov.hmrc" %% "play-config" % playConfigVersion,
     "uk.gov.hmrc" %% "play-json-logger" % playJsonLoggerVersion,
     "uk.gov.hmrc" %% "domain" % domainVersion,
-    "com.kenshoo" %% "metrics-play" % playMetrics,
-    "com.codahale.metrics" % "metrics-graphite" % metricsGraphite
+    "com.kenshoo" %% "metrics-play" % metricsPlayVersion,
+    "com.codahale.metrics" % "metrics-graphite" % metricsGraphiteVersion
   )
 
   trait TestDependencies {
