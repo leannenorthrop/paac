@@ -127,7 +127,7 @@ protected trait Year2015Period2Calculator extends PeriodCalculator {
               }
             } else {
               Logger.debug(s"AACCF(<): ${previous2YearsUnusedAllowance}")
-              previous2YearsUnusedAllowance
+              _unusedccf
             }
           }
         }
@@ -203,11 +203,13 @@ protected trait Year2015Period2Calculator extends PeriodCalculator {
   protected lazy val _dbist =
     if (isGroup3) {
       if (isPeriod1Triggered) {
-        Logger.debug(s"DBIST(p1te): ${definedBenefit} - (${preTriggerFields(previousPeriods).get.unusedAAA} + ${period1.availableAAWithCCF})")
-        (definedBenefit - (preTriggerFields(previousPeriods).get.unusedAAA + period1.availableAAWithCCF)).max(0)
+        val v = (definedBenefit - (preTriggerFields(previousPeriods).get.unusedAAA + period1.availableAAWithCCF)).max(0)
+        Logger.debug(s"DBIST(p1te): ${definedBenefit} - (${preTriggerFields(previousPeriods).get.unusedAAA} + ${period1.availableAAWithCCF}) = ${v}")
+        v
       } else {
-        Logger.debug(s"DBIST(te): ${preFlexiSavings} - ${period1.availableAAWithCCF}")
-        (preFlexiSavings - period1.availableAAWithCCF).max(0)
+        val v = (preFlexiSavings - period1.availableAAWithCCF).max(0)
+        Logger.debug(s"DBIST(te): ${preFlexiSavings} - ${period1.availableAAWithCCF} = ${v}")
+        v
       }
     } else {
       Logger.debug(s"DBIST(nte): 0")
@@ -323,13 +325,19 @@ protected trait Year2015Period2Calculator extends PeriodCalculator {
   protected lazy val _mpist =
     if (isGroup3) {
       if (isPeriod1Triggered) {
-        (definedContribution - period1.unusedMPAA).max(0)
+        val v = (definedContribution - period1.unusedMPAA).max(0)
+        Logger.debug(s"MPIST(p1te): ${definedContribution} - ${period1.unusedMPAA} = ${v}")
+        v
       } else if (isMPAAApplicable) {
-        (definedContribution - MPA).max(0)
+        val v = (definedContribution - MPA).max(0)
+        Logger.debug(s"MPIST(p2te): ${definedContribution} - ${MPA} = ${v}")
+        v
       } else {
+        Logger.debug(s"MPIST(nte): 0")
         0L
       }
     } else {
+      Logger.debug(s"MPIST(g2): ${definedContribution}")
       definedContribution
     }
   override def mpist(): Long = _mpist
