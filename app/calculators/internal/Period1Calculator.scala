@@ -207,7 +207,7 @@ trait Year2015Period1Calculator extends PeriodCalculator {
   override def isACA(): Boolean = _isACA
 
   // Is MPA Applicable
-  protected lazy val _isMPAAApplicable = definedContribution > MPA
+  protected lazy val _isMPAAApplicable = isTriggered && definedContribution > MPA
   override def isMPAAApplicable(): Boolean = _isMPAAApplicable
 
   def isTriggered(): Boolean = contribution.isTriggered
@@ -250,7 +250,9 @@ trait Year2015Period1Calculator extends PeriodCalculator {
 
   // Unused Alternative Annual Allowance
   protected lazy val _unusedAAA = if (isMPAAApplicable) {
-                                    (AAA - definedBenefit).min(P2AAA).max(0)
+                                    val v = (AAA - definedBenefit).min(P2AAA).max(0)
+                                    Logger.debug(s"unusedAAA(mpa): ${AAA} - ${definedBenefit}")
+                                    v
                                   } else {
                                     0L
                                   }

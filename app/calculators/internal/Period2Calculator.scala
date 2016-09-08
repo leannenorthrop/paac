@@ -60,7 +60,7 @@ protected trait Year2015Period2Calculator extends PeriodCalculator {
     // TODO: Simplify
     val list = _previous3YearsUnusedAllowanceList
 
-    val exceeding = (if (isPeriod1Triggered) (definedBenefit - period1.unusedAllowance) else (preFlexiSavings) - (if (_isACA) AAA else unusedAllowance))
+    val exceeding = (if (isPeriod1Triggered) (definedBenefit - period1.unusedAllowance) else (preFlexiSavings) - (if (_isACA) AAA else MAXAACF))
     val year2012AA = if (list.length >= 3) list(2)._2 else 0
     val year2013AA = if (list.length >= 2) list(1)._2 else 0
     val year2014AA = if (list.length >= 1) list(0)._2 else 0
@@ -104,8 +104,10 @@ protected trait Year2015Period2Calculator extends PeriodCalculator {
           Logger.debug(s"AACCF(ua): ${previous2YearsUnusedAllowance} + ${unusedAllowance} = ${v}")
           v
         } else {
-          if (isPeriod1Triggered && _isACA) {
-            _unusedccf
+          if (_isACA) {
+            val v = _unusedccf
+            Logger.debug(s"AACCF(aca): ${_unusedccf} = ${v}")
+            v
           } else {
             val exceedingAAAmount = preTriggerFields(previousPeriods).map(_.exceedingAAAmount).getOrElse(0L)
             Logger.debug(s"!!!!!!!!!!!!!!! ${exceedingAAAmount}")
@@ -126,7 +128,7 @@ protected trait Year2015Period2Calculator extends PeriodCalculator {
                 v
               }
             } else {
-              Logger.debug(s"AACCF(<): ${previous2YearsUnusedAllowance}")
+              Logger.debug(s"AACCF(<): ${_unusedccf}")
               _unusedccf
             }
           }
@@ -391,9 +393,13 @@ protected trait Year2015Period2Calculator extends PeriodCalculator {
   protected lazy val _unusedAAA =
     if (isTriggered) {
       if (isGroup3) {
-        (period1.unusedAAA - contribution.definedBenefit).max(0)
+        val v = (period1.unusedAAA - contribution.definedBenefit).max(0)
+        Logger.debug(s"unusedAAA(g3): ${period1.unusedAAA} - ${contribution.definedBenefit} = ${v}")
+        v
       } else {
-        previous.unusedAAA.max(0)
+        val v = previous.unusedAAA.max(0)
+        Logger.debug(s"unusedAAA(g2): ${v}")
+        v
       }
     } else {
       0L
