@@ -60,24 +60,39 @@ protected trait Year2015Period2Calculator extends PeriodCalculator {
     // TODO: Simplify
     val list = _previous3YearsUnusedAllowanceList
 
-    val exceeding = (if (isPeriod1Triggered) (definedBenefit - period1.unusedAllowance) else (preFlexiSavings) - (if (_isACA) AAA else MAXAACF))
+    val pre = if (isPeriod1Triggered) definedBenefit else preFlexiSavings
+    val sub = if (isPeriod1Triggered) period1.unusedAllowance else if (_isNonMemberInPeriod1) (if (_isACA) AAA else MAXAACF) else period1.unusedAllowance
+    val exceeding = pre - sub
     val year2012AA = if (list.length >= 3) list(2)._2 else 0
     val year2013AA = if (list.length >= 2) list(1)._2 else 0
     val year2014AA = if (list.length >= 1) list(0)._2 else 0
+    Logger.debug(s"_unusedccf (year2012AA): ${year2012AA}")
+    Logger.debug(s"_unusedccf (year2013AA): ${year2013AA}")
+    Logger.debug(s"_unusedccf (year2014AA): ${year2014AA}")
+    Logger.debug(s"_unusedccf (exceeding): ${preFlexiSavings} - ${AAA} = ${exceeding}")
     if (exceeding > year2012AA) {
       val exceeding2 = exceeding - year2012AA
       if (exceeding2 > year2013AA) {
         val exceeding3 = exceeding2 - year2013AA
         if (exceeding3 > year2014AA) {
           val exceeding4 = exceeding3 - year2014AA
-          if (exceeding4 > 0) 0 else exceeding4
+          if (exceeding4 > 0) {
+            Logger.debug(s"_unusedccf (1): ${0}")
+            0
+          } else {
+            Logger.debug(s"_unusedccf (2): ${exceeding4}")
+            exceeding4
+          }
         } else {
+          Logger.debug(s"_unusedccf (3): ${year2014AA} - ${exceeding3} = ${year2014AA-exceeding3}")
           (year2014AA - exceeding3)
         }
       } else {
+        Logger.debug(s"_unusedccf (4): ${year2013AA} - ${exceeding2} + ${year2014AA} = ${year2013AA-exceeding2+year2014AA}")
         (year2013AA - exceeding2) + year2014AA
       }
     } else {
+      Logger.debug(s"_unusedccf (5): ${year2013AA} + ${year2014AA} = ${year2013AA+year2014AA}")
       (year2013AA + year2014AA)
     }
   }
@@ -347,6 +362,12 @@ protected trait Year2015Period2Calculator extends PeriodCalculator {
   protected lazy val period1: ExtendedSummaryFields = previousPeriods.find(_.input.isPeriod1).flatMap(maybeExtended(_)).getOrElse(ExtendedSummaryFields())
 
   // Pre-Flexi Access Savings
+  protected lazy val _isNonMemberInPeriod1 =
+    if (isPeriod2Triggered) {
+      preTriggerInputs(previousPeriods).map((c)=>c.moneyPurchase == 0 && c.definedBenefit == 0).getOrElse(false)
+    } else {
+      false
+    }
   protected lazy val _preFlexiSavings =
     if (isPeriod2Triggered) {
       preTriggerInputs(previousPeriods).map((c)=>c.moneyPurchase + c.definedBenefit).getOrElse(0L)
