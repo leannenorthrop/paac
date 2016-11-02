@@ -115,13 +115,15 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
   }
 
   protected lazy val _acaCF = {
-    Logger.debug(s"""ACACF: ${alternativeChargableAmount} +  ${previousYear.flatMap(maybeExtended(_).map(_.acaCF)).getOrElse(0L)}""")
-    alternativeChargableAmount + previousYear.flatMap(maybeExtended(_).map(_.acaCF)).getOrElse(0L)
+    val previousACACF = previousYear.flatMap(maybeExtended(_).map(_.acaCF)).getOrElse(0L)
+    Logger.debug(s"""ACACF: ${alternativeChargableAmount} +  ${previousACACF}""")
+    alternativeChargableAmount + previousACACF
   }
 
   protected lazy val _dcaCF = {
-    Logger.debug(s"""DCACF: ${defaultChargableAmount} +  ${previousYear.flatMap(maybeExtended(_).map(_.dcaCF)).getOrElse(0L)}""")
-    defaultChargableAmount + previousYear.flatMap(maybeExtended(_).map(_.dcaCF)).getOrElse(0L)
+    val previousDCACF = previousYear.flatMap(maybeExtended(_).map(_.dcaCF)).getOrElse(0L)
+    Logger.debug(s"""DCACF: ${defaultChargableAmount} +  ${previousDCACF}""")
+    defaultChargableAmount + previousDCACF
   }
 
   protected lazy val _postFlexiSavings =
@@ -179,8 +181,8 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
       v
     }
     else {
-      val v = unusedAllowance() + previous2YearsUnusedAllowance
-      Logger.debug(s"AACCF (nte): ${unusedAllowance()} + ${previous2YearsUnusedAllowance} = ${v}")
+      val v = unusedAllowance() + previous2YearsUnusedAllowance - _exceedingAllowance
+      Logger.debug(s"AACCF (nte): ${unusedAllowance()} + ${previous2YearsUnusedAllowance} - _exceedingAllowance = ${v}")
       v
     }
 
@@ -219,8 +221,8 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
 
   protected lazy val _exceedingAllowance =
     if (alternativeChargableAmount >= defaultChargableAmount) {
-      val v = ((preFlexiSavings + definedContribution) - annualAllowance).max(0L)
-      Logger.debug(s"Exceeding (aca): ((${preFlexiSavings} + ${definedContribution}) - ${annualAllowance}) = ${v}")
+      val v = (preFlexiSavings - annualAllowance).max(0L)
+      Logger.debug(s"Exceeding (aca): (${preFlexiSavings} - ${annualAllowance}) = ${v}")
       v
     }
     else {
