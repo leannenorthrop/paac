@@ -221,8 +221,8 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
 
   protected lazy val _exceedingAllowance =
     if (alternativeChargableAmount >= defaultChargableAmount) {
-      val v = (preFlexiSavings - annualAllowance).max(0L)
-      Logger.debug(s"Exceeding (aca): (${preFlexiSavings} - ${annualAllowance}) = ${v}")
+      val v = if (isTriggered) ((preFlexiSavings + definedContribution) - annualAllowance).max(0L) else (preFlexiSavings - annualAllowance).max(0L)
+      Logger.debug(s"Exceeding (aca): ${v}")
       v
     }
     else {
