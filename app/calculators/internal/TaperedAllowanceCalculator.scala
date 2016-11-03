@@ -221,9 +221,15 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
 
   protected lazy val _exceedingAllowance =
     if (alternativeChargableAmount >= defaultChargableAmount) {
-      val v = if (isTriggered) ((preFlexiSavings + definedContribution) - annualAllowance).max(0L) else (preFlexiSavings - annualAllowance).max(0L)
-      Logger.debug(s"Exceeding (aca): ${v}")
-      v
+      if (isTriggered) {
+        val v = ((preFlexiSavings + definedContribution) - annualAllowance - _mpist).max(0L)
+        Logger.debug(s"Exceeding (aca te): ${preFlexiSavings} + ${definedContribution} - ${annualAllowance} - ${_mpist} = ${v}")
+        v
+      } else {
+        val v = (preFlexiSavings - annualAllowance).max(0L)
+        Logger.debug(s"Exceeding (aca nte): ${preFlexiSavings} - ${annualAllowance} = ${v}")
+        v
+      }
     }
     else {
       val v = 0L
@@ -366,8 +372,9 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
 
   protected lazy val _mpist =
     if (isMPAAApplicable) {
-      Logger.debug(s"MPIST(mpa): ${definedContribution} - ${moneyPurchaseAA}")
-      (definedContribution - moneyPurchaseAA).max(0)
+      val v = (definedContribution - moneyPurchaseAA).max(0)
+      Logger.debug(s"MPIST(mpa): ${definedContribution} - ${moneyPurchaseAA} = ${v}")
+      v
     } else {
       Logger.debug(s"MPIST: 0")
       0L
