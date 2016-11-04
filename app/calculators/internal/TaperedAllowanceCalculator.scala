@@ -175,13 +175,13 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
     }
 
   protected lazy val _annualAllowanceCCF =
-    if (isTriggered && alternativeChargableAmount >= defaultChargableAmount) {
+    if (isTriggered && alternativeChargableAmount >= defaultChargableAmount || !isTriggered) {
       val v = actualUnused.slice(0,3).foldLeft(0L)(_ + _._2)
       Logger.debug(s"AACCF(aca): ${v}")
       v
     }
     else {
-      val v = unusedAllowance() + previous2YearsUnusedAllowance - _exceedingAllowance
+      val v = unusedAllowance() + previous3YearsUnusedAllowance - _exceedingAllowance
       Logger.debug(s"AACCF (nte): ${unusedAllowance()} + ${previous2YearsUnusedAllowance} - _exceedingAllowance = ${v}")
       v
     }
