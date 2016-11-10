@@ -1,3 +1,4 @@
+import play.routes.compiler.StaticRoutesGenerator
 import sbt.Keys._
 import sbt.Tests.{SubProcess, Group}
 import sbt._
@@ -12,11 +13,12 @@ trait MicroService {
   import TestPhases._
   import uk.gov.hmrc.SbtAutoBuildPlugin
   import scoverage.ScoverageSbtPlugin._
+  import play.sbt.routes.RoutesKeys.routesGenerator
 
   val appName: String
 
   lazy val appDependencies : Seq[ModuleID] = ???
-  lazy val plugins : Seq[Plugins] = Seq(play.PlayScala)
+  lazy val plugins : Seq[Plugins] = Seq(play.sbt.PlayScala)
   lazy val playSettings : Seq[Setting[_]] = Seq.empty
 
   lazy val scoverageSettings = {
@@ -43,7 +45,8 @@ trait MicroService {
       libraryDependencies ++= appDependencies,
       parallelExecution in Test := false,
       fork in Test := false,
-      retrieveManaged := true
+      retrieveManaged := true,
+      routesGenerator := StaticRoutesGenerator
     )
     .configs(IntegrationTest)
     .settings(inConfig(IntegrationTest)(Defaults.itSettings): _*)
@@ -54,7 +57,10 @@ trait MicroService {
       testGrouping in IntegrationTest := oneForkedJvmPerTest((definedTests in IntegrationTest).value),
       parallelExecution in IntegrationTest := false)
     .disablePlugins(sbt.plugins.JUnitXmlReportPlugin)
-    .settings(resolvers += Resolver.bintrayRepo("hmrc", "releases"))
+    .settings(
+      resolvers += Resolver.bintrayRepo("hmrc", "releases"),
+      resolvers += Resolver.jcenterRepo
+    )
 }
 
 private object TestPhases {
