@@ -42,13 +42,13 @@ class MetricsSpec extends UnitSpec with MockitoSugar with BeforeAndAfterAll {
   override def afterAll() {
     try {
       super.afterAll()
-    } finally Play.stop()
+    } finally Play.stop(app)
   }
 
   trait SharedFixture {
     val mockRegistry = mock[MetricRegistry]
     object MockedMetrics extends GraphiteMetrics {
-      override def registry() = mockRegistry
+     override def registry = mockRegistry
     }
   }
 

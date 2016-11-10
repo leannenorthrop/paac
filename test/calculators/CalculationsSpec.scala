@@ -38,7 +38,7 @@ class CalculationsSpec extends FunSpec with BeforeAndAfterAll {
   override def afterAll() {
     try {
       super.afterAll()
-    } finally Play.stop()
+    } finally Play.stop(app)
   }
 
   def contributions(table: String): List[Contribution] = {

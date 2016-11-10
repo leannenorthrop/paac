@@ -48,7 +48,7 @@ trait GraphiteMetrics extends Metrics with MicroserviceMetrics {
   private val TAX_CALCULATED = "tax-calculation"
   private val UNUSED_ALLOWANCE_CALCULATED = "unused-allowance-calculation"
 
-  val registry: MetricRegistry = metrics.defaultRegistry
+  def registry: MetricRegistry = metrics.defaultRegistry
 
   private val timer = (name: String) => registry.timer(name)
   private val counter = (name: String) => registry.counter(name)

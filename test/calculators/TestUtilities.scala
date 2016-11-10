@@ -18,9 +18,12 @@ package calculators
 
 import models._
 import org.scalatest.Assertions._
+
 import scala.util._
 import calculators.internal._
 import io._
+
+import scala.io.Source
 
 object TestUtilities {
   def using[A <: { def close(): Unit }, B](resource: A)(f: A => B): B = {
@@ -42,7 +45,7 @@ object TestUtilities {
 
   def readTextFile(filename: String): Option[List[String]] = {
     try {
-        val lines = using(io.Source.fromFile(filename, "UTF-8")) { source =>
+        val lines = using(Source.fromFile(filename, "UTF-8")) { source =>
             (for (line <- source.getLines) yield line).toList
         }
         Some(lines)
