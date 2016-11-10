@@ -11,18 +11,18 @@ private object AppDependencies {
   import play.core.PlayVersion
   import play.sbt.PlayImport._
 
-  private val microserviceBootstrapVersion = "4.4.0"
-  private val playHealthVersion = "1.1.0"
-  private val playJsonLoggerVersion = "2.1.1"
-  private val playUrlBindersVersion = "1.1.0"
-  private val playConfigVersion = "2.1.0"
-  private val domainVersion = "3.7.0"
-  private val hmrcTestVersion = "1.8.0"
+  private val microserviceBootstrapVersion = "5.7.0"
+  private val playHealthVersion = "2.0.0"
+  private val playJsonLoggerVersion = "3.0.0"
+  private val playUrlBindersVersion = "2.0.0"
+  private val playConfigVersion = "3.0.0"
+  private val domainVersion = "4.0.0"
+  private val hmrcTestVersion = "2.1.0"
   private val scalaTestVersion = "2.2.6"
   private val pegDownVersion = "1.6.0"
   private val scalacheckVersion = "1.12.5"
   private val mockitoVersion = "1.10.19"
-  private val metricsPlayVersion = "0.2.1"
+  private val metricsPlayVersion = "2.4.0_0.4.1"
   private val metricsGraphiteVersion = "3.0.2"
 
   val compile = Seq(
