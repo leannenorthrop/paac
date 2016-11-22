@@ -797,7 +797,7 @@ class CalculatorInputsSpec extends ModelSpec {
         val jsonTaxYear = json \ "taxPeriodStart" \ "year"
         jsonTaxYear.as[Int] shouldBe 2010
         val v = json \ "amounts"
-        v.as[Option[InputAmounts]] shouldBe Some(InputAmounts(None,None))
+        v.asOpt[InputAmounts] shouldBe Some(InputAmounts(None,None))
       }
 
       "unmarshall from JSON" in new ContributionFixture {

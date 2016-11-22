@@ -37,7 +37,7 @@ class Post2015CalculatorSpec extends UnitSpec with BeforeAndAfterAll {
   override def afterAll() {
     try {
       super.afterAll()
-    } finally Play.stop()
+    } finally Play.stop(app)
   }
 
   "Year 2016 / Post 2015 Calculator" should {

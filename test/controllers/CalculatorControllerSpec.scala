@@ -45,7 +45,7 @@ class CalculatorControllerSpec extends ControllerSpec with BeforeAndAfterAll {
   override def afterAll() {
     try {
       super.afterAll()
-    } finally Play.stop()
+    } finally Play.stop(app)
   }
 
   val ENDPOINT_PATH = "/paac/calculate/"
@@ -76,8 +76,8 @@ class CalculatorControllerSpec extends ControllerSpec with BeforeAndAfterAll {
           val result = submit(requestBody)
 
           // check
-          (contentAsJson(result) \ "status") shouldBe JsNumber(200)
-          (contentAsJson(result) \ "message") shouldBe JsString("Valid pension calculation request received.")
+          (contentAsJson(result) \ "status").get shouldBe JsNumber(200)
+          (contentAsJson(result) \ "message").get shouldBe JsString("Valid pension calculation request received.")
       }
     }
 
@@ -118,8 +118,8 @@ class CalculatorControllerSpec extends ControllerSpec with BeforeAndAfterAll {
         // check
         status(result) shouldBe 400
         val results = contentAsJson(result)
-        (results \ "status") shouldBe JsNumber(400)
-        (results \ "message") shouldBe JsString("Invalid JSON request object.")
+        (results \ "status").get shouldBe JsNumber(400)
+        (results \ "message").get shouldBe JsString("Invalid JSON request object.")
       }
     }
 
@@ -144,8 +144,8 @@ class CalculatorControllerSpec extends ControllerSpec with BeforeAndAfterAll {
 
         //check
         val obj : JsObject = contentAsJson(result).as[JsObject]
-        (obj \ "status") shouldBe JsNumber(400)
-        (obj \ "message") shouldBe JsString("Invalid JSON request object.")
+        (obj \ "status").get shouldBe JsNumber(400)
+        (obj \ "message").get shouldBe JsString("Invalid JSON request object.")
       }
     }
 
@@ -157,8 +157,8 @@ class CalculatorControllerSpec extends ControllerSpec with BeforeAndAfterAll {
 
       status(result) shouldBe 400
       val results = contentAsJson(result)
-      (results \ "status") shouldBe JsNumber(400)
-      (results \ "message") shouldBe JsString("Unsupported tax year supplied,\nonly tax years between 2008 and\n2100 inclusive, are supported.")
+      (results \ "status").get shouldBe JsNumber(400)
+      (results \ "message").get shouldBe JsString("Unsupported tax year supplied,\nonly tax years between 2008 and\n2100 inclusive, are supported.")
     }
 
   }

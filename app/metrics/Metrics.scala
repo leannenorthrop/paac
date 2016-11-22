@@ -17,11 +17,13 @@
 package metrics
 
 import java.util.concurrent.TimeUnit
+
 import com.codahale.metrics._
-import com.kenshoo.play.metrics.MetricsRegistry
-import scala.concurrent.{duration, Await}
+
+import scala.concurrent.{Await, duration}
 import scala.concurrent.duration._
 import play.api.Logger
+import uk.gov.hmrc.play.graphite.MicroserviceMetrics
 
 trait Metrics {
   def successfulRequest()
@@ -33,7 +35,7 @@ trait Metrics {
   def unusedAllowanceCalculated(taxYear: String, taxAmount: Long)
 }
 
-trait GraphiteMetrics extends Metrics {
+trait GraphiteMetrics extends Metrics with MicroserviceMetrics {
   Logger.info("[Metrics] Registering metrics...")
 
   private val SUCCESSFUL_REQUEST = "successful-request"
@@ -46,7 +48,8 @@ trait GraphiteMetrics extends Metrics {
   private val TAX_CALCULATED = "tax-calculation"
   private val UNUSED_ALLOWANCE_CALCULATED = "unused-allowance-calculation"
 
-  def registry() = MetricsRegistry.defaultRegistry
+  def registry: MetricRegistry = metrics.defaultRegistry
+
   private val timer = (name: String) => registry.timer(name)
   private val counter = (name: String) => registry.counter(name)
   private val histogram = (name: String) => registry.histogram(name)

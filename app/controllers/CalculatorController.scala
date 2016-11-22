@@ -46,7 +46,7 @@ trait CalculatorController {
         failedRequest
         Future.successful(BadRequest(Json.obj("status" -> JsNumber(BAD_REQUEST),
                                               "message" -> JsString("Invalid JSON request object."),
-                                              "validationErrors" -> JsError.toFlatJson(errors))))
+                                              "validationErrors" -> JsError.toJson(errors))))
       },
       calculationRequest => {
         val contributions = calculationRequest.contributions

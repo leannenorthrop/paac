@@ -38,7 +38,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
   override def afterAll() {
     try {
       super.afterAll()
-    } finally Play.stop()
+    } finally Play.stop(app)
   }
 
   "ExtendedSummaryCalculator trait" should {
