@@ -8,7 +8,9 @@ jdk:
 cache:
   directories:
     - '$HOME/.ivy2/cache'
-script: "sbt clean coverage test"
+script:
+  - "sbt clean coverage test"
+  - 'sbt -Dlogger.resource=logback-test.xml test'
 after_success: "sbt coveralls"
 notifications:
   email:
