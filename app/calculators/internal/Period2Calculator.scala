@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 HM Revenue & Customs
+ * Copyright 2017 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -99,7 +99,7 @@ protected trait Year2015Period2Calculator extends PeriodCalculator {
 
   protected lazy val _aaCCF =
     if (!isTriggered) {
-      val v = actualUnused(this)(3)(previousPeriods,contribution)
+      val v = (period1.availableAAWithCCF - basicDefinedBenefit).max(0)
       Logger.debug(s"AACCF (nte): ${v}")
       v
     } else {

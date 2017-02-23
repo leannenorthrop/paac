@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 HM Revenue & Customs
+ * Copyright 2017 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ class Group1CalculationsSpec extends FunSpec {
           val definedBenefit = table.split("\n").drop(2).toList.map(_.split('|').toList(1).trim.toLong)
           val inputs = Map(years.zip(definedBenefit): _*)
           val results = PensionAllowanceCalculator.calculateAllowances(generateContributions(inputs))
-          if (false) info(TestUtilities.toString(results))
+          if (true) info(TestUtilities.toString(results))
           assertResults(table, results, false)
         }
       }
