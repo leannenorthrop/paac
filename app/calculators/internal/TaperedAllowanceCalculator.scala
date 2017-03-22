@@ -86,6 +86,8 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
 
   protected lazy val actualUnused = actualUnusedList(this)(previousPeriods,contribution)
 
+  protected lazy val actualAAAUnused = actualAAAUnusedList(this)(previousPeriods,contribution)
+
   protected lazy val config: Map[String,Int] =
     PaacConfiguration.forYear(contribution.taxPeriodStart.taxYear)
 
@@ -100,6 +102,17 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
     val calc = BasicAllowanceCalculator(0,pp,c)
     val unused = actualUnusedList(calc)(pp, c).dropWhile(_._1 == taxYear).slice(0,3)
     Logger.debug(s"""3 Years Unused: ${unused.mkString(", ")}""")
+    unused.foldLeft(0L)(_ + _._2)
+  }
+
+  protected lazy val previous3YearsUnusedAAAllowance: Long = {
+    // we only want previous values so create dummy contribution which does not affect the calculation
+    val taxYear = contribution.taxPeriodStart.taxYear
+    val c = Contribution(taxYear, Some(InputAmounts(0L,0L)))
+    val pp = previousPeriods.dropWhile(_._1 == taxYear)
+    val calc = BasicAllowanceCalculator(0,pp,c)
+    val unused = actualAAAUnused.dropWhile(_._1 == taxYear).slice(0,3)
+    Logger.debug(s"""3 Years Unused AAA: ${unused.mkString(", ")}""")
     unused.foldLeft(0L)(_ + _._2)
   }
 
@@ -180,7 +193,8 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
       Logger.debug(s"AACCF(nte): ${v}")
       v
     } else if (alternativeChargableAmount >= defaultChargableAmount) {
-      val v = actualUnused.slice(0,3).foldLeft(0L)(_ + _._2)
+      val v = actualAAAUnused.slice(0,3).foldLeft(0L)(_ + _._2)
+      Logger.debug(s"""3 Years Unused AAA: ${actualAAAUnused.slice(0,3).mkString(", ")}""")
       Logger.debug(s"AACCF(aca): ${v}")
       v
     }
@@ -193,13 +207,13 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
   protected lazy val _alternativeAACF = {
     contribution.taxPeriodStart.taxYear match {
       case year if year <= 2018 => {
-        val v = _alternativeAA + previous3YearsUnusedAllowance
-        Logger.debug(s"AAACF(<=2018): ${_alternativeAA} + ${previous3YearsUnusedAllowance}")
+        val v = _alternativeAA + previous3YearsUnusedAAAllowance
+        Logger.debug(s"AAACF(<=2018): ${_alternativeAA} + ${previous3YearsUnusedAAAllowance}")
         v
       }
       case _ => {
-        val v = _alternativeAA + previous3YearsUnusedAllowance
-        Logger.debug(s"AAACF(>2018): ${_alternativeAA} + ${previous3YearsUnusedAllowance}")
+        val v = _alternativeAA + previous3YearsUnusedAAAllowance
+        Logger.debug(s"AAACF(>2018): ${_alternativeAA} + ${previous3YearsUnusedAAAllowance}")
         v
       }
     }
