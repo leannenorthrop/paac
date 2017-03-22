@@ -286,7 +286,7 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
           Logger.debug(s"AA(tapered): ${v}")
           v
         }
-        case i if i > _taperEnd => {
+        case i if i >= _taperEnd => {
           Logger.debug(s"AA(max tapered): ${_taa}")
           _taa
         }
