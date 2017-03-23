@@ -1,0 +1,9 @@
+***REMOVED*** Error Example of Negative Unused Allowance
+year    | Defined Benefit | Money Purchase  | Income         | Is Triggered | Tax     | AA      | Alt. AA | MPA   | Unused AA | Unused AAA | Cumulative Carry Forward |
+2012    | 50000           | 0               |                | false        | 0       | 50000   | 0       | 0     | 0         | 0          | 0                        |
+2013    | 50000           | 0               |                | false        | 0       | 50000   | 0       | 0     | 0         | 0          | 0                        |
+2014    | 40000           | 0               |                | false        | 0       | 40000   | 0       | 0     | 0         | 0          | 0                        |
+2015P1B | 0               | 22000           |                | false        | 0       | 80000   | 0       | 20000 | 40000     | 0          | 40000                    |
+2015P1A | 37000           | 23000           |                | true         | 3000    | 60000   | 60000   | 20000 | 0         | 1000       | 30000                    |
+2015P2A | 12000           | 36000           |                | true         | 47000   | 0       | 1000    | 0     | 0         | 0          | 0                        |
+2016A   | 17000           | 36000           |                | true         | 26000   | 40000   | 30000   | 10000 | 13000     | 13000      | 13000                    |
