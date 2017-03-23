@@ -81,7 +81,7 @@ protected trait Year2015Period2Calculator extends PeriodCalculator {
             0
           } else {
             Logger.debug(s"_unusedccf (2): ${exceeding4}")
-            exceeding4
+            (exceeding4)
           }
         } else {
           Logger.debug(s"_unusedccf (3): ${year2014AA} - ${exceeding3} = ${year2014AA-exceeding3}")
@@ -105,11 +105,11 @@ protected trait Year2015Period2Calculator extends PeriodCalculator {
     } else {
       if (previous.unusedAAA > 0) {
         if (contribution.isGroup3) {
-          val v = previous2YearsUnusedAllowance + previous.unusedAAA - definedBenefit
+          val v = (previous2YearsUnusedAllowance + previous.unusedAAA - definedBenefit).max(0L)
           Logger.debug(s"AACCF(g3): ${previous2YearsUnusedAllowance} + ${previous.unusedAAA} + ${definedBenefit} = ${v}")
           v
         } else {
-          val v = previous2YearsUnusedAllowance + previous.unusedAAA
+          val v = (previous2YearsUnusedAllowance + previous.unusedAAA).max(0L)
           Logger.debug(s"AACCF(g2): ${previous2YearsUnusedAllowance} + ${previous.unusedAAA} = ${v}")
           v
         }
@@ -120,7 +120,7 @@ protected trait Year2015Period2Calculator extends PeriodCalculator {
           v
         } else {
           if (_isACA) {
-            val v = _unusedccf
+            val v = (_unusedccf).max(0L)
             Logger.debug(s"AACCF(aca): ${_unusedccf} = ${v}")
             v
           } else {
@@ -131,7 +131,7 @@ protected trait Year2015Period2Calculator extends PeriodCalculator {
                 val isNotRegisteredInP1 = previousPeriods.find(_.input.isPeriod1).map((r)=>r.input.moneyPurchase == 0 && r.input.definedBenefit == 0).getOrElse(false)
                 if (isNotRegisteredInP1) {
                   Logger.debug(s"AACCF(>1): ${_unusedccf}")
-                  _unusedccf
+                  (_unusedccf).max(0L)
                 } else {
                   val v = (_previous3YearsUnusedAllowance - exceedingAAAmount).max(0L)
                   Logger.debug(s"AACCF(>2): ${_previous3YearsUnusedAllowance} - ${exceedingAAAmount} = ${v}")
@@ -144,7 +144,7 @@ protected trait Year2015Period2Calculator extends PeriodCalculator {
               }
             } else {
               Logger.debug(s"AACCF(<): ${_unusedccf}")
-              _unusedccf
+              (_unusedccf).max(0L)
             }
           }
         }
