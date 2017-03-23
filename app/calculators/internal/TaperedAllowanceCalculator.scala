@@ -179,11 +179,13 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
     }
     else {
       if (_isPreviousTriggered) {
-        Logger.debug(s"DCA(te < ${contribution.taxYear}): ${postFlexiSavings} - (${annualAllowance} + ${previous3YearsUnusedAllowance}")
-        (postFlexiSavings - (annualAllowance + previous3YearsUnusedAllowance)).max(0L)
+        val v = (postFlexiSavings - (annualAllowance + _previousAvailableAAWithCCF)).max(0L)
+        Logger.debug(s"DCA(te < ${contribution.taxYear}): ${postFlexiSavings} - (${annualAllowance} + ${_previousAvailableAAWithCCF}) = $v")
+        v
       } else {
-        Logger.debug(s"DCA(te == ${contribution.taxYear}): (${postFlexiSavings} + ${preFlexiSavings}) - (${annualAllowance} + ${previous3YearsUnusedAllowance}")
-        ((postFlexiSavings + preFlexiSavings) - (annualAllowance + previous3YearsUnusedAllowance)).max(0L)
+        val v = ((postFlexiSavings + preFlexiSavings) - (annualAllowance + _previousAvailableAAWithCCF)).max(0L)
+        Logger.debug(s"DCA(te == ${contribution.taxYear}): (${postFlexiSavings} + ${preFlexiSavings}) - (${annualAllowance} + ${_previousAvailableAAWithCCF}) = $v")
+        v
       }
     }
 
@@ -329,8 +331,9 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
 
   protected lazy val _alternativeChargableAmount =
     if (isMPAAApplicable && isTriggered) {
-      Logger.debug(s"ACA: ${mpist} + ${dbist}")
-      mpist + dbist
+      val v = mpist + dbist
+      Logger.debug(s"ACA: ${mpist} + ${dbist} = $v")
+      v
     }
     else {
       Logger.debug(s"ACA: 0")
