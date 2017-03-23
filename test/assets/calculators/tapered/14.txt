@@ -1,0 +1,9 @@
+Error Examples 1 to 3
+year    | Defined Benefit | Money Purchase  | Income         | Is Triggered | Tax     | AA      | Alt. AA | MPA   | Unused AA | Unused AAA | Cumulative Carry Forward |
+2012    | 44000           | 0               |                | false        | 0       | 50000   | 0       | 0     | 6000      | 0          | 6000                     |
+2013    | 39000           | 0               |                | false        | 0       | 50000   | 0       | 0     | 11000     | 0          | 17000                    |
+2014    | 28000           | 0               |                | false        | 0       | 40000   | 0       | 0     | 12000     | 0          | 29000                    |
+2015P1B | 42000           | 41000           |                | false        | 0       | 80000   | 0       | 20000 | 0         | 0          | 26000                    |
+2015P1A | 0               | 47000           |                | true         | 27000   | 60000   | 60000   | 20000 | 0         | 0          | 6000                     |
+2015P2A | 34000           | 25000           |                | true         | 59000   | 0       | 0       | 0     | 0         | 0          | 0                        |
+2016A   | 28000           | 50000           | 210050         | true         | 68000   | 10000   | 0       | 10000 | 0         | 0          | 0                        |
