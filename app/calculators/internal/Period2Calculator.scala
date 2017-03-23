@@ -99,7 +99,7 @@ protected trait Year2015Period2Calculator extends PeriodCalculator {
 
   protected lazy val _aaCCF =
     if (!isTriggered) {
-      val v = actualUnused(this)(3)(previousPeriods,contribution)
+      val v = (period1.availableAAWithCCF - basicDefinedBenefit).max(0)
       Logger.debug(s"AACCF (nte): ${v}")
       v
     } else {

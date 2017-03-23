@@ -1,5 +1,5 @@
-PAAC-386: Unused allowance - comment 1. 
-year     | Defined Benefit | Money Purchase  | Is Triggered | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward | MPAA 
+PAAC-386: Unused allowance - comment 1.
+year     | Defined Benefit | Money Purchase  | Is Triggered | Amount Exceeding AA | Liable to Charge | Available Annual Allowance | Unused AA CF | Cumulative Carry Forward | MPAA
 2015P1B  | 12345           | 12345           | false        | 0                   | 0                | 220000                     | 40000        | 180000                   | 0
-2015P2B  | 12345           | 12345           | false        | 0                   | 0                | 180000                     | 15310        | 105310                   | 0
+2015P2B  | 12345           | 12345           | false        | 0                   | 0                | 180000                     | 15310        | 155310                   | 0
 2015P2A  | 0               | 12345           | true         | 0                   | 2345             | 180000                     | 15310        | 105310                   | 0
