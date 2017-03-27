@@ -1,4 +1,4 @@
-***REMOVED*** Error Example of Negative Unused Allowance
+Dowell Error Example of Negative Unused Allowance
 year    | Defined Benefit | Money Purchase  | Income         | Is Triggered | Tax     | AA      | Alt. AA | MPA   | Unused AA | Unused AAA | Cumulative Carry Forward |
 2012    | 42000           | 0               |                | false        | 0       | 50000   | 0       | 0     | 8000      | 0          | 8000                     |
 2013    | 45000           | 0               |                | false        | 0       | 50000   | 0       | 0     | 5000      | 0          | 13000                    |
