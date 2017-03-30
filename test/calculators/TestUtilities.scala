@@ -131,7 +131,9 @@ object TestUtilities {
   }
 
   def toString(results: Seq[TaxYearResults]): String = {
-    val headings = List("Year","DB","MP","Chargable",">AA", "AA", "Unused AA", "AACF", "CCF","DBIST","MPIST","ACA","DCA",">MPAA",">AAA","Unused AAA", "Unused MPAA").map((h)=>f"${h}%10s").mkString(" ")
+    val headings = List("Year","DB","MP","Chargable",">AA", "AA", "Unused AA",
+                        "AACF", "CCF","DBIST","MPIST","ACA","DCA",">MPAA",">AAA",
+                        "Unused AAA", "Unused MPAA","AAA Cumulative Carry Forward").map((h)=>f"${h}%10s").mkString(" ")
     var message: String = f"\n${headings}\n"
     results.foreach {
       (result)=>
@@ -144,6 +146,7 @@ object TestUtilities {
             result.summaryResult.unusedAllowance,
             result.summaryResult.availableAAWithCF,
             result.summaryResult.availableAAWithCCF,
+            0L,
             0L,
             0L
             ).map(_ / 100.00).map((v)=>f"${v}%10.2f").mkString(" ")
@@ -164,7 +167,8 @@ object TestUtilities {
             v.exceedingMPAA,
             v.exceedingAAA,
             v.unusedAAA,
-            v.unusedMPAA
+            v.unusedMPAA,
+            v.availableAAAWithCCF
             ).map(_ / 100.00).map((v)=>f"${v}%10.2f").mkString(" ")
       }
       message += f"${result.input.label}%-10s ${values}\n"
@@ -180,12 +184,14 @@ object TestUtilities {
                        "Liable to Charge"-> { (r:TaxYearResults) => r.summaryResult.chargableAmount },
                        "Tax"-> { (r:TaxYearResults) => r.summaryResult.chargableAmount },
                        "Available Annual Allowance"-> { (r:TaxYearResults) => r.summaryResult.availableAAWithCF },
+                       "Alt. Available Annual Allowance"-> { (r:TaxYearResults) => r.summaryResult.availableAAAWithCF },
                        "AA"-> { (r:TaxYearResults) => r.summaryResult.availableAllowance },
                        "Alt. AA"-> { (r:TaxYearResults) => r.summaryResult.alternativeAA },
                        "Unused AA CF"-> { (r:TaxYearResults) => r.summaryResult.unusedAllowance },
                        "Unused AA"-> { (r:TaxYearResults) => r.summaryResult.unusedAllowance },
                        "Unused AAA"-> { (r:TaxYearResults) => r.summaryResult.unusedAAA },
                        "Cumulative Carry Forward"-> { (r:TaxYearResults) => r.summaryResult.availableAAWithCCF },
+                       "AAA Cumulative Carry Forward"-> { (r:TaxYearResults) => r.summaryResult.availableAAAWithCCF },
                        "Available Allowance"-> { (r:TaxYearResults) => r.summaryResult.availableAllowance },
                        "MPA"-> { (r:TaxYearResults) => r.summaryResult.moneyPurchaseAA },
                        "MPAA"-> {
