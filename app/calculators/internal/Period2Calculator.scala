@@ -152,7 +152,60 @@ protected trait Year2015Period2Calculator extends PeriodCalculator {
     }
   override def annualAllowanceCCF(): Long = _aaCCF
 
-  override def availableAAAWithCCF(): Long = _aaCCF
+  protected lazy val _aaaCCF =
+    if (!isTriggered) {
+      val v = 0L
+      Logger.debug(s"AACCF (nte): ${v}")
+      v
+    } else {
+      if (previous.unusedAAA > 0) {
+        if (contribution.isGroup3) {
+          val v = (previous2YearsUnusedAllowance + previous.unusedAAA - definedBenefit).max(0L)
+          Logger.debug(s"AACCF(g3): ${previous2YearsUnusedAllowance} + ${previous.unusedAAA} + ${definedBenefit} = ${v}")
+          v
+        } else {
+          val v = (previous2YearsUnusedAllowance + previous.unusedAAA).max(0L)
+          Logger.debug(s"AACCF(g2): ${previous2YearsUnusedAllowance} + ${previous.unusedAAA} = ${v}")
+          v
+        }
+      } else {
+        if (unusedAllowance > 0) {
+          val v = previous2YearsUnusedAllowance + unusedAllowance
+          Logger.debug(s"AACCF(ua): ${previous2YearsUnusedAllowance} + ${unusedAllowance} = ${v}")
+          v
+        } else {
+          if (_isACA) {
+            val v = (_unusedccf).max(0L)
+            Logger.debug(s"AACCF(aca): ${_unusedccf} = ${v}")
+            v
+          } else {
+            val exceedingAAAmount = preTriggerFields(previousPeriods).map(_.exceedingAAAmount).getOrElse(0L)
+            Logger.debug(s"!!!!!!!!!!!!!!! ${exceedingAAAmount}")
+            if (exceedingAAAmount > 0) {
+              if (_isACA) {
+                val isNotRegisteredInP1 = previousPeriods.find(_.input.isPeriod1).map((r)=>r.input.moneyPurchase == 0 && r.input.definedBenefit == 0).getOrElse(false)
+                if (isNotRegisteredInP1) {
+                  Logger.debug(s"AACCF(>1): ${_unusedccf}")
+                  (_unusedccf).max(0L)
+                } else {
+                  val v = (_previous3YearsUnusedAllowance - exceedingAAAmount).max(0L)
+                  Logger.debug(s"AACCF(>2): ${_previous3YearsUnusedAllowance} - ${exceedingAAAmount} = ${v}")
+                  v
+                }
+              } else {
+                val v = (_previous3YearsUnusedAllowance - exceedingAAAmount - contribution.moneyPurchase).max(0L)
+                Logger.debug(s"AACCF(>3): ${_previous3YearsUnusedAllowance} - ${exceedingAAAmount} - ${contribution.moneyPurchase} = ${v}")
+                v
+              }
+            } else {
+              Logger.debug(s"AACCF(<): ${_unusedccf}")
+              (_unusedccf).max(0L)
+            }
+          }
+        }
+      }
+    }
+  override def availableAAAWithCCF(): Long = _aaaCCF
 
   // Alternative Annual Allowance
   protected lazy val _alternativeAA = if (isGroup3 || (isGroup2 && isTriggered)) {

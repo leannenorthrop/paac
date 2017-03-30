@@ -61,7 +61,16 @@ trait Year2015Period1Calculator extends PeriodCalculator {
     }
   override def annualAllowanceCCF(): Long = { Logger.debug(s"********************** annualAllowanceCCF() = ${_aaCCF}"); _aaCCF }
 
-  override def availableAAAWithCCF(): Long = _aaCCF // same value as aaCCF considers AAA in calculation
+  protected lazy val _aaaCCF = if (isMPAAApplicable) {
+      val aaa = ((AAA - preTriggerSavings).min(P2AAA) + _previous3YearsUnusedAllowance)
+      Logger.debug(s"AACCF(mp): (${AAA} - ${preTriggerSavings}).min(${P2AAA}) + ${_previous3YearsUnusedAllowance} = ${aaa}")
+      (aaa).max(0)
+    } else {
+      val v = 0L
+      Logger.debug(s"AACCF(nmp): ${v}")
+      v
+    }
+  override def availableAAAWithCCF(): Long = _aaaCCF // same value as aaCCF considers AAA in calculation
 
   // Annual Allowance With Carry Forwards
   protected lazy val _aaCF = if (!isTriggered) {
