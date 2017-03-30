@@ -30,7 +30,7 @@ protected trait ExtendedCalculator extends BasicCalculator {
       // $COVERAGE-ON$
       Some(ExtendedSummaryFields(calculator.chargableAmount,
                                  calculator.exceedingAllowance,
-                                 calculator.annualAllowance,
+                                 if (calculator.isMPAAApplicable) 0L else calculator.annualAllowance,
                                  calculator.unusedAllowance,
                                  calculator.annualAllowanceCF,
                                  calculator.annualAllowanceCCF,
