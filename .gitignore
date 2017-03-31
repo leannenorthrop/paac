@@ -18,6 +18,7 @@ dist
 /.settings
 *.iws
 *.sublime*
-*ensime*    
-*Ensime*    
+*ensime*
+*Ensime*
+*.ensime_cache*
 tools-original

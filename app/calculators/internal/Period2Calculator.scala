@@ -298,7 +298,11 @@ protected trait Year2015Period2Calculator extends PeriodCalculator {
             val aacf = previous.availableAAWithCF
             postFlexiSavings - previous.dcaCF
           */
-          ((definedContribution + definedBenefit) - (_previous3YearsUnusedAllowance + period1.unusedAAA)).max(0)
+          if (period1.isACA) {
+            ((definedContribution + definedBenefit) - (period1.availableAAAWithCCF)).max(0)
+          } else {
+            ((definedContribution + definedBenefit) - (_previous3YearsUnusedAllowance + period1.unusedAAA)).max(0)
+          }
         } else {
           ((definedContribution + definedBenefit) - period1.availableAAWithCCF).max(0)
         }

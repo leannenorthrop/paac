@@ -59,12 +59,25 @@ trait Year2015Period1Calculator extends PeriodCalculator {
       Logger.debug(s"AACCF(<): ${unusedAllowance.min(MAX_CF)} + ${_previous3YearsUnusedAllowance} = ${v}")
       v
     }
-  override def annualAllowanceCCF(): Long = { Logger.debug(s"********************** annualAllowanceCCF() = ${_aaCCF}"); _aaCCF }
+  override def annualAllowanceCCF(): Long = { Logger.debug(s"annualAllowanceCCF() = ${_aaCCF}"); _aaCCF }
+
+  protected lazy val previous2YearsUnusedAllowance: Long = {
+    // we only want previous values so create dummy contribution which does not affect the calculation
+    val c = Contribution(2015, Some(InputAmounts(0L,0L)))
+    val pp = previousPeriods.dropWhile(_.input.isPeriod2)
+    actualUnusedList(this)(pp, c).dropWhile(_._1 == 2015).slice(0,2).foldLeft(0L)(_ + _._2)
+  }
 
   protected lazy val _aaaCCF = if (isMPAAApplicable) {
-      val aaa = ((AAA - preTriggerSavings).min(P2AAA) + _previous3YearsUnusedAllowance)
-      Logger.debug(s"AACCF(mp): (${AAA} - ${preTriggerSavings}).min(${P2AAA}) + ${_previous3YearsUnusedAllowance} = ${aaa}")
-      (aaa).max(0)
+      if (_isACA) {
+        val aaa = (unusedAAA + _previous3YearsUnusedAllowance)
+        Logger.debug(s"AACCF(aca): (${unusedAAA} + ${_previous3YearsUnusedAllowance} = ${aaa}")
+        (aaa).max(0).min(_aaCCF)
+      } else {
+        val aaa = ((AAA - preTriggerSavings).min(P2AAA) + _previous3YearsUnusedAllowance)
+        Logger.debug(s"AACCF(dca): (${AAA} - ${preTriggerSavings}).min(${P2AAA}) + ${_previous3YearsUnusedAllowance} = ${aaa}")
+        (aaa).max(0)
+      }
     } else {
       val v = 0L
       Logger.debug(s"AACCF(nmp): ${v}")
@@ -259,7 +272,7 @@ trait Year2015Period1Calculator extends PeriodCalculator {
 
   // Unused Alternative Annual Allowance
   protected lazy val _unusedAAA = if (isMPAAApplicable) {
-                                    val v = (AAA - definedBenefit).min(P2AAA).max(0)
+                                    val v = (AAA - preTriggerSavings).min(P2AAA).max(0)
                                     Logger.debug(s"unusedAAA(mpa): ${AAA} - ${definedBenefit}")
                                     v
                                   } else {
