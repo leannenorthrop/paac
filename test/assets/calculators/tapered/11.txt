@@ -1,4 +1,4 @@
-Error Scenario - List's example (deskpro 1337999) - no unused AAA carry forward from period 2
+Error Scenario - L example - no unused AAA carry forward from period 2
 year    | Defined Benefit | Money Purchase  | Income         | Is Triggered | Tax     | AA      | Alt. AA | MPA   | Unused AA | Unused AAA | Cumulative Carry Forward |
 2015P1B | 14000           | 3000            |                | false        | 0       | 80000   | 0       | 20000 | 40000     | 0          | 40000                    |
 2015P1A | 0               | 21000           |                | true         | 1000    | 0       | 60000   | 20000 | 0         | 30000      | 30000                    |
