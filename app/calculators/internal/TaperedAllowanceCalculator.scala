@@ -191,11 +191,11 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
 
   protected lazy val _annualAllowanceCCF =
     if (!isTriggered) {
-      val v = actualUnused.slice(0,3).foldLeft(0L)(_ + _._2)
+      val v = actualUnused.slice(0,4).foldLeft(0L)(_ + _._2)
       Logger.debug(s"AACCF(nte): ${v}")
       v
     } else if (alternativeChargableAmount >= defaultChargableAmount) {
-      val v = actualAAAUnused.slice(0,3).foldLeft(0L)(_ + _._2)
+      val v = actualAAAUnused.slice(0,4).foldLeft(0L)(_ + _._2)
       Logger.debug(s"""3 Years Unused AAA: ${actualAAAUnused.slice(0,3).mkString(", ")}""")
       Logger.debug(s"AACCF(aca): ${v}")
       v

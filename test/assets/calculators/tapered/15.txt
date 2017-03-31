@@ -1,9 +1,8 @@
-Error Example for T T
-year    | Defined Benefit | Money Purchase  | Income         | Is Triggered | Tax     | AA      | Alt. AA | MPA   | Unused AA | Unused AAA | Cumulative Carry Forward | AAA Cumulative Carry Forward |
-2012    | 44000           | 0               |                | false        | 0       | 50000   | 0       | 0     | 6000      | 0          | 6000                     | 0                            |
-2013    | 39000           | 0               |                | false        | 0       | 50000   | 0       | 0     | 11000     | 0          | 17000                    | 0                            |
-2014    | 28000           | 0               |                | false        | 0       | 40000   | 0       | 0     | 12000     | 0          | 29000                    | 0                            |
-2015P1B | 42000           | 41000           |                | false        | 0       | 80000   | 0       | 20000 | 0         | 0          | 26000                    | 0                            |
-2015P1A | 0               | 47000           |                | true         | 27000   | 0       | 60000   | 20000 | 0         | 0          | 6000                     | 6000                         |
-2015P2A | 25000           | 34000           |                | true         | 53000   | 0       | 0       | 0     | 0         | 0          | 0                        | 0                            |
-2016A   | 28000           | 50000           | 215000         | true         | 68000   | 0       | 0       | 10000 | 0         | 0          | 0                        | 0                            |
+Error Example T
+year    | Defined Benefit | Money Purchase  | Income         | Is Triggered | Tax     | AA      | Alt. AA | MPA   | Unused AAA| Unused AA  | Cumulative Carry Forward | AAA Cumulative Carry Forward |
+2012    | 15796           | 0               |                | false        | 0       | 50000   | 0       | 0     | 0         | 34204      | 34204                    | 0                            |
+2013    | 16051           | 0               |                | false        | 0       | 50000   | 0       | 0     | 0         | 33949      | 68153                    | 0                            |
+2014    | 16136           | 0               |                | false        | 0       | 40000   | 0       | 0     | 0         | 23864      | 92017                    | 0                            |
+2015P1  | 4035            | 0               |                | false        | 0       | 80000   | 0       | 20000 | 0         | 40000      | 132017                   | 0                            |
+2015P2  | 85788           | 0               |                | false        | 0       | 40000   | 0       | 10000 | 0         | 0          | 46229                    | 0                            |
+2016    | 17747           | 0               |                | false        | 0       | 40000   | 0       | 10000 | 0         | 22253      | 68482                    | 68482                        |
