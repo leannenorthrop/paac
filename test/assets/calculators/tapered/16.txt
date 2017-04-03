@@ -1,0 +1,7 @@
+Error Example DP 13091*2
+year    | Defined Benefit | Money Purchase  | Income         | Is Triggered | Tax     | AA      | Alt. AA | Available Annual Allowance | Unused AAA| Unused AA  | Cumulative Carry Forward | AAA Cumulative Carry Forward |
+2013    | 18351           | 0               |                | false        | 0       | 50000   | 0       | 50000                      | 0         | 31649      | 31649                    | 0                            |
+2014    | 17178           | 0               |                | false        | 0       | 40000   | 0       | 71649                      | 0         | 22822      | 54471                    | 0                            |
+2015P1  | 4295            | 0               |                | false        | 0       | 80000   | 0       | 134471                     | 0         | 40000      | 94471                    | 0                            |
+2015P2  | 45069           | 0               |                | false        | 0       | 40000   | 0       | 94471                      | 0         | 0          | 49402                    | 0                            |
+2016    | 43000           | 0               | 210000         | false        | 0       | 10000   | 0       | 59402                      | 0         | 0          | 16402                    | 16402                        |
