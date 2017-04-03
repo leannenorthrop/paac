@@ -21,6 +21,7 @@ import calculators.internal.utilities._
 import models._
 import config.PaacConfiguration
 import play.api.Logger
+import scala.util._
 
 // scalastyle:off number.of.methods
 trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
@@ -94,16 +95,18 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
   protected lazy val previousYear =
     previousPeriods.find(isYear(contribution.taxPeriodStart.taxYear-1))
 
-  protected lazy val previous3YearsUnusedAllowance: Long = {
-    // we only want previous values so create dummy contribution which does not affect the calculation
-    val taxYear = contribution.taxPeriodStart.taxYear
-    val c = Contribution(taxYear, Some(InputAmounts(0L,0L)))
-    val pp = previousPeriods.dropWhile(_._1 == taxYear)
-    val calc = BasicAllowanceCalculator(0,pp,c)
-    val unused = actualUnusedList(calc)(pp, c).dropWhile(_._1 == taxYear).slice(0,3)
-    Logger.debug(s"""3 Years Unused: ${unused.mkString(", ")}""")
-    unused.foldLeft(0L)(_ + _._2)
-  }
+    protected lazy val previous3YearsUnusedAllowanceList: List[YearActualUnusedPair] = {
+      // we only want previous values so create dummy contribution which does not affect the calculation
+      val taxYear = contribution.taxPeriodStart.taxYear
+      val c = Contribution(taxYear, Some(InputAmounts(0L,0L)))
+      val pp = previousPeriods.dropWhile(_._1 == taxYear)
+      val calc = BasicAllowanceCalculator(0,pp,c)
+      val unused = actualUnusedList(calc)(pp, c).dropWhile(_._1 == taxYear).slice(0,3)
+      Logger.debug(s"""3 Years Unused: ${unused.mkString(", ")}""")
+      unused
+    }
+
+  protected lazy val previous3YearsUnusedAllowance: Long = previous3YearsUnusedAllowanceList.foldLeft(0L)(_ + _._2)
 
   protected lazy val previous3YearsUnusedAAAllowance: Long = {
     // we only want previous values so create dummy contribution which does not affect the calculation
@@ -191,12 +194,27 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
 
   protected lazy val _annualAllowanceCCF =
     if (!isTriggered) {
-      val v = actualUnused.slice(0,4).foldLeft(0L)(_ + _._2)
-      Logger.debug(s"AACCF(nte): ${v}")
+      val unused = previous3YearsUnusedAllowanceList
+      val cyMinus1 = Try(unused(0)).getOrElse((0,0L))._2
+      val cyMinus2 = Try(unused(1)).getOrElse((0,0L))._2
+      val cyMinus3 = Try(unused(2)).getOrElse((0,0L))._2
+      val v = if (annualAllowance - definedBenefit < 0) {
+        val excess = definedBenefit - annualAllowance
+        if (cyMinus3 - excess < 0) {
+          Logger.debug(s"AACCF(nte1): ${cyMinus1} + ${cyMinus2} + (${cyMinus3} - ${excess})")
+          (cyMinus1 + cyMinus2 + (cyMinus3 - excess)).max(0)
+        } else {
+          Logger.debug(s"AACCF(nte2): ${cyMinus1} + ${cyMinus2}")
+          cyMinus1 + cyMinus2
+        }
+      } else {
+        Logger.debug(s"AACCF(nte3): ${cyMinus1} + ${cyMinus2} + (${annualAllowance} - ${definedBenefit})")
+        cyMinus1 + cyMinus2 + (annualAllowance - definedBenefit)
+      }
       v
     } else if (alternativeChargableAmount >= defaultChargableAmount) {
-      val v = actualAAAUnused.slice(0,4).foldLeft(0L)(_ + _._2)
-      Logger.debug(s"""3 Years Unused AAA: ${actualAAAUnused.slice(0,3).mkString(", ")}""")
+      val v = actualAAAUnused.slice(0,3).foldLeft(0L)(_ + _._2)
+      Logger.debug(s"""This + 3 Prev Years Unused AAA: ${actualAAAUnused.slice(0,3).mkString(", ")}""")
       Logger.debug(s"AACCF(aca): ${v}")
       v
     }
@@ -246,15 +264,21 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
         Logger.debug(s"Exceeding (aca te): ${preFlexiSavings} + ${definedContribution} - ${annualAllowance} = ${v}")
         v
       } else {
-        val v = (preFlexiSavings - annualAllowance).max(0L)
-        Logger.debug(s"Exceeding (aca nte): ${preFlexiSavings} - ${annualAllowance} = ${v}")
+        val v = ((definedBenefit + definedContribution) - annualAllowance).max(0L)
+        Logger.debug(s"Exceeding (aca nte): ${definedBenefit} + ${definedContribution} - ${annualAllowance} = ${v}")
         v
       }
     }
     else {
-      val v = 0L
-      Logger.debug(s"Exceeding (dca): ${v}")
-      v
+      if (isTriggered) {
+        val v = 0L
+        Logger.debug(s"Exceeding (dca): ${v}")
+        v
+      } else {
+        val v = (preFlexiSavings - annualAllowance).max(0L)
+        Logger.debug(s"Exceeding (dca nte): ${preFlexiSavings} - ${annualAllowance} = ${v}")
+        v
+      }
     }
 
   // taper automatically applied as part of annualAllowance calculation

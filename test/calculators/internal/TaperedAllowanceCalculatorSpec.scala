@@ -1028,7 +1028,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
   }
 
   " Exceeding Allowances" should {
-    "return 0 when DCA applies" in {
+    "return 50k when DCA applies" in {
       // set up
       val test = new TaperedAllowanceCalculator() {
         def previousPeriods(): Seq[TaxYearResults] = Seq[TaxYearResults]()
@@ -1041,7 +1041,7 @@ class TaperedAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       val result = test.exceedingAllowance
 
       // check
-      result shouldBe 0L
+      result shouldBe 500000L
     }
 
     "of MPA" should {
