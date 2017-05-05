@@ -22,7 +22,6 @@ import play.api.Logger
 
 protected trait Year2015Period2Calculator extends PeriodCalculator {
   base: PeriodCalculator =>
-
   Logger.debug(s"\n***************************** 2015 Period 2 ${contribution.amounts} *****************************")
 
   def allowanceInPounds(): Long
@@ -57,7 +56,6 @@ protected trait Year2015Period2Calculator extends PeriodCalculator {
 
   // Annual Allowance With Carry Forwards
   protected lazy val _unusedccf = {
-    // TODO: Simplify
     val list = _previous3YearsUnusedAllowanceList
 
     val pre = if (isPeriod1Triggered) definedBenefit else preFlexiSavings
@@ -293,7 +291,7 @@ protected trait Year2015Period2Calculator extends PeriodCalculator {
       if (isPeriod1Triggered) {
         if (period1.isMPA) {
           /*
-            // scenario 26 only
+            // TODO 2015 Period 2: scenario 26 only
             val savings = previous.preFlexiSavings + previous.postFlexiSavings
             val aacf = previous.availableAAWithCF
             postFlexiSavings - previous.dcaCF

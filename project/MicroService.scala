@@ -14,6 +14,7 @@ trait MicroService {
   import uk.gov.hmrc.SbtAutoBuildPlugin
   import scoverage.ScoverageSbtPlugin._
   import play.sbt.routes.RoutesKeys.routesGenerator
+  import com.github.fedragon.todolist.TodoListPlugin._
 
   val appName: String
 
@@ -48,6 +49,7 @@ trait MicroService {
       retrieveManaged := true,
       routesGenerator := StaticRoutesGenerator
     )
+    .settings(compileWithTodolistSettings)
     .configs(IntegrationTest)
     .settings(inConfig(IntegrationTest)(Defaults.itSettings): _*)
     .settings(

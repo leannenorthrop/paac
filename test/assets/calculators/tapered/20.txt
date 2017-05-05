@@ -1,0 +1,8 @@
+Error Example LL 5/4/17 - #1
+year    | Defined Benefit | Money Purchase  | Income         | Is Triggered | Tax     | AA      | Alt. AA | Available Annual Allowance | Unused AAA| Unused AA  | Cumulative Carry Forward | AAA Cumulative Carry Forward |
+2013    | 39000           | 0               |                | false        | 0       | 50000   | 0       | 50000                      | 0         | 11000      | 11000                    | 0                            |
+2014    | 32000           | 0               |                | false        | 0       | 40000   | 0       | 51000                      | 0         | 8000       | 19000                    | 0                            |
+2015P1  | 25000           | 0               |                | false        | 0       | 80000   | 0       | 99000                      | 0         | 40000      | 59000                    | 0                            |
+2015P2  | 35000           | 0               |                | false        | 0       | 40000   | 0       | 59000                      | 0         | 5000       | 24000                    | 0                            |
+2016B   | 51000           | 7000            |                | false        | 0       | 40000   | 0       | 64000                      | 0         | 0          | 6000                     | 6000                         |
+2016A   | 0               | 3000            |                | true         | 0       | 40000   | 0       | 64000                      | 0         | 0          | 3000                     | 3000                         |
