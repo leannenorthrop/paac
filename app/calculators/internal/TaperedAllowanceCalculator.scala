@@ -213,10 +213,16 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
       }
       v
     } else if (alternativeChargableAmount >= defaultChargableAmount) {
-      val v = actualAAAUnused.slice(0,3).foldLeft(0L)(_ + _._2)
-      Logger.debug(s"""This + 3 Prev Years Unused AAA: ${actualAAAUnused.slice(0,3).mkString(", ")}""")
-      Logger.debug(s"AACCF(aca): ${v}")
-      v
+      if (!isMPAAApplicable) {
+        val v = _annualAllowanceCF - (preFlexiSavings + definedContribution)
+        Logger.debug(s"""AACCF(aca && !isMPA): ${_annualAllowanceCF} - (${preFlexiSavings} + ${definedContribution}) = ${v}""")
+        v
+      } else {
+        val v = actualAAAUnused.slice(0,3).foldLeft(0L)(_ + _._2)
+        Logger.debug(s"""This + 3 Prev Years Unused AAA: ${actualAAAUnused.slice(0,3).mkString(", ")}""")
+        Logger.debug(s"AACCF(aca): ${v}")
+        v
+      }
     }
     else {
       val v = if (_unusedAllowance > 0) _unusedAllowance else (_unusedAllowance - _exceedingAllowance).max(0L)
@@ -253,7 +259,7 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
       }
     } else {
       val v = (annualAllowance - definedBenefit).max(0)
-      Logger.debug(s"Unused AA(nte): ${annualAllowance} - ${definedBenefit}")
+      Logger.debug(s"Unused AA (nte): ${annualAllowance} - ${definedBenefit}")
       v
     }
 
@@ -365,7 +371,7 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
     }
 
   protected lazy val _isMPAAApplicable = {
-    Logger.debug(s"isMPA: ${isTriggered} && ${definedContribution} > ${moneyPurchaseAA}")
+    Logger.debug(s"isMPA: ${isTriggered} && ${definedContribution} > ${moneyPurchaseAA} = ${isTriggered && (definedContribution > moneyPurchaseAA)}")
     isTriggered && definedContribution > moneyPurchaseAA
   }
 
