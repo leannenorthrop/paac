@@ -115,7 +115,10 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
     val pp = previousPeriods.dropWhile(_._1 == taxYear)
     val calc = BasicAllowanceCalculator(0,pp,c)
     val unused = actualAAAUnused.dropWhile(_._1 == taxYear).slice(0,3)
+    Logger.debug(s"""${"*"*80}""")
     Logger.debug(s"""3 Years Unused AAA: ${unused.mkString(", ")}""")
+    Logger.debug(s"""3 Years Unused AA: ${previous3YearsUnusedAllowanceList.mkString(", ")}""")
+    Logger.debug(s"""${"*"*80}""")
     unused.foldLeft(0L)(_ + _._2)
   }
 
@@ -192,7 +195,8 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
       }
     }
 
-  protected lazy val _annualAllowanceCCF =
+  protected lazy val _annualAllowanceCCF = {
+    Logger.debug(s"""${"!"*80}""")
     if (!isTriggered) {
       val unused = previous3YearsUnusedAllowanceList
       val cyMinus1 = Try(unused(0)).getOrElse((0,0L))._2
@@ -218,9 +222,10 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
         Logger.debug(s"""AACCF(aca && !isMPA): ${_annualAllowanceCF} - (${preFlexiSavings} + ${definedContribution}) = ${v}""")
         v
       } else {
-        val v = actualAAAUnused.slice(0,3).foldLeft(0L)(_ + _._2)
-        Logger.debug(s"""This + 3 Prev Years Unused AAA: ${actualAAAUnused.slice(0,3).mkString(", ")}""")
-        Logger.debug(s"AACCF(aca): ${v}")
+        val unusedAAA = actualAAAUnused.headOption.map(_._2).getOrElse(0L)
+        val unusedAllowances = previous3YearsUnusedAllowanceList.slice(0,2)
+        val v = unusedAAA + unusedAllowances.foldLeft(0L)(_ + _._2)
+        Logger.debug(s"""AACCF(aca): ${unusedAAA} + ${unusedAllowances.mkString(", ")} = ${v}""")
         v
       }
     }
@@ -229,6 +234,7 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
       Logger.debug(s"AACCF(dca): if ${_unusedAllowance > 0} ${_unusedAllowance} else ${_unusedAllowance} - ${_exceedingAllowance} = ${v}")
       v
     }
+  }
 
   protected lazy val _alternativeAACF = {
     contribution.taxPeriodStart.taxYear match {
@@ -380,7 +386,8 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
   protected lazy val _preTriggerSavings =
     previousPeriods.find{
       (r)=>
-      r.input.taxPeriodStart.taxYear == contribution.taxPeriodStart.taxYear && !r.input.isTriggered
+      Logger.debug(s"PTS: ${r.input.taxPeriodStart.taxYear} == ${contribution.taxPeriodStart.taxYear} && ${r.input.isTriggered} == false")
+      (r.input.taxPeriodStart.taxYear == contribution.taxPeriodStart.taxYear) && (r.input.isTriggered == false)
     }.map{
       (r)=>
       Logger.debug(s"PTS: ${r.input.definedBenefit} + ${r.input.moneyPurchase}")
