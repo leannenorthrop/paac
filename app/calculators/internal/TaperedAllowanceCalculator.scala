@@ -225,8 +225,6 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator {
         val unusedAAA = actualAAAUnused.headOption.map(_._2).getOrElse(0L)
         val unusedAllowances = previous3YearsUnusedAllowanceList.slice(0,2)
         val v = unusedAAA + unusedAllowances.foldLeft(0L)(_ + _._2)
-        val a = previousPeriods.map(tr => (tr.input.taxPeriodStart.taxYear, tr.summaryResult.isMPA == false)).slice(0,2).zip(unusedAllowances)
-        Logger.debug(s"""*${a.mkString(", ")}""")
         Logger.debug(s"""AACCF(aca): ${unusedAAA} + ${unusedAllowances.mkString(", ")} = ${v}""")
         v
       }
