@@ -62,7 +62,8 @@ trait CalculatorController {
           val startTime = System.currentTimeMillis() // should use cross-cutting concerns and wrap this
           val year = calculationRequest.startFromYear.getOrElse(EARLIEST_YEAR_SUPPORTED)
           val isRegisteredYears = calculationRequest.missingYearsAreRegistered.getOrElse(true)
-          val r = calculateAllowances(contributions, true, year, isRegisteredYears)
+          val notMemberInP1 = calculationRequest.notMemberInP1.getOrElse(true)
+          val r = calculateAllowances(contributions, true, year, isRegisteredYears, notMemberInP1)
           calculationTime(System.currentTimeMillis() - startTime, TimeUnit.MILLISECONDS)
 
           val jsonBody = Json.toJson(r)

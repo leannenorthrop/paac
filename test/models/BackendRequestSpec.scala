@@ -33,7 +33,7 @@ class BackendRequestSpec extends ModelSpec {
 
       // check
       CalculationRequest(contributions, None, None).contributions shouldBe (contributions)
-    }    
+    }
 
     "have a startFromYear" in {
       // set up
@@ -82,7 +82,7 @@ class BackendRequestSpec extends ModelSpec {
     "apply" in {
       // set up
       val contributions = List(Contribution(2010,123), Contribution(2011,456))
-      val r = CalculationRequest(contributions, Some(2012), Some(false))
+      val r = CalculationRequest(contributions, Some(2012), Some(false), None)
 
       // test
       val result = BackendRequest.apply(r)
@@ -99,7 +99,7 @@ class BackendRequestSpec extends ModelSpec {
       val r = CalculationRequest(contributions, Some(2012), Some(false))
 
       // test
-      val result = BackendRequest.unapply(contributions, Some(2012), Some(false))
+      val result = BackendRequest.unapply(contributions, Some(2012), Some(false), None)
 
       // check
       result shouldBe r
