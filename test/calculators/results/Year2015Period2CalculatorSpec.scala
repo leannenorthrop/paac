@@ -21,6 +21,7 @@ import models._
 import org.scalatest._
 import org.scalatest.prop._
 import org.scalacheck.Gen
+import scala.util.{Try, Success, Failure}
 
 /* Year2015Period1Calculator and Year2015Period2Calculator were test driven from GroupXCalculationsSpec */
 class Year2015Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks {
@@ -101,8 +102,8 @@ class Year2015Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropert
       forAll(invalidContributions) { (contribution: Contribution) =>
         whenever (contribution.taxPeriodStart.year != 2015 ||
                   contribution.taxPeriodStart.year != 2016) {
-          val results = Year2015Period2Calculator.summary(Seq[TaxYearResults](), contribution)
-          results shouldBe None
+          val results = Year2015Period2Calculator.calculate(Seq[TaxYearResults](), contribution)
+          results.isFailure shouldBe true
         }
       }
     }
@@ -122,11 +123,11 @@ class Year2015Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropert
                                         Some(InputAmounts(5000L)))
 
         // do it
-        val results = Year2015Period2Calculator.summary(Seq[TaxYearResults](), contribution)
+        val results = Year2015Period2Calculator.calculate(Seq[TaxYearResults](), contribution)
 
         // check it
         // With no previous inputs as period 2 has no allowance then exceeding is same as defined benefit input
-        withClue(s"Contributions with date '$taxDay/${taxMonth}/$taxYear' should be supported but") { results shouldBe Some(ExtendedSummaryFields(5000,5000,0,0,0,0,0,0,1000000,0,0,0,0,0,0,5000,0,0,0,0,false,0,0,false)) }
+        withClue(s"Contributions with date '$taxDay/${taxMonth}/$taxYear' should be supported but") { results.get._1 shouldBe ExtendedSummaryFields(5000,5000,0,0,0,0,0,0,1000000,0,0,0,0,0,0,5000,0,0,0,0,false,0,0,false) }
       }
     }
 
@@ -134,9 +135,9 @@ class Year2015Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropert
     "when no previous allowance available" can {
       "return expected summary results when no previous entries supplied and 0 defined benefit is given" in {
         // do it
-        val results = Year2015Period2Calculator.summary(Seq[TaxYearResults](), Contribution(false,0,0))
+        val results = Year2015Period2Calculator.calculate(Seq[TaxYearResults](), Contribution(false,0,0)).get._1
         // check it
-        results shouldBe Some(ExtendedSummaryFields(0,0,0,0,0,0,0,0,1000000,0,0,0,0,0,0,0,0,0,0,0,false,0,0,false))
+        results shouldBe ExtendedSummaryFields(0,0,0,0,0,0,0,0,1000000,0,0,0,0,0,0,0,0,0,0,0,false,0,0,false)
       }
 
 
@@ -147,20 +148,20 @@ class Year2015Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropert
 
         forAll(validContributions) { (contribution: Contribution) =>
           whenever (contribution.amounts.get.definedBenefit.get < 4000000) {
-            val resultsP1 = Year2015Period1Calculator.summary(Seq[TaxYearResults](), Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END,Some(InputAmounts(0L)))).get
-            val results = Year2015Period2Calculator.summary(Seq(TaxYearResults(contribution, resultsP1)), contribution)
-            results.get.chargableAmount shouldBe 0
+            val resultsP1 = Year2015Period1Calculator.calculate(Seq[TaxYearResults](), Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END,Some(InputAmounts(0L)))).get._1
+            val results = Year2015Period2Calculator.calculate(Seq(TaxYearResults(contribution, resultsP1)), contribution)
+            results.get._1.chargableAmount shouldBe 0
           }
         }
       }
 
       "return correct amount of 0 chargable amount for value of 4000000" in {
         val c = Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END,Some(InputAmounts(0L)))
-        val resultsP1 = Year2015Period1Calculator.summary(Seq[TaxYearResults](), c).get
-        val results = Year2015Period2Calculator.summary(Seq(TaxYearResults(c, resultsP1)), Contribution(PensionPeriod.PERIOD_2_2015_START,
+        val resultsP1 = Year2015Period1Calculator.calculate(Seq[TaxYearResults](), c).get._1
+        val results = Year2015Period2Calculator.calculate(Seq(TaxYearResults(c, resultsP1)), Contribution(PensionPeriod.PERIOD_2_2015_START,
                                                                                                         PensionPeriod.PERIOD_2_2015_END,
                                                                                                         Some(InputAmounts(4000000L))))
-        results.get.chargableAmount shouldBe 0
+        results.get._1.chargableAmount shouldBe 0
       }
 
       "return correct amount of non-0 chargable amount for values over 4000000" in {
@@ -170,20 +171,20 @@ class Year2015Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropert
 
         forAll(validContributions) { (contribution: Contribution) =>
           whenever (contribution.amounts.get.definedBenefit.get > 4000000) {
-            val resultsP1 = Year2015Period1Calculator.summary(Seq[TaxYearResults](), Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END,Some(InputAmounts(4000000L)))).get
-            val results = Year2015Period2Calculator.summary(Seq(TaxYearResults(contribution,resultsP1)), contribution)
-            results.get.chargableAmount should not be 0
+            val resultsP1 = Year2015Period1Calculator.calculate(Seq[TaxYearResults](), Contribution(PensionPeriod.PERIOD_1_2015_START, PensionPeriod.PERIOD_1_2015_END,Some(InputAmounts(4000000L)))).get._1
+            val results = Year2015Period2Calculator.calculate(Seq(TaxYearResults(contribution,resultsP1)), contribution)
+            results.get._1.chargableAmount should not be 0
             val db = contribution.amounts.get.definedBenefit.get
-            results.get.chargableAmount shouldBe (db - 4000000L).max(0)
+            results.get._1.chargableAmount shouldBe (db - 4000000L).max(0)
           }
         }
       }
 
       "return correct amount of 0 unused allowance for value of 4000000" in {
-        val results = Year2015Period2Calculator.summary(Seq[TaxYearResults](), Contribution(PensionPeriod.PERIOD_2_2015_START,
+        val results = Year2015Period2Calculator.calculate(Seq[TaxYearResults](), Contribution(PensionPeriod.PERIOD_2_2015_START,
                                                                                            PensionPeriod.PERIOD_2_2015_END,
                                                                                            Some(InputAmounts(4000000L))))
-        results.get.unusedAllowance shouldBe 0
+        results.get._1.unusedAllowance shouldBe 0
       }
 
       "return correct amount of 0 unused allowance for values over 4000000" in {
@@ -193,19 +194,19 @@ class Year2015Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropert
 
         forAll(validContributions) { (contribution: Contribution) =>
           whenever (contribution.amounts.get.definedBenefit.get > 4000000) {
-            val results = Year2015Period2Calculator.summary(Seq[TaxYearResults](), contribution)
-            results.get.unusedAllowance shouldBe 0
+            val results = Year2015Period2Calculator.calculate(Seq[TaxYearResults](), contribution)
+            results.get._1.unusedAllowance shouldBe 0
           }
         }
       }
 
       "return None when defined benefit is None" in {
         // do it
-        val results = Year2015Period2Calculator.summary(Seq[TaxYearResults](), Contribution(PensionPeriod.PERIOD_2_2015_START,
+        val results = Year2015Period2Calculator.calculate(Seq[TaxYearResults](), Contribution(PensionPeriod.PERIOD_2_2015_START,
                                                                                            PensionPeriod.PERIOD_2_2015_END,
                                                                                            Some(InputAmounts(None, None, None))))
         // check it
-        results shouldBe None
+        results.isFailure shouldBe true
       }
 
       "moneyPurchaseAA" should {
@@ -216,7 +217,7 @@ class Year2015Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropert
           val previous = TaxYearResults(p1, ExtendedSummaryFields(unusedMPAA=12345L))
 
           // test
-          val results = Year2015Period2Calculator.summary(Seq[TaxYearResults](previous), p2).get
+          val results = Year2015Period2Calculator.calculate(Seq[TaxYearResults](previous), p2).get._1
 
           // check
           results.moneyPurchaseAA shouldBe 12345L
@@ -229,7 +230,7 @@ class Year2015Period2CalculatorSpec extends UnitSpec with GeneratorDrivenPropert
           val previous = TaxYearResults(p1, ExtendedSummaryFields(unusedMPAA=12345L))
 
           // test
-          val results = Year2015Period2Calculator.summary(Seq[TaxYearResults](previous), p2).get
+          val results = Year2015Period2Calculator.calculate(Seq[TaxYearResults](previous), p2).get._1
 
           // check
           results.moneyPurchaseAA shouldBe 1000000L

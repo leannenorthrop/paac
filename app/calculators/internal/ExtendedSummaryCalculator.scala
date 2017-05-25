@@ -16,7 +16,7 @@
 
 package calculators.internal
 
-trait ExtendedSummaryCalculator extends SummaryCalculator {
+trait ExtendedSummaryCalculator extends SummaryCalculator with DetailsCalculator {
   def moneyPurchaseAA(): Long = 0L
   def alternativeAA(): Long = 0L
   def dbist(): Long = 0L
@@ -37,4 +37,31 @@ trait ExtendedSummaryCalculator extends SummaryCalculator {
   def isACA(): Boolean = false
   def availableAAAWithCF(): Long = 0L
   def availableAAAWithCCF(): Long = 0L
+
+  def summary(): Option[models.Summary] = Some(models.ExtendedSummaryFields(chargableAmount,
+    exceedingAllowance,
+    if (isMPAAApplicable) 0L else annualAllowance,
+    unusedAllowance,
+    annualAllowanceCF,
+    annualAllowanceCCF,
+    unusedAAA,
+    unusedMPAA,
+    moneyPurchaseAA,
+    alternativeAA,
+    dbist,
+    mpist,
+    alternativeChargableAmount,
+    defaultChargableAmount,
+    cumulativeMP,
+    cumulativeDB,
+    exceedingMPAA,
+    exceedingAAA,
+    preFlexiSavings,
+    postFlexiSavings,
+    isMPAAApplicable,
+    acaCF,
+    dcaCF,
+    isACA,
+    availableAAAWithCF,
+    availableAAAWithCCF))
 }

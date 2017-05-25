@@ -19,7 +19,7 @@ package calculators.internal
 import models._
 import calculators.internal.utilities._
 
-trait SimpleAllowanceCalculator extends SummaryCalculator {
+trait SimpleAllowanceCalculator extends SummaryCalculator with DetailsCalculator {
   def annualAllowanceInPounds(): Long
   def previousPeriods(): Seq[TaxYearResults]
   def contribution(): Contribution

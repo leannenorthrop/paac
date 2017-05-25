@@ -16,16 +16,8 @@
 
 package calculators.internal
 
-trait SummaryCalculator {
-  def allowance(): Long
-  def definedBenefit(): Long
-  def definedContribution(): Long
-  def annualAllowance(): Long
-  def exceedingAllowance(): Long
-  def unusedAllowance(): Long
-  def annualAllowanceCF(): Long
-  def annualAllowanceCCF(): Long
-  def chargableAmount(): Long
+import models._
 
-  def summary(): Option[models.Summary]
+trait DetailsCalculator {
+  def details(): DetailsResult = DetailsResult(Seq[DetailLine]())
 }

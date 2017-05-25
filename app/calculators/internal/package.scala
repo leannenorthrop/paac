@@ -266,13 +266,13 @@ package object utilities {
   */
   implicit def convert(result: TaxYearResults): SummaryResultsTuple = {
     result match {
-      case TaxYearResults(input, summary) => (result.input.taxPeriodStart.year, summary.exceedingAAAmount, summary.unusedAllowance)
+      case TaxYearResults(input, summary,_) => (result.input.taxPeriodStart.year, summary.exceedingAAAmount, summary.unusedAllowance)
     }
   }
 
   def convertAAA(result: TaxYearResults): SummaryResultsTuple = {
     result match {
-      case TaxYearResults(input, summary) => (result.input.taxPeriodStart.year, summary.exceedingAAA, summary.unusedAAA)
+      case TaxYearResults(input, summary,_) => (result.input.taxPeriodStart.year, summary.exceedingAAA, summary.unusedAAA)
     }
   }
 

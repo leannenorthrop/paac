@@ -28,7 +28,8 @@ import play.api.libs.json._
  */
 // scalastyle:off magic.number
 case class TaxYearResults(input: Contribution = Contribution(2008,0L),
-                          summaryResult: Summary = SummaryResult())
+                          summaryResult: Summary = SummaryResult(),
+                          details: Option[DetailsResult] = None)
 // scalastyle:on magic.number
 
 /**
@@ -37,11 +38,13 @@ case class TaxYearResults(input: Contribution = Contribution(2008,0L),
 object TaxYearResults {
   implicit val summaryWrites: Writes[TaxYearResults] = (
     (JsPath \ "input").write[Contribution] and
-    (JsPath \ "summaryResult").write[Summary]
+    (JsPath \ "summaryResult").write[Summary] and
+    (JsPath \ "details").write[Option[DetailsResult]]
   )(unlift(TaxYearResults.unapply))
 
   implicit val summaryReads: Reads[TaxYearResults] = (
     (JsPath \ "input").read[Contribution] and
-    (JsPath \ "summaryResult").read[Summary]
+    (JsPath \ "summaryResult").read[Summary] and
+    (JsPath \ "details").readNullable[DetailsResult]
   )(TaxYearResults.apply _)
 }

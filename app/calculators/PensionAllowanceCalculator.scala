@@ -20,6 +20,7 @@ import models._
 import models.PensionPeriod._
 import play.api.Logger
 import calculators.results.Calculator
+import scala.util.{Try, Success, Failure}
 
 trait PensionAllowanceCalculator {
 
@@ -112,12 +113,16 @@ trait PensionAllowanceCalculator {
                                                            notMemberInP1)
 
     Logger.debug(s"""Calculating for:\n${allContributions.mkString("\n")}""")
-    val results = allContributions.foldLeft(List[TaxYearResults]()) {
-      (lst, contribution) =>
+    val results = allContributions.foldLeft(List[TaxYearResults]()) { (lst, contribution) =>
+      val calculator = Calculator(contribution)
 
-      val summary: Summary = Calculator(contribution).summary(lst, contribution).getOrElse(SummaryResult())
-
-      TaxYearResults(contribution, summary) :: lst
+      calculator.calculate(lst, contribution) match {
+        case Success((summary, details)) => TaxYearResults(contribution, summary, Some(details)) :: lst
+        case Failure(e) => {
+          Logger.warn(s"Calculation failed for ${contribution}")
+          TaxYearResults(contribution, SummaryResult(), None) :: lst
+        }
+      }
     }.dropWhile(_.input.taxYearLabel > inputsByTaxYear.keys.max).toList.reverse
     val v = results.dropWhile(_.input.taxYearLabel < inputsByTaxYear.keys.min).toList
     Logger.debug(s"""Results:\n${v.mkString("\n")}""")

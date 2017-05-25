@@ -25,6 +25,7 @@ import org.scalatest._
 import org.scalatest.prop._
 import org.scalacheck.Gen
 import calculators.internal.Post2015TaperedAllowanceCalculator
+import scala.util.{Try, Success, Failure}
 
 class Post2015CalculatorSpec extends UnitSpec with BeforeAndAfterAll {
   val app = FakeApplication()
@@ -52,7 +53,7 @@ class Post2015CalculatorSpec extends UnitSpec with BeforeAndAfterAll {
       // do it
       val isSupported = Post2015Calculator.isSupported(contribution)
 
-      // check it 
+      // check it
       isSupported shouldBe false
     }
 
@@ -115,7 +116,7 @@ class Post2015CalculatorSpec extends UnitSpec with BeforeAndAfterAll {
 
     "calculate summary result" should {
       "return non-empty summary" in {
-        Post2015Calculator.summary(Seq[TaxYearResults](),Contribution(2016,0)).get.availableAllowance shouldBe 4000000L
+        Post2015Calculator.calculate(Seq[TaxYearResults](),Contribution(2016,0)).get._1.availableAllowance shouldBe 4000000L
       }
     }
   }

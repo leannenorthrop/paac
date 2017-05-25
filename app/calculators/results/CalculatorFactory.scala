@@ -17,10 +17,11 @@
 package calculators.results
 
 import models._
+import scala.util.{Try, Success, Failure}
 
 trait Calculator {
   def allowance(contribution:Contribution): Long
-  def summary(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution): Option[Summary]
+  def calculate(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution): Try[(Summary, DetailsResult)]
 }
 
 protected trait FactoryCalculator extends Calculator {
@@ -42,7 +43,7 @@ object Calculator extends CalculatorFactory {
   def apply(contribution:Contribution): Calculator = {
     get(contribution).getOrElse {
       new Calculator() {
-        def summary(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution): Option[Summary] = None
+        def calculate(implicit previousPeriods:Seq[TaxYearResults], contribution:Contribution): Try[(Summary, DetailsResult)] = Failure(new RuntimeException("Not Implemented"))
         def allowance(contribution:Contribution): Long = 0L
       }
     }

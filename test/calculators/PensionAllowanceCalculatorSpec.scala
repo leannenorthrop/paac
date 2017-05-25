@@ -47,7 +47,7 @@ class PensionAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
 
       // check it
       results.size shouldBe 1
-      results(0) shouldBe TaxYearResults(input, SummaryResult(0,0,0,0,0,0,0))
+      results(0) shouldBe TaxYearResults(input, SummaryResult(0,0,0,0,0,0,0), None)
     }
 
     "return 0 for contributions prior to 2006" in {
@@ -60,7 +60,7 @@ class PensionAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
 
       // check it
       results.size shouldBe 1
-      results(0) shouldBe TaxYearResults(input, SummaryResult(0,0,0,0,0,0,0))
+      results(0) shouldBe TaxYearResults(input, SummaryResult(0,0,0,0,0,0,0), None)
     }
 
     "provideMissingYearContributions" should {
@@ -121,7 +121,7 @@ class PensionAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
 
         // check
         results shouldBe List(Contribution(2009,0L),Contribution(2010,0L),Contribution(2011,0L),Contribution(2012,0L),Contribution(2013,0L),Contribution(2014,0L))
-      }      
+      }
 
       "return maxed out contributions if not supplied and missingRowsAreRegistered is false" in {
         // set up
@@ -131,12 +131,12 @@ class PensionAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
         val results = Test.expandedTest(contributions, 2009, false)
 
         // check
-        results shouldBe List(Contribution(PensionPeriod(2009,4,6),PensionPeriod(2010,4,5),Some(InputAmounts(Some(5000000),None,None,None))), 
-                              Contribution(PensionPeriod(2010,4,6),PensionPeriod(2011,4,5),Some(InputAmounts(Some(5000000),None,None,None))), 
-                              Contribution(PensionPeriod(2011,4,6),PensionPeriod(2012,4,5),Some(InputAmounts(Some(5000000),None,None,None))), 
-                              Contribution(PensionPeriod(2012,4,6),PensionPeriod(2013,4,5),Some(InputAmounts(Some(0),None,None,None))), 
-                              Contribution(PensionPeriod(2013,4,6),PensionPeriod(2014,4,5),Some(InputAmounts(Some(5000000),None,None,None))), 
-                              Contribution(PensionPeriod(2014,4,6),PensionPeriod(2015,4,5),Some(InputAmounts(Some(0),None,None,None)))) 
+        results shouldBe List(Contribution(PensionPeriod(2009,4,6),PensionPeriod(2010,4,5),Some(InputAmounts(Some(5000000),None,None,None))),
+                              Contribution(PensionPeriod(2010,4,6),PensionPeriod(2011,4,5),Some(InputAmounts(Some(5000000),None,None,None))),
+                              Contribution(PensionPeriod(2011,4,6),PensionPeriod(2012,4,5),Some(InputAmounts(Some(5000000),None,None,None))),
+                              Contribution(PensionPeriod(2012,4,6),PensionPeriod(2013,4,5),Some(InputAmounts(Some(0),None,None,None))),
+                              Contribution(PensionPeriod(2013,4,6),PensionPeriod(2014,4,5),Some(InputAmounts(Some(5000000),None,None,None))),
+                              Contribution(PensionPeriod(2014,4,6),PensionPeriod(2015,4,5),Some(InputAmounts(Some(0),None,None,None))))
       }
 
       "will provide missing pre-trigger p1 contribution if 2 contributions triggered and missingRowsAreRegistered is false" in {
@@ -163,14 +163,14 @@ class PensionAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
         val results = Test.expandedTest(contributions, 2009, false)
 
         // check
-        results shouldBe List(Contribution(PensionPeriod(2009,4,6),PensionPeriod(2010,4,5),Some(InputAmounts(Some(5000000),None,None,None))), 
-                              Contribution(PensionPeriod(2010,4,6),PensionPeriod(2011,4,5),Some(InputAmounts(Some(5000000),None,None,None))), 
-                              Contribution(PensionPeriod(2011,4,6),PensionPeriod(2012,4,5),Some(InputAmounts(Some(5000000),None,None,None))), 
-                              Contribution(PensionPeriod(2012,4,6),PensionPeriod(2013,4,5),Some(InputAmounts(Some(5000000),None,None,None))), 
-                              Contribution(PensionPeriod(2013,4,6),PensionPeriod(2014,4,5),Some(InputAmounts(Some(123),None,None,None))), 
-                              Contribution(PensionPeriod(2014,4,6),PensionPeriod(2015,4,5),Some(InputAmounts(Some(4000000),None,None,None))), 
-                              Contribution(PensionPeriod(2015,4,6),PensionPeriod(2015,7,8),Some(InputAmounts(Some(8000000),Some(0),None,Some(false)))), 
-                              Contribution(PensionPeriod(2015,7,9),PensionPeriod(2016,4,5),Some(InputAmounts(Some(0),Some(0),None,Some(false)))), 
+        results shouldBe List(Contribution(PensionPeriod(2009,4,6),PensionPeriod(2010,4,5),Some(InputAmounts(Some(5000000),None,None,None))),
+                              Contribution(PensionPeriod(2010,4,6),PensionPeriod(2011,4,5),Some(InputAmounts(Some(5000000),None,None,None))),
+                              Contribution(PensionPeriod(2011,4,6),PensionPeriod(2012,4,5),Some(InputAmounts(Some(5000000),None,None,None))),
+                              Contribution(PensionPeriod(2012,4,6),PensionPeriod(2013,4,5),Some(InputAmounts(Some(5000000),None,None,None))),
+                              Contribution(PensionPeriod(2013,4,6),PensionPeriod(2014,4,5),Some(InputAmounts(Some(123),None,None,None))),
+                              Contribution(PensionPeriod(2014,4,6),PensionPeriod(2015,4,5),Some(InputAmounts(Some(4000000),None,None,None))),
+                              Contribution(PensionPeriod(2015,4,6),PensionPeriod(2015,7,8),Some(InputAmounts(Some(8000000),Some(0),None,Some(false)))),
+                              Contribution(PensionPeriod(2015,7,9),PensionPeriod(2016,4,5),Some(InputAmounts(Some(0),Some(0),None,Some(false)))),
                               Contribution(PensionPeriod(2016,4,6),PensionPeriod(2017,4,5),Some(InputAmounts(Some(246),None,None,None))))
       }
 
@@ -347,7 +347,7 @@ class PensionAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
 
       "collapse period 2 trigger row result when trigger date is 5/4/2016" in new TestFixture with P2 {
         // set up
-        val tdp = PensionPeriod(2016,4,5) 
+        val tdp = PensionPeriod(2016,4,5)
         val result0 = TaxYearResults(pre2015Contribution(2012,5000000,0,false),sr1)
         val result1 = TaxYearResults(pre2015Contribution(2012,5000000,0,false),sr2)
         val result2 = TaxYearResults(pre2015Contribution(2012,4000000,0,false),sr3)
@@ -383,4 +383,4 @@ class PensionAllowanceCalculatorSpec extends UnitSpec with BeforeAndAfterAll {
   }
 
   // Calculation based tests are found in logic.XXCalculationsSpec
-} 
+}
