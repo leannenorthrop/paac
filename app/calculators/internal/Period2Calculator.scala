@@ -20,7 +20,7 @@ import models._
 import calculators.internal.utilities._
 import play.api.Logger
 
-protected trait Year2015Period2Calculator extends PeriodCalculator {
+protected trait Year2015Period2Calculator extends PeriodCalculator with DetailsCalculator {
   base: PeriodCalculator =>
   Logger.debug(s"\n***************************** 2015 Period 2 ${contribution.amounts} *****************************")
 

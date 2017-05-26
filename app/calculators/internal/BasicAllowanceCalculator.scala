@@ -18,21 +18,14 @@ package calculators.internal
 
 import models._
 import calculators.internal.utilities._
-import java.text.NumberFormat
 
 trait SimpleAllowanceCalculator extends SummaryCalculator with DetailsCalculator {
-  val currencyFormatter = NumberFormat.getNumberInstance(java.util.Locale.UK)
-  var detailsResult = DetailsResult(Seq[DetailLine]())
+
   def annualAllowanceInPounds(): Long
   def previousPeriods(): Seq[TaxYearResults]
   def contribution(): Contribution
 
   def allowance(): Long = annualAllowanceInPounds
-
-  override def details(): DetailsResult = detailsResult
-
-  private def fmt(value: Long): String = if (value == 0) currencyFormatter.format(0) else currencyFormatter.format(value/100)
-  private def detail(key: String, value: String): Unit = detailsResult = detailsResult.copy(fields=detailsResult.fields :+ DetailLine(key, value))
 
   protected lazy val _definedBenefit = {
     val year = contribution.taxPeriodStart.taxYear
@@ -134,15 +127,15 @@ trait SimpleAllowanceCalculator extends SummaryCalculator with DetailsCalculator
 
   protected lazy val _chargableAmount =
     if (contribution.taxPeriodStart.year < 2011) {
-      detail("allowance.chargable.calculation",s"no_tax_pre_2011:${contribution.taxPeriodStart.year} < 2011")
+      detail("chargable.calculation",s"no_tax_pre_2011:no_tax_pre_2011")
       - 1
     } else {
       val v = (definedBenefit - annualAllowanceCF).max(0)
-      detail("allowance.chargable.calculation",s"db:${fmt(definedBenefit)};op:-;unusedcf:${fmt(annualAllowanceCF)}")
+      detail("chargable.calculation",s"db:${fmt(definedBenefit)};op:-;unusedcf:${fmt(annualAllowanceCF)}")
       v
     }
   def chargableAmount(): Long = {
-    detail("allowance.chargable.result",fmt(_chargableAmount))
+    detail("chargable.result",fmt(_chargableAmount))
     _chargableAmount
   }
 

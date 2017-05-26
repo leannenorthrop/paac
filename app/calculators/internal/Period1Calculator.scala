@@ -21,7 +21,7 @@ import calculators.internal.utilities._
 import play.api.Logger
 
 // scalastyle:off number.of.methods
-trait Year2015Period1Calculator extends PeriodCalculator {
+trait Year2015Period1Calculator extends PeriodCalculator with DetailsCalculator {
   base: PeriodCalculator =>
 
   Logger.debug(s"\n***************************** 2015 Period 1 ${contribution.amounts} *****************************")
