@@ -38,7 +38,7 @@ trait SimpleAllowanceCalculator extends SummaryCalculator with DetailsCalculator
     val year = contribution.taxPeriodStart.taxYear
     if (year < 2015 || year == 2015 && !contribution.isTriggered) {
       val v = contribution.definedBenefit + definedContribution
-      detail("savings.db.calculation",s"${fmt(contribution.definedBenefit)} + ${fmt(definedContribution)}")
+      detail("savings.db.calculation",s"db:${fmt(contribution.definedBenefit)};op:+;mp:${fmt(definedContribution)}")
       v
     }
     else {
@@ -68,7 +68,7 @@ trait SimpleAllowanceCalculator extends SummaryCalculator with DetailsCalculator
 
   protected lazy val _unusedAllowance = {
     val v = (annualAllowance - definedBenefit).max(0)
-    detail("allowance.unused.cy.calculation",s"${fmt(annualAllowance)} - ${fmt(definedBenefit)}")
+    detail("allowance.unused.cy.calculation",s"aa:${fmt(annualAllowance)};op:-;mp:${fmt(definedBenefit)}")
     v
   }
   def unusedAllowance(): Long = {
@@ -82,10 +82,13 @@ trait SimpleAllowanceCalculator extends SummaryCalculator with DetailsCalculator
     val v = previousPeriods.headOption match {
       case Some(lastYear) => {
         val v2 = lastYear.summaryResult.availableAAWithCCF + annualAllowance
-        detail("allowance.cf.calculation",s"${fmt(lastYear.summaryResult.availableAAWithCCF)} - ${fmt(annualAllowance)}")
+        detail("allowance.cf.calculation",s"aaccf:${fmt(lastYear.summaryResult.availableAAWithCCF)};op:+;aa:${fmt(annualAllowance)}")
         v2
       }
-      case _ => annualAllowance
+      case _ => {
+        detail("allowance.cf.calculation",s"aa:${fmt(annualAllowance)}")
+        annualAllowance
+      }
     }
     v
   }
@@ -98,20 +101,32 @@ trait SimpleAllowanceCalculator extends SummaryCalculator with DetailsCalculator
   protected lazy val _annualAllowanceCCF =
     if (contribution.taxPeriodStart.year < 2011) {
       // Prior to 2011 nothing was liable for tax charge and carry forwards are allowed
+      ccfdetails
       actualUnused(this)(3)(previousPeriods,contribution)
     } else {
       if (exceedingAllowance > 0) {
         val previousResults = previousPeriods.map(_.summaryResult).headOption.getOrElse(SummaryResult())
         if (exceedingAllowance >= previousResults.availableAAWithCCF) {
-          detail("allowance.ccf.calculation",s"(${fmt(exceedingAllowance)} >= ${fmt(previousResults.availableAAWithCCF)})")
+          detail("allowance.ccf.calculation",s"eaa:${fmt(exceedingAllowance)};op:>=;prev.year.unusedcf:${fmt(previousResults.availableAAWithCCF)}")
           0L
         } else {
+          ccfdetails
           actualUnused(this)(3)(previousPeriods,contribution)
         }
       } else {
+        ccfdetails
         actualUnused(this)(3)(previousPeriods,contribution)
       }
     }
+  def ccfdetails: Unit = {
+    val desc = actualUnusedList(this)(previousPeriods,contribution).slice(0,3) match {
+      case head :: Nil => s"unused_${head._1}:${fmt(head._2)}"
+      case head :: tail => tail.foldLeft(s"unused_${head._1}:${fmt(head._2)};")((str,pair)=>str + s"op:+;unused_${pair._1}:${fmt(pair._2)};")
+      case _ => ""
+    }
+    detail("allowance.ccf.calculation",desc)
+  }
+
   def annualAllowanceCCF(): Long = {
     detail("allowance.ccf.result",fmt(_annualAllowanceCCF))
     _annualAllowanceCCF
@@ -119,11 +134,11 @@ trait SimpleAllowanceCalculator extends SummaryCalculator with DetailsCalculator
 
   protected lazy val _chargableAmount =
     if (contribution.taxPeriodStart.year < 2011) {
-      detail("allowance.chargable.calculation",s"(${contribution.taxPeriodStart.year} < 2011)")
+      detail("allowance.chargable.calculation",s"no_tax_pre_2011:${contribution.taxPeriodStart.year} < 2011")
       - 1
     } else {
       val v = (definedBenefit - annualAllowanceCF).max(0)
-      detail("allowance.chargable.calculation",s"${fmt(definedBenefit)} - ${fmt(annualAllowanceCF)}")
+      detail("allowance.chargable.calculation",s"db:${fmt(definedBenefit)};op:-;unusedcf:${fmt(annualAllowanceCF)}")
       v
     }
   def chargableAmount(): Long = {
