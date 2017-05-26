@@ -103,7 +103,7 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator with DetailsC
     val pp = previousPeriods.dropWhile(_._1 == taxYear)
     val calc = BasicAllowanceCalculator(0,pp,c)
     val unused = actualUnusedList(calc)(pp, c).dropWhile(_._1 == taxYear).slice(0,3)
-    Logger.debug(s"""3 Years Unused: ${unused.mkString(", ")}""")
+    Logger.debug(s"""$year 3 Years Unused: ${unused.mkString(", ")}""")
     unused
   }
 
@@ -116,33 +116,22 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator with DetailsC
     val pp = previousPeriods.dropWhile(_._1 == taxYear)
     val calc = BasicAllowanceCalculator(0,pp,c)
     val unused = actualAAAUnused.dropWhile(_._1 == taxYear).slice(0,3)
-    Logger.debug(s"""${"*"*80}""")
-    Logger.debug(s"""3 Years Unused AAA: ${unused.mkString(", ")}""")
-    Logger.debug(s"""3 Years Unused AA: ${previous3YearsUnusedAllowanceList.mkString(", ")}""")
-    Logger.debug(s"""${"*"*80}""")
-    unused.foldLeft(0L)(_ + _._2)
-  }
-
-  protected lazy val previous2YearsUnusedAllowance: Long = {
-    // we only want previous values so create dummy contribution which does not affect the calculation
-    val taxYear = contribution.taxPeriodStart.taxYear
-    val c = Contribution(taxYear, Some(InputAmounts(0L,0L)))
-    val pp = previousPeriods.dropWhile(_._1 == taxYear)
-    val calc = BasicAllowanceCalculator(0,pp,c)
-    val unused = actualUnusedList(calc)(pp, c).dropWhile(_._1 == taxYear).slice(0,2)
-    Logger.debug(s"""2 Years Unused: ${unused.mkString(", ")}""")
+    Logger.debug(s"""$year ${"*"*80}""")
+    Logger.debug(s"""$year 3 Years Unused AAA: ${unused.mkString(", ")}""")
+    Logger.debug(s"""$year 3 Years Unused AA: ${previous3YearsUnusedAllowanceList.mkString(", ")}""")
+    Logger.debug(s"""$year ${"*"*80}""")
     unused.foldLeft(0L)(_ + _._2)
   }
 
   protected lazy val _acaCF = {
     val previousACACF = previousYear.flatMap(maybeExtended(_).map(_.acaCF)).getOrElse(0L)
-    Logger.debug(s"""ACACF: ${alternativeChargableAmount} +  ${previousACACF}""")
+    Logger.debug(s"""$year ACACF: ${alternativeChargableAmount} +  ${previousACACF}""")
     alternativeChargableAmount + previousACACF
   }
 
   protected lazy val _dcaCF = {
     val previousDCACF = previousYear.flatMap(maybeExtended(_).map(_.dcaCF)).getOrElse(0L)
-    Logger.debug(s"""DCACF: ${defaultChargableAmount} +  ${previousDCACF}""")
+    Logger.debug(s"""$year DCACF: ${defaultChargableAmount} +  ${previousDCACF}""")
     defaultChargableAmount + previousDCACF
   }
 
@@ -212,7 +201,6 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator with DetailsC
   }
 
   protected lazy val _annualAllowanceCCF = {
-    Logger.debug(s"""${"!"*80}""")
     if (!isTriggered) {
       val unused = previous3YearsUnusedAllowanceList
       val cyMinus1 = Try(unused(0)).getOrElse((0,0L))._2
@@ -409,19 +397,6 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator with DetailsC
       detail("aa.calculation.reason","no_taper")
       _annualAllowance
     }
-
-  protected lazy val isGroup1: Boolean = contribution.amounts.isDefined &&
-                                         !contribution.amounts.get.moneyPurchase.isDefined &&
-                                         !contribution.isTriggered
-
-  protected lazy val isGroup2: Boolean = contribution.amounts.isDefined &&
-                                         contribution.amounts.get.moneyPurchase.isDefined &&
-                                         !contribution.amounts.get.definedBenefit.isDefined
-
-  protected lazy val isGroup3: Boolean = contribution.amounts.isDefined &&
-                                         contribution.isTriggered &&
-                                         contribution.amounts.get.moneyPurchase.isDefined &&
-                                         contribution.amounts.get.definedBenefit.isDefined
 
   protected lazy val _alternativeChargableAmount =
     if (isMPAAApplicable && isTriggered) {

@@ -22,7 +22,6 @@ import play.api.Logger
 
 protected trait Year2015Period2Calculator extends PeriodCalculator with DetailsCalculator {
   base: PeriodCalculator =>
-  Logger.debug(s"\n***************************** 2015 Period 2 ${contribution.amounts} *****************************")
 
   def allowanceInPounds(): Long
   def previousPeriods(): Seq[TaxYearResults]
@@ -38,9 +37,13 @@ protected trait Year2015Period2Calculator extends PeriodCalculator with DetailsC
 
   // Annual Allowance Cumulative Carry Forwards
   protected lazy val _aaCF = if (isTriggered && isGroup3) {
-                               period1.availableAAWithCCF
+                                detail("allowance.cf.calculation",s"aaccf:${currency(period1.availableAAWithCCF)}")
+                                detail("allowance.cf.calculation.reason","g3")
+                                period1.availableAAWithCCF
                              } else {
-                               previous.availableAAWithCCF
+                                detail("allowance.cf.calculation",s"aaccf:${currency(previous.availableAAWithCCF)}")
+                                detail("allowance.cf.calculation.reason","ng3")
+                                previous.availableAAWithCCF
                              }
   override def annualAllowanceCF(): Long = _aaCF
 

@@ -24,8 +24,6 @@ import play.api.Logger
 trait Year2015Period1Calculator extends PeriodCalculator with DetailsCalculator {
   base: PeriodCalculator =>
 
-  Logger.debug(s"\n***************************** 2015 Period 1 ${contribution.amounts} *****************************")
-
   def allowanceInPounds(): Long
   def previousPeriods(): Seq[TaxYearResults]
   def contribution(): Contribution
@@ -36,6 +34,8 @@ trait Year2015Period1Calculator extends PeriodCalculator with DetailsCalculator 
   val P2AAA = 30000 * 100L
   val AA = 80000 * 100L
   val MAX_CF = 4000000L
+
+  protected def year = 20151
 
   def allowance(): Long = allowanceInPounds
 
@@ -87,9 +87,13 @@ trait Year2015Period1Calculator extends PeriodCalculator with DetailsCalculator 
 
   // Annual Allowance With Carry Forwards
   protected lazy val _aaCF = if (!isTriggered) {
-                               annualAllowance + previous.availableAAWithCCF
+                                detail("allowance.cf.calculation",s"aa:${currency(annualAllowance)};op:+;aaccf:${currency(previous.availableAAWithCCF)};")
+                                detail("allowance.cf.calculation.reason","nte")
+                                annualAllowance + previous.availableAAWithCCF
                              } else {
-                               previous.availableAAWithCF
+                                detail("allowance.cf.calculation",s"aa:0;op:+;aaccf:${currency(previous.availableAAWithCF)};")
+                                detail("allowance.cf.calculation.reason","te")
+                                previous.availableAAWithCF
                              }
   override def annualAllowanceCF(): Long = _aaCF
 
@@ -117,8 +121,11 @@ trait Year2015Period1Calculator extends PeriodCalculator with DetailsCalculator 
 
   // Alternative Chargable Amount
   protected lazy val _alternativeChargableAmount = if (isMPAAApplicable) {
-                                                     mpist + dbist
+                                                     val v = mpist + dbist
+                                                     detail("aca.calculation",detail("mpist.calculation")+"op:+;"+detail("dbist.calculation"))
+                                                     v
                                                    } else {
+                                                     detail("aca.calculation","mpist:0;")
                                                      0L
                                                    }
   override def alternativeChargableAmount(): Long = _alternativeChargableAmount
@@ -137,11 +144,21 @@ trait Year2015Period1Calculator extends PeriodCalculator with DetailsCalculator 
 
   // Chargable Amount (tax due)
   protected lazy val _chargableAmount = if (!isTriggered) {
-                                          basicCalculator().chargableAmount
+                                          val v = basicCalculator().chargableAmount
+                                          detail("chargable.calculation",s"db:${fmt(definedBenefit)};op:-;unusedcf:${fmt(annualAllowanceCF)};")
+                                          v
                                         } else if (isMPAAApplicable) {
-                                          alternativeChargableAmount.max(defaultChargableAmount)
+                                          val v = alternativeChargableAmount.max(defaultChargableAmount)
+                                          if (alternativeChargableAmount > defaultChargableAmount) {
+                                            detail("chargable.calculation",detail("aca.calculation"))
+                                          } else {
+                                            detail("chargable.calculation",detail("dca.calculation"))
+                                          }
+                                          v
                                         } else {
-                                          defaultChargableAmount
+                                          val v = defaultChargableAmount
+                                          detail("chargable.calculation",detail("dca.calculation"))
+                                          v
                                         }
   override def chargableAmount(): Long = _chargableAmount
 
@@ -161,12 +178,17 @@ trait Year2015Period1Calculator extends PeriodCalculator with DetailsCalculator 
       val unusedaaa = preTriggerFields(previousPeriods).map(_.unusedAAA).getOrElse(0L)
       val allowances = unusedaaa + year2014CCF
       if (definedBenefit < allowances) {
+        detail("dbist.calculation",s"dbist:0;")
         0L
       } else {
-        (allowances - definedBenefit).max(0)
+        val v = (allowances - definedBenefit).max(0)
+        detail("dbist.calculation",s"unusedaaacf:${unusedaaa};op:+;unused_2014:${year2014CCF};op:-;db:${currency(definedBenefit)};")
+        v
       }
     } else {
-      (preTriggerSavings - year2014CCF).max(0)
+      val v = (preTriggerSavings - year2014CCF).max(0)
+      detail("dbist.calculation",detail("pfs.calculation")+s"op:-;unused_2014:${year2014CCF};")
+      v
     }
   }
   override def dbist(): Long = _dbist
@@ -194,9 +216,12 @@ trait Year2015Period1Calculator extends PeriodCalculator with DetailsCalculator 
   // Default Chargable Amount
   protected lazy val _defaultChargableAmount =
     if (!isTriggered) {
+      detail("dca.calculation","afs:0;")
       0L
     } else {
-      (postFlexiSavings - (AA + _previous3YearsUnusedAllowance)).max(0L)
+      val v = (postFlexiSavings - (AA + _previous3YearsUnusedAllowance)).max(0L)
+      detail("dca.calculation","afs:${currency(postFlexiSavings)};op:-;aa:${currency(AA)};op:+;aaccf:${currency(_previous3YearsUnusedAllowance)};")
+      v
     }
   override def defaultChargableAmount(): Long = _defaultChargableAmount
 
@@ -239,9 +264,13 @@ trait Year2015Period1Calculator extends PeriodCalculator with DetailsCalculator 
 
   // MPIST
   protected lazy val _mpist = if (isMPAAApplicable) {
-                                definedContribution - MPA
+                                val v = definedContribution - MPA
+                                detail("dbist.calculation",s"mp:${currency(definedContribution)};op:-;mpa:${currency(MPA)}")
+                                v
                               } else {
-                                definedContribution
+                                val v = definedContribution
+                                detail("dbist.calculation",s"mpist:${currency(definedContribution)};")
+                                v
                               }
   override def mpist(): Long = _mpist
 
@@ -310,8 +339,6 @@ trait Year2015Period1Calculator extends PeriodCalculator with DetailsCalculator 
                                      0L
                                    }
   override def unusedMPAA(): Long = _unusedMPAA
-
-  Logger.debug(s"\n***************************** 2015 Period 1 (end) *****************************")
 }
 // scalastyle:on number.of.methods
 
