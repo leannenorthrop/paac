@@ -31,7 +31,7 @@ protected trait ExtendedCalculator extends BasicCalculator {
           val results = (calculator.summary, calculator.details)
           results match {
             case (None, _) => throw new RuntimeException("Calculation failed")
-            case _ => (results._1.get, results._2)
+            case (Some(r),d) => (r, d)
           }
         } else {
           throw new IllegalArgumentException("Not supported")

@@ -19,7 +19,7 @@ package calculators.internal
 import models._
 import calculators.internal.utilities._
 
-trait PeriodCalculator extends ExtendedSummaryCalculator {
+trait PeriodCalculator extends ExtendedSummaryCalculator with DetailsCalculator {
   def previous3YearsUnusedAllowance(implicit previous:Seq[TaxYearResults]): Long = {
     val previousPeriods = previous.filterNot((r)=>r.input.isPeriod1||r.input.isPeriod2)
     previousPeriods.headOption.map {
@@ -27,7 +27,16 @@ trait PeriodCalculator extends ExtendedSummaryCalculator {
       implicit val contribution = Contribution(2015, Some(InputAmounts(0L,0L)))
       // use simple basic extractor since period 1 and 2 are removed above and only dealing with years prior to 2015
       val pp = previousPeriods.dropWhile(_._1 == 2015)
-      actualUnusedList(PeriodCalculator(allowance))(pp, contribution).dropWhile(_._1 == 2015).slice(0,3).foldLeft(0L)(_ + _._2)
+      val lst = actualUnusedList(PeriodCalculator(allowance))(pp, contribution).dropWhile(_._1 == 2015).slice(0,3)
+
+      val desc = lst match {
+        case head :: Nil => s"unused_${head._1}:${fmt(head._2)};"
+        case head :: tail => tail.foldLeft(s"unused_${head._1}:${fmt(head._2)};")((str,pair)=>str + s"op:+;unused_${pair._1}:${fmt(pair._2)};")
+        case _ => ""
+      }
+      detail("allowance.unused3y.calculation",desc)
+
+      lst.foldLeft(0L)(_ + _._2)
     }.getOrElse(0L)
   }
 }

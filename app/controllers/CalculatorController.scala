@@ -64,6 +64,7 @@ trait CalculatorController {
           val isRegisteredYears = calculationRequest.missingYearsAreRegistered.getOrElse(true)
           val notMemberInP1 = calculationRequest.notMemberInP1.getOrElse(true)
           val r = calculateAllowances(contributions, true, year, isRegisteredYears, notMemberInP1)
+          play.api.Logger.warn("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! " + r.mkString("\\n"))
           calculationTime(System.currentTimeMillis() - startTime, TimeUnit.MILLISECONDS)
 
           val jsonBody = Json.toJson(r)

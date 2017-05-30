@@ -152,13 +152,15 @@ trait PensionAllowanceCalculator {
             val non2015Results = r.filterNot((t)=>t.input.isPeriod1||t.input.isPeriod2)
             if (period1Results.size == 2) {
               val p1Triggered = fetchTriggered(period1Results).get.summaryResult
+              val p1TriggeredDetails = fetchTriggered(period1Results).get.details
               val p1NotTriggered = fetchNotTriggered(period1Results).get
-              val newP1 = TaxYearResults(p1NotTriggered.input, p1Triggered)
+              val newP1 = TaxYearResults(p1NotTriggered.input, p1Triggered, p1TriggeredDetails)
               (List(newP1) ++ List(fetchTriggered(period2Results).get)).toIndexedSeq
             } else if (period2Results.size == 2) {
               val p2Triggered = fetchTriggered(period2Results).get.summaryResult
+              val p2TriggeredDetails = fetchTriggered(period2Results).get.details
               val p2NotTriggered = fetchNotTriggered(period2Results).get
-              val newP2 = TaxYearResults(p2NotTriggered.input, p2Triggered)
+              val newP2 = TaxYearResults(p2NotTriggered.input, p2Triggered, p2TriggeredDetails)
               (List(fetchNotTriggered(period1Results).get) ++ List(newP2)).toIndexedSeq
             } else {
               entry._2
@@ -171,7 +173,7 @@ trait PensionAllowanceCalculator {
               if (subentry._2.size == 2) {
                 val triggered = fetchTriggered(subentry._2.toList)
                 val notTriggered = fetchNotTriggered(subentry._2.toList)
-                List(TaxYearResults(notTriggered.get.input,triggered.get.summaryResult)).toIndexedSeq
+                List(TaxYearResults(notTriggered.get.input,triggered.get.summaryResult,triggered.get.details)).toIndexedSeq
               } else {
                 subentry._2
               }

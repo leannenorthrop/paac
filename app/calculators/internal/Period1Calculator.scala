@@ -21,7 +21,7 @@ import calculators.internal.utilities._
 import play.api.Logger
 
 // scalastyle:off number.of.methods
-trait Year2015Period1Calculator extends PeriodCalculator with DetailsCalculator {
+trait Year2015Period1Calculator extends PeriodCalculator {
   base: PeriodCalculator =>
 
   def allowanceInPounds(): Long
@@ -40,47 +40,64 @@ trait Year2015Period1Calculator extends PeriodCalculator with DetailsCalculator 
   def allowance(): Long = allowanceInPounds
 
   // Annual Allowance Cumulative Carry Forwards
+  def ccfdetails: Unit = {
+    val desc = actualUnusedList(this)(previousPeriods,contribution).slice(0,4) match {
+      case head :: Nil => s"unused_${head._1}:${currency(head._2)}"
+      case head :: tail => tail.foldLeft(s"unused_${head._1}:${currency(head._2)};")((str,pair)=>str + s"op:+;unused_${pair._1}:${currency(pair._2)};")
+      case _ => ""
+    }
+    detail("allowance.ccf.calculation",desc)
+  }
+
   protected lazy val _aaCCF =
     if (!isTriggered) {
       val v = actualUnused(this)(4)(previousPeriods,contribution) // scalastyle:ignore
-      Logger.debug(s"AACCF (nte): ${v}")
+      ccfdetails
+      detail("allowance.ccf.calculation.reason","nte")
       v
     }
     else if (isMPAAApplicable) {
-      val aaa = ((AAA - preTriggerSavings).min(P2AAA) + _previous3YearsUnusedAllowance)
-      Logger.debug(s"AACCF(mp1): (${AAA} - ${preTriggerSavings}).min(${P2AAA}) + ${_previous3YearsUnusedAllowance} = ${aaa}")
+      val v = AAA - preTriggerSavings
+      val aaa = (v).min(P2AAA) + _previous3YearsUnusedAllowance
+      if (v < P2AAA)
+        detail("allowance.ccf.calculation",s"aaa:${currency(AAA)};op:-;pts:"+detail("pts.calculation")+"op:+;"+detail("allowance.unused3y.calculation"))
+      else
+        detail("allowance.ccf.calculation",s"aaa:${currency(P2AAA)};op:+;"+detail("allowance.unused3y.calculation"))
+      detail("allowance.ccf.calculation.reason","mpa")
       (aaa).max(0)
     } else if (definedBenefit >= AA) {
       val v = (AA + _previous3YearsUnusedAllowance - postFlexiSavings).max(0)
-      Logger.debug(s"AACCF(>): ${AA} + ${_previous3YearsUnusedAllowance} - ${postFlexiSavings} = ${v}")
+      detail("allowance.ccf.calculation",s"aa:${currency(AA)};op:+;"+detail("allowance.unused3y.calculation")+"op:-;ats:"+detail("ats.calculation"))
+      detail("allowance.ccf.calculation.reason","nmpa1")
       v
     } else {
       val v = (unusedAllowance.min(MAX_CF) + _previous3YearsUnusedAllowance).max(0)
-      Logger.debug(s"AACCF(<): ${unusedAllowance.min(MAX_CF)} + ${_previous3YearsUnusedAllowance} = ${v}")
+      detail("allowance.ccf.calculation",s"unused_2015:${currency(unusedAllowance.min(MAX_CF))};op:+;"+detail("ats.calculation"))
+      detail("allowance.ccf.calculation.reason","nmpa2")
       v
     }
-  override def annualAllowanceCCF(): Long = { Logger.debug(s"annualAllowanceCCF() = ${_aaCCF}"); _aaCCF }
-
-  protected lazy val previous2YearsUnusedAllowance: Long = {
-    // we only want previous values so create dummy contribution which does not affect the calculation
-    val c = Contribution(2015, Some(InputAmounts(0L,0L)))
-    val pp = previousPeriods.dropWhile(_.input.isPeriod2)
-    actualUnusedList(this)(pp, c).dropWhile(_._1 == 2015).slice(0,2).foldLeft(0L)(_ + _._2)
-  }
+  override def annualAllowanceCCF(): Long = { Logger.debug(s"annualAllowanceCCF() = ${currency(_aaCCF)}"); _aaCCF }
 
   protected lazy val _aaaCCF = if (isMPAAApplicable) {
       if (_isACA) {
         val aaa = (unusedAAA + _previous3YearsUnusedAllowance)
-        Logger.debug(s"AACCF(aca): (${unusedAAA} + ${_previous3YearsUnusedAllowance} = ${aaa}")
+        detail("allowance.alt.ccf.calculation",s"unused_2015:${currency(unusedAAA)};op:+;"+detail("allowance.unused3y.calculation"))
+        detail("allowance.alt.ccf.calculation.reason","aca")
         (aaa).max(0).min(_aaCCF)
       } else {
-        val aaa = ((AAA - preTriggerSavings).min(P2AAA) + _previous3YearsUnusedAllowance)
-        Logger.debug(s"AACCF(dca): (${AAA} - ${preTriggerSavings}).min(${P2AAA}) + ${_previous3YearsUnusedAllowance} = ${aaa}")
+        val v = AAA - preTriggerSavings
+        val aaa = ((v).min(P2AAA) + _previous3YearsUnusedAllowance)
+        if (v < P2AAA)
+          detail("allowance.alt.ccf.calculation",s"aaa:${currency(AAA)};op:-;pts:${currency(preTriggerSavings)};op:+;"+detail("allowance.unused3y.calculation"))
+        else
+          detail("allowance.alt.ccf.calculation",s"aaa:${currency(P2AAA)};op:+;"+detail("allowance.unused3y.calculation"))
+        detail("allowance.alt.ccf.calculation.reason","aca")
         (aaa).max(0)
       }
     } else {
       val v = 0L
-      Logger.debug(s"AACCF(nmp): ${v}")
+      detail("allowance.alt.ccf.calculation",s"aaa:0;")
+      detail("allowance.alt.ccf.calculation.reason","nmpa")
       v
     }
   override def availableAAAWithCCF(): Long = _aaaCCF // same value as aaCCF considers AAA in calculation
@@ -100,7 +117,10 @@ trait Year2015Period1Calculator extends PeriodCalculator with DetailsCalculator 
   override def availableAAAWithCF(): Long = if (!isTriggered) {
          0L
        } else {
-         alternativeAA() + _previous3YearsUnusedAllowance
+         val v = alternativeAA() + _previous3YearsUnusedAllowance
+         detail("allowance.alt.cf.calculation",s"aaa:${currency(alternativeAA())};op:+;aaccf:${currency(_previous3YearsUnusedAllowance)}")
+         detail("allowance.alt.cf.calculation.reason","te")
+         v
        }
 
   // Alternative Chargable Amount With Carry Forwards
@@ -145,7 +165,7 @@ trait Year2015Period1Calculator extends PeriodCalculator with DetailsCalculator 
   // Chargable Amount (tax due)
   protected lazy val _chargableAmount = if (!isTriggered) {
                                           val v = basicCalculator().chargableAmount
-                                          detail("chargable.calculation",s"db:${fmt(definedBenefit)};op:-;unusedcf:${fmt(annualAllowanceCF)};")
+                                          detail("chargable.calculation",s"db:${currency(definedBenefit)};op:-;unusedcf:${currency(annualAllowanceCF)};")
                                           v
                                         } else if (isMPAAApplicable) {
                                           val v = alternativeChargableAmount.max(defaultChargableAmount)
@@ -182,12 +202,12 @@ trait Year2015Period1Calculator extends PeriodCalculator with DetailsCalculator 
         0L
       } else {
         val v = (allowances - definedBenefit).max(0)
-        detail("dbist.calculation",s"unusedaaacf:${unusedaaa};op:+;unused_2014:${year2014CCF};op:-;db:${currency(definedBenefit)};")
+        detail("dbist.calculation",s"unusedaaacf:${currency(unusedaaa)};op:+;unused_2014:${currency(year2014CCF)};op:-;db:${currency(definedBenefit)};")
         v
       }
     } else {
       val v = (preTriggerSavings - year2014CCF).max(0)
-      detail("dbist.calculation",detail("pfs.calculation")+s"op:-;unused_2014:${year2014CCF};")
+      detail("dbist.calculation",detail("pfs.calculation")+s"op:-;unused_2014:${currency(year2014CCF)};")
       v
     }
   }
@@ -216,11 +236,11 @@ trait Year2015Period1Calculator extends PeriodCalculator with DetailsCalculator 
   // Default Chargable Amount
   protected lazy val _defaultChargableAmount =
     if (!isTriggered) {
-      detail("dca.calculation","afs:0;")
+      detail("dca.calculation","dca:0;")
       0L
     } else {
       val v = (postFlexiSavings - (AA + _previous3YearsUnusedAllowance)).max(0L)
-      detail("dca.calculation","afs:${currency(postFlexiSavings)};op:-;aa:${currency(AA)};op:+;aaccf:${currency(_previous3YearsUnusedAllowance)};")
+      detail("dca.calculation",s"afs:${currency(postFlexiSavings)};op:-;aa:${currency(AA)};op:+;aaccf:${currency(_previous3YearsUnusedAllowance)};")
       v
     }
   override def defaultChargableAmount(): Long = _defaultChargableAmount
@@ -260,16 +280,19 @@ trait Year2015Period1Calculator extends PeriodCalculator with DetailsCalculator 
   def isTriggered(): Boolean = contribution.isTriggered
 
   // Money Purchase Annual Allowance
-  override def moneyPurchaseAA(): Long = MPA
+  override def moneyPurchaseAA(): Long = {
+    detail("allowance.mpa.cf.calculation",s"mpa:${currency(MPA)}")
+    MPA
+  }
 
   // MPIST
   protected lazy val _mpist = if (isMPAAApplicable) {
                                 val v = definedContribution - MPA
-                                detail("dbist.calculation",s"mp:${currency(definedContribution)};op:-;mpa:${currency(MPA)}")
+                                detail("mpist.calculation",s"mp:${currency(definedContribution)};op:-;mpa:${currency(MPA)};")
                                 v
                               } else {
                                 val v = definedContribution
-                                detail("dbist.calculation",s"mpist:${currency(definedContribution)};")
+                                detail("mpist.calculation",s"mpist:${currency(definedContribution)};")
                                 v
                               }
   override def mpist(): Long = _mpist
@@ -282,7 +305,13 @@ trait Year2015Period1Calculator extends PeriodCalculator with DetailsCalculator 
                                         }
   override def preFlexiSavings() : Long = _preFlexiSavings
 
-  protected lazy val _preTriggerSavings = preTriggerInputs(previousPeriods).map((c)=>c.definedBenefit + c.moneyPurchase).getOrElse(0L)
+  protected lazy val _preTriggerSavings = preTriggerInputs(previousPeriods).map{(c)=>
+      detail("pts.calculation",s"db:${currency(c.definedBenefit)};op:+;mp:${currency(c.moneyPurchase)}")
+      c.definedBenefit + c.moneyPurchase
+    }.getOrElse{
+      detail("pts.calculation","0")
+      0L
+    }
   def preTriggerSavings(): Long = _preTriggerSavings
 
   // Previous row results
@@ -290,6 +319,7 @@ trait Year2015Period1Calculator extends PeriodCalculator with DetailsCalculator 
   def previous(): Summary = _previous
 
   protected lazy val _previous3YearsUnusedAllowance = base.previous3YearsUnusedAllowance(previousPeriods)
+
 
   // Post Flexi Access Savings
   protected lazy val _postFlexiSavings = if (isTriggered) {
@@ -302,7 +332,7 @@ trait Year2015Period1Calculator extends PeriodCalculator with DetailsCalculator 
   // Unused Alternative Annual Allowance
   protected lazy val _unusedAAA = if (isMPAAApplicable) {
                                     val v = (AAA - preTriggerSavings).min(P2AAA).max(0)
-                                    Logger.debug(s"unusedAAA(mpa): ${AAA} - ${definedBenefit}")
+                                    Logger.debug(s"unusedAAA(mpa): ${currency(AAA)} - ${currency(definedBenefit)}")
                                     v
                                   } else {
                                     0L

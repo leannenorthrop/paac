@@ -138,7 +138,7 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator with DetailsC
   protected lazy val _postFlexiSavings =
     if (isTriggered) {
       val v = contribution.moneyPurchase + contribution.definedBenefit
-      detail("afs.calculation",s"mp:${currency(contribution.moneyPurchase)};op:+;db:${currency(contribution.definedBenefit)}")
+      detail("afs.calculation",s"mp:${currency(contribution.moneyPurchase)};op:+;db:${currency(contribution.definedBenefit)};")
       detail("afs.calculation.reason","te")
       v
     }
@@ -173,19 +173,19 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator with DetailsC
 
   protected lazy val _defaultChargableAmount =
     if (!isTriggered) {
-      detail("dca.calculation","dca:0")
+      detail("dca.calculation","dca:0;")
       detail("dca.calculation.reason","nte")
       0L
     }
     else {
       if (_isPreviousTriggered) {
         val v = (postFlexiSavings - (annualAllowance + _previousAvailableAAWithCCF)).max(0L)
-        detail("dca.calculation",detail("afs.calculation")+"op:-;"+detail("aa.calculation")+"op:+;aaccf:${_previousAvailableAAWithCCF}")
+        detail("dca.calculation",detail("afs.calculation")+"op:-;"+detail("aa.calculation")+s"op:+;aaccf:${currency(_previousAvailableAAWithCCF)};")
         detail("dca.calculation.reason","pte")
         v
       } else {
         val v = ((postFlexiSavings + preFlexiSavings) - (annualAllowance + _previousAvailableAAWithCCF)).max(0L)
-        detail("dca.calculation",detail("afs.calculation")+"op:+;"+detail("pfs.calculation")+"op:-;"+detail("aa.calculation")+"op:+;aaccf:${_previousAvailableAAWithCCF}")
+        detail("dca.calculation",detail("afs.calculation")+"op:+;"+detail("pfs.calculation")+"op:-;"+detail("aa.calculation")+s"op:+;aaccf:${currency(_previousAvailableAAWithCCF)};")
         detail("dca.calculation.reason","te")
         v
       }
@@ -329,7 +329,7 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator with DetailsC
   protected lazy val _alternativeAA =
     if (isMPAAApplicable) {
       val v = (annualAllowance() - moneyPurchaseAA).max(0L)
-      detail("aaa.calculation",detail("aa.calculation")+"op:-;mpa:${currency(moneyPurchaseAA)};")
+      detail("aaa.calculation",detail("aa.calculation")+s"op:-;mpa:${currency(moneyPurchaseAA)};")
       v
     } else {
       detail("aaa.calculation","0")
