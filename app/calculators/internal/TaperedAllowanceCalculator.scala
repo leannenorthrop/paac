@@ -118,9 +118,9 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator with DetailsC
     val unused = actualAAAUnused.dropWhile(_._1 == taxYear).slice(0,3)
     Logger.debug(s"""$year ${"*"*80}""")
     Logger.debug(s"""$year 3 Years Unused AAA: ${unused.mkString(", ")}""")
-    Logger.debug(s"""$year 3 Years Unused AA: ${previous3YearsUnusedAllowanceList.mkString(", ")}""")
+    Logger.debug(s"""$year 3 Years Unused AA: ${_previousAvailableAAWithCCF}""")
     Logger.debug(s"""$year ${"*"*80}""")
-    unused.foldLeft(0L)(_ + _._2)
+    unused.foldLeft(0L)(_ + _._2) + _previousAvailableAAWithCCF
   }
 
   protected lazy val _acaCF = {
@@ -197,7 +197,7 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator with DetailsC
       case head :: tail => tail.foldLeft(s"unused_${head._1}:${fmt(head._2)};")((str,pair)=>str + s"op:+;unused_${pair._1}:${fmt(pair._2)};")
       case _ => ""
     }
-    detail("allowance.ccf.calculation",desc)
+    detail("allowance.ccf.calculation.details",desc)
   }
 
   protected lazy val _annualAllowanceCCF = {
@@ -233,7 +233,8 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator with DetailsC
         val unusedAAA = actualAAAUnused.headOption.map(_._2).getOrElse(0L)
         val unusedAllowances = previous3YearsUnusedAllowanceList.slice(0,2)
         val v = unusedAAA + unusedAllowances.foldLeft(0L)(_ + _._2)
-        detail("allowance.ccf.calculation",s"unusedaaacf:${currency(unusedAAA)};op:+;"+ccfdetails)
+        ccfdetails
+        detail("allowance.ccf.calculation",s"unusedaaacf:${currency(unusedAAA)};op:+;"+detail("allowance.ccf.calculation.details"))
         detail("allowance.ccf.calculation.reason","aca")
         v
       }
@@ -257,14 +258,14 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator with DetailsC
     contribution.taxPeriodStart.taxYear match {
       case year if year <= 2018 => {
         val v = _alternativeAA + previous3YearsUnusedAAAllowance
-        detail("aaacf.calculation",detail("aaa.calculation")+";op:+;aaccf:${currency(previous3YearsUnusedAAAllowance)}")
-        detail("aaacf.calculation.reason","pre_2018")
+        detail("allowance.alt.cf.calculation",detail("aaa.calculation")+s"op:+;aaccf:${currency(previous3YearsUnusedAAAllowance)}")
+        detail("allowance.alt.cf.calculation.reason","pre_2018")
         v
       }
       case _ => {
         val v = _alternativeAA + previous3YearsUnusedAAAllowance
-        detail("aaacf.calculation",detail("aaa.calculation")+";op:+;aaccf:${currency(previous3YearsUnusedAAAllowance)}")
-        detail("aaacf.calculation.reason","post_2018")
+        detail("allowance.alt.cf.calculation",detail("aaa.calculation")+s"op:+;aaccf:${currency(previous3YearsUnusedAAAllowance)}")
+        detail("allowance.alt.cf.calculation.reason","post_2018")
         v
       }
     }
@@ -401,7 +402,7 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator with DetailsC
   protected lazy val _alternativeChargableAmount =
     if (isMPAAApplicable && isTriggered) {
       val v = mpist + dbist
-      detail("aca.calculation",detail("mpist.calculation")+";op:+;"+detail("dbist.calculation"))
+      detail("aca.calculation",detail("mpist.calculation")+"op:+;"+detail("dbist.calculation"))
       detail("aca.calculation.reason","mpa")
       v
     }
@@ -467,18 +468,18 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator with DetailsC
   protected lazy val _dbist =
     if (isMPAAApplicable) {
       val v = (definedBenefit - (alternativeAA + _previousAvailableAAWithCCF)).max(0)
-      detail("dbist.calculation",s"db:${currency(definedBenefit)};op:-;aaa:${currency(alternativeAA)};op:+;aaccf:${currency(_previousAvailableAAWithCCF)}};")
+      detail("dbist.calculation",s"sep:(;pfs:${currency(definedBenefit)};op:-;sep:(;aaa:${currency(alternativeAA)};op:+;aaccf:${currency(_previousAvailableAAWithCCF)};sep:);sep:);")
       v
     } else {
       val v = (preFlexiSavings - _previousAvailableAAWithCCF).max(0)
-      detail("dbist.calculation",detail("pfs.calculation")+s"op:-;aaccf:${currency(_previousAvailableAAWithCCF)}};")
+      detail("dbist.calculation",detail("pfs.calculation")+s"op:-;aaccf:${currency(_previousAvailableAAWithCCF)};")
       v
     }
 
   protected lazy val _mpist =
     if (isMPAAApplicable) {
       val v = (definedContribution - moneyPurchaseAA).max(0)
-      detail("mpist.calculation",s"mp:${currency(definedContribution)};op:-;mpaa:${currency(moneyPurchaseAA)}};")
+      detail("mpist.calculation",s"mp:${currency(definedContribution)};op:-;mpaa:${currency(moneyPurchaseAA)};")
       v
     } else {
       detail("mpist.calculation",s"mpist:0;")

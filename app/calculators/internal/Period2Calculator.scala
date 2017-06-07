@@ -332,26 +332,39 @@ protected trait Year2015Period2Calculator extends PeriodCalculator with DetailsC
           */
           if (period1.isACA) {
             val v = ((definedContribution + definedBenefit) - (period1.availableAAAWithCCF)).max(0)
-            detail("aca.calculation",s"mp:${currency(definedContribution)};op:+;db:${currency(definedBenefit)};op:-;aaaccf:${currency(period1.availableAAAWithCCF)};")
+            detail("dca.calculation",s"mp:${currency(definedContribution)};op:+;db:${currency(definedBenefit)};op:-;aaaccf:${currency(period1.availableAAAWithCCF)};")
             v
           } else {
-            ((definedContribution + definedBenefit) - (_previous3YearsUnusedAllowance + period1.unusedAAA)).max(0)
+            val v = ((definedContribution + definedBenefit) - (_previous3YearsUnusedAllowance + period1.unusedAAA)).max(0)
+            detail("dca.calculation",s"mp:${currency(definedContribution)};op:+;db:${currency(definedBenefit)};op:-;aaaccf:${currency(_previous3YearsUnusedAllowance)};op:+;unusedcf:${currency(period1.unusedAAA)};")
+            v
           }
         } else {
-          ((definedContribution + definedBenefit) - period1.availableAAWithCCF).max(0)
+          val v = ((definedContribution + definedBenefit) - period1.availableAAWithCCF).max(0)
+          detail("dca.calculation",s"mp:${currency(definedContribution)};op:+;db:${currency(definedBenefit)};op:-;aaaccf:${currency(period1.availableAAWithCCF)};")
+          v
         }
       } else {
-        ((preFlexiSavings + definedContribution) - period1.availableAAWithCCF).max(0)
+        val v = ((preFlexiSavings + definedContribution) - period1.availableAAWithCCF).max(0)
+        detail("dca.calculation",s"pts:${currency(preFlexiSavings)};op:+;db:${currency(definedContribution)};op:-;aaaccf:${currency(period1.availableAAWithCCF)};")
+        v
       }
     } else if (isGroup2 && isTriggered) {
       if (previous.unusedAAA > 0) {
-        (mpist - (previous.unusedAAA + previous.availableAAWithCCF)).max(0)
+        val v = (mpist - (previous.unusedAAA + previous.availableAAWithCCF)).max(0)
+        detail("dca.calculation",s"mpist:${currency(mpist)};op:+;unusedaaacf:${currency(previous.unusedAAA)};op:+;aaaccf:${currency(previous.availableAAWithCCF)};")
+        v
       } else if (isPeriod1Triggered) {
-        (mpist - (previous.unusedAllowance + previous.availableAAWithCCF)).max(0)
+        val v = (mpist - (previous.unusedAllowance + previous.availableAAWithCCF)).max(0)
+        detail("dca.calculation",s"mpist:${currency(mpist)};op:+;unusedcf:${currency(previous.unusedAllowance)};op:+;aaaccf:${currency(previous.availableAAWithCCF)};")
+        v
       } else {
-        ((mpist + previous.mpist) - (period1.unusedAllowance + previous.availableAAWithCCF)).max(0)
+        val v = ((mpist + previous.mpist) - (period1.unusedAllowance + previous.availableAAWithCCF)).max(0)
+        detail("dca.calculation",s"mpist:${currency(mpist+previous.mpist)};op:-;unusedcf:${currency(period1.unusedAllowance )};op:+;aaaccf:${currency(previous.availableAAWithCCF)};")
+        v
       }
     } else {
+      detail("dca.calculation",s"dca:0;")
       0L
     }
   override def defaultChargableAmount(): Long = _defaultChargableAmount
@@ -362,14 +375,18 @@ protected trait Year2015Period2Calculator extends PeriodCalculator with DetailsC
   protected lazy val _definedBenefit =
     if (isGroup3) {
       if (isPeriod2Triggered) {
+        detail("_definedBenefit.calculation",s"db:${currency(previous.cumulativeDB)};")
         previous.cumulativeDB
       } else {
+        detail("_definedBenefit.calculation",s"db:${currency(basicDefinedBenefit)};")
         basicDefinedBenefit
       }
     } else if (isGroup2) {
+      detail("_definedBenefit.calculation",s"db:0;")
       0L // definition of group 2 is that there is no db
     }
     else {
+      detail("_definedBenefit.calculation",s"db:${currency(basicDefinedBenefit)};")
       basicDefinedBenefit
     }
   override def definedBenefit(): Long = _definedBenefit
@@ -434,18 +451,18 @@ protected trait Year2015Period2Calculator extends PeriodCalculator with DetailsC
     if (isGroup3) {
       if (isPeriod1Triggered) {
         val v = (definedContribution - period1.unusedMPAA).max(0)
-        Logger.debug(s"MPIST(p1te): ${definedContribution} - ${period1.unusedMPAA} = ${v}")
+        detail("mpist.calculation",s"mp:${currency(definedContribution)};op:-;unusedmpa:${currency(period1.unusedMPAA)};")
         v
       } else if (isMPAAApplicable) {
         val v = (definedContribution - MPA).max(0)
-        Logger.debug(s"MPIST(p2te): ${definedContribution} - ${MPA} = ${v}")
+        detail("mpist.calculation",s"mp:${currency(definedContribution)};op:-;unusedmpa:${currency(MPA)};")
         v
       } else {
-        Logger.debug(s"MPIST(nte): 0")
+        detail("mpist.calculation",s"mpist:0;")
         0L
       }
     } else {
-      Logger.debug(s"MPIST(g2): ${definedContribution}")
+      detail("mpist.calculation",s"mpist:${currency(definedContribution)};")
       definedContribution
     }
   override def mpist(): Long = _mpist
@@ -461,8 +478,13 @@ protected trait Year2015Period2Calculator extends PeriodCalculator with DetailsC
     }
   protected lazy val _preFlexiSavings =
     if (isPeriod2Triggered) {
-      preTriggerInputs(previousPeriods).map((c)=>c.moneyPurchase + c.definedBenefit).getOrElse(0L)
+      val v = preTriggerInputs(previousPeriods).map{(c)=>
+        detail("pts.calculation",s"mp:${currency(c.moneyPurchase)};op:+;db:${currency(c.definedBenefit)};")
+        c.moneyPurchase + c.definedBenefit
+      }.getOrElse(0L)
+      v
     } else {
+      detail("pts.calculation",s"pts:0;")
       0L
     }
   override def preFlexiSavings() : Long = _preFlexiSavings
@@ -561,7 +583,6 @@ protected trait Year2015Period2Calculator extends PeriodCalculator with DetailsC
 
   // Unused Money Purchase Annual Allowance
   override def unusedMPAA(): Long = 0
-  Logger.debug(s"\n***************************** 2015 Period 2 (end) *****************************")
 }
 
 protected case class Period2Calculator(implicit allowanceInPounds: Long,

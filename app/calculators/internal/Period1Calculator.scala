@@ -60,7 +60,7 @@ trait Year2015Period1Calculator extends PeriodCalculator {
       val v = AAA - preTriggerSavings
       val aaa = (v).min(P2AAA) + _previous3YearsUnusedAllowance
       if (v < P2AAA)
-        detail("allowance.ccf.calculation",s"aaa:${currency(AAA)};op:-;pts:"+detail("pts.calculation")+"op:+;"+detail("allowance.unused3y.calculation"))
+        detail("allowance.ccf.calculation",s"aaa:${currency(AAA)};op:-;sep:(;"+detail("pts.calculation")+"sep:);op:+;"+detail("allowance.unused3y.calculation"))
       else
         detail("allowance.ccf.calculation",s"aaa:${currency(P2AAA)};op:+;"+detail("allowance.unused3y.calculation"))
       detail("allowance.ccf.calculation.reason","mpa")
@@ -108,7 +108,7 @@ trait Year2015Period1Calculator extends PeriodCalculator {
                                 detail("allowance.cf.calculation.reason","nte")
                                 annualAllowance + previous.availableAAWithCCF
                              } else {
-                                detail("allowance.cf.calculation",s"aa:0;op:+;aaccf:${currency(previous.availableAAWithCF)};")
+                                detail("allowance.cf.calculation",s"aa:${currency(previous.availableAllowance)};op:+;aaccf:${currency(year2014CCF)};")
                                 detail("allowance.cf.calculation.reason","te")
                                 previous.availableAAWithCF
                              }
@@ -191,9 +191,8 @@ trait Year2015Period1Calculator extends PeriodCalculator {
   override def cumulativeMP(): Long = _cumulativeMP
 
   // DBIST
+  val year2014CCF = previousPeriods.filter(isBefore2015).headOption.map(_.summaryResult).getOrElse(SummaryResult()).availableAAWithCCF
   protected lazy val _dbist = {
-    val year2014CCF = previousPeriods.filter(isBefore2015).headOption.map(_.summaryResult).getOrElse(SummaryResult()).availableAAWithCCF
-
     if (isTriggered) {
       val unusedaaa = preTriggerFields(previousPeriods).map(_.unusedAAA).getOrElse(0L)
       val allowances = unusedaaa + year2014CCF
@@ -240,7 +239,7 @@ trait Year2015Period1Calculator extends PeriodCalculator {
       0L
     } else {
       val v = (postFlexiSavings - (AA + _previous3YearsUnusedAllowance)).max(0L)
-      detail("dca.calculation",s"afs:${currency(postFlexiSavings)};op:-;aa:${currency(AA)};op:+;aaccf:${currency(_previous3YearsUnusedAllowance)};")
+      detail("dca.calculation",s"cyps:${currency(postFlexiSavings)};op:-;sep:(;aa:${currency(AA)};op:+;aaccf:${currency(_previous3YearsUnusedAllowance)};sep:);")
       v
     }
   override def defaultChargableAmount(): Long = _defaultChargableAmount
@@ -306,7 +305,7 @@ trait Year2015Period1Calculator extends PeriodCalculator {
   override def preFlexiSavings() : Long = _preFlexiSavings
 
   protected lazy val _preTriggerSavings = preTriggerInputs(previousPeriods).map{(c)=>
-      detail("pts.calculation",s"db:${currency(c.definedBenefit)};op:+;mp:${currency(c.moneyPurchase)}")
+      detail("pts.calculation",s"db:${currency(c.definedBenefit)};op:+;mp:${currency(c.moneyPurchase)};")
       c.definedBenefit + c.moneyPurchase
     }.getOrElse{
       detail("pts.calculation","0")
