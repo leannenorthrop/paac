@@ -1,0 +1,11 @@
+Error Example 12/6/17 - Scenario 5
+year    | Defined Benefit | Money Purchase  | Income         | Is Triggered | Tax     | AA      | Alt. AA | Available Annual Allowance | Unused AAA| Unused AA  | Cumulative Carry Forward | AAA Cumulative Carry Forward |
+2010    | 0               | 38000           |                | false        | -1      | 50000   | 0       | 50000                      | 0         | 12000      | 12000                    | 0                            |
+2011    | 0               | 54000           |                | false        | 0       | 50000   | 0       | 62000                      | 0         | 0          | 8000                     | 0                            |
+2012    | 0               | 50000           |                | false        | 0       | 50000   | 0       | 58000                      | 0         | 0          | 8000                     | 0                            |
+2013    | 0               | 48000           |                | false        | 0       | 50000   | 0       | 58000                      | 0         | 2000       | 2000                     | 0                            |
+2015P1B | 42000           | 88000           |                | false        | 48000   | 80000   | 0       | 82000                      | 0         | 0          | 0                        | 0                            |
+2015P1A | 0               | 47000           |                | true         | 95000   | 0       | 60000   | 82000                      | 0         | 0          | 0                        | 0                            |
+2015P2A | 25000           | 34000           |                | true         | 59000   | 0       | 0       | 0                          | 0         | 0          | 0                        | 0                            |
+2016A   | 33000           | 25000           | 210000         | true         | 48000   | 0       | 0       | 10000                      | 0         | 0          | 0                        | 0                            |
+2017A   | 30000           | 29000           | 185670         | true         | 36835   | 0       | 18165   | 22165                      | 0         | 0          | 0                        | 0                            |
