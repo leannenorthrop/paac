@@ -98,8 +98,9 @@ protected trait Year2015Period2Calculator extends PeriodCalculator with DetailsC
 
   protected lazy val _aaCCF =
     if (!isTriggered) {
-      val v = (period1.availableAAWithCCF - basicDefinedBenefit).max(0)
-      detail("allowance.ccf.calculation",s"aaccf:${currency(period1.availableAAWithCCF)};op:-;db:${currency(basicDefinedBenefit)}")
+      val year2012AA = if (_previous3YearsUnusedAllowanceList.length >= 3) _previous3YearsUnusedAllowanceList(2)._2 else 0
+      val v = (period1.availableAAWithCCF - basicDefinedBenefit - year2012AA).max(0)
+      detail("allowance.ccf.calculation",s"aaccf:${currency(period1.availableAAWithCCF)};op:-;db:${currency(basicDefinedBenefit)};op:-;unused_2015:${currency(year2012AA)};")
       detail("allowance.ccf.calculation.reason","nte")
       v
     } else {
