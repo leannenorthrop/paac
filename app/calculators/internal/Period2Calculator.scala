@@ -96,11 +96,22 @@ protected trait Year2015Period2Calculator extends PeriodCalculator with DetailsC
     }
   }
 
+  def ccfdetails: Unit = {
+    val desc = _previous3YearsUnusedAllowanceList.slice(0,2) match {
+      case head :: Nil => s"unused_${head._1}:${fmt(head._2)};"
+      case head :: tail => tail.foldLeft(s"unused_${head._1}:${fmt(head._2)};")((str,pair)=>str + s"op:+;unused_${pair._1}:${fmt(pair._2)};")
+      case _ => ""
+    }
+    detail("allowance.ccf.calculation.details",desc)
+  }
+
   protected lazy val _aaCCF =
     if (!isTriggered) {
       val year2012AA = if (_previous3YearsUnusedAllowanceList.length >= 3) _previous3YearsUnusedAllowanceList(2)._2 else 0
       val v = (period1.availableAAWithCCF - basicDefinedBenefit - year2012AA).max(0)
-      detail("allowance.ccf.calculation",s"aaccf:${currency(period1.availableAAWithCCF)};op:-;db:${currency(basicDefinedBenefit)};op:-;unused_2015:${currency(year2012AA)};")
+      ccfdetails
+      //detail("allowance.ccf.calculation",s"aaccf:${currency(period1.availableAAWithCCF)};op:-;db:${currency(basicDefinedBenefit)};op:-;unused_2015:${currency(year2012AA)};")
+      detail("allowance.ccf.calculation",s"unused_2015:${currency(unusedAllowance)};op:+;"+detail("allowance.ccf.calculation.details"))
       detail("allowance.ccf.calculation.reason","nte")
       v
     } else {
