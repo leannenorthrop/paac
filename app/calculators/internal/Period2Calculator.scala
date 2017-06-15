@@ -555,22 +555,34 @@ protected trait Year2015Period2Calculator extends PeriodCalculator with DetailsC
   // Unused Annual Allowance
   protected lazy val _group3Unused =
     if (period1.isMPA) {
-      period1.unusedAAA - definedBenefit
+      val v = period1.unusedAAA - definedBenefit
+      Logger.debug(s"G3UA(1): ${v}")
+      v
     } else if ((preFlexiSavings + (if (defaultChargableAmount >= alternativeChargableAmount) definedContribution else 0L)) > MAXAACF) {
+      Logger.debug(s"G3UA(2): 0L")
       0L
     } else if (isPeriod1Triggered) {
       if (alternativeChargableAmount > defaultChargableAmount) {
-        (period1.unusedAllowance - contribution.definedBenefit).max(0L)
+        val v = (period1.unusedAllowance - contribution.definedBenefit).max(0L)
+        Logger.debug(s"G3UA(3): ${v}")
+        v
       } else {
-        (period1.unusedAllowance - (contribution.definedBenefit + contribution.moneyPurchase)).max(0L)
+        val v = (period1.unusedAllowance - (contribution.definedBenefit + contribution.moneyPurchase)).max(0L)
+        Logger.debug(s"G3UA(4): ${v}")
+        v
       }
     } else {
       previousPeriods.headOption.map(_.input).map {
         (previousSavings) =>
         if (alternativeChargableAmount > defaultChargableAmount) {
-          (period1.unusedAllowance - (previousSavings.definedBenefit + previousSavings.moneyPurchase) ).max(0L)
+          val v = (period1.unusedAllowance - (previousSavings.definedBenefit + previousSavings.moneyPurchase) ).max(0L)
+          Logger.debug(s"G3UA(5): ${period1.unusedAllowance} - ${previousSavings.definedBenefit} + ${previousSavings.moneyPurchase}")
+          Logger.debug(s"G3UA(5): ${v}")
+          v
         } else {
-          (period1.unusedAllowance - (previousSavings.definedBenefit + previousSavings.moneyPurchase + contribution.moneyPurchase)).max(0L)
+          val v = (period1.unusedAllowance - (previousSavings.definedBenefit + previousSavings.moneyPurchase + contribution.moneyPurchase)).max(0L)
+          Logger.debug(s"G3UA(6): ${v}")
+          v
         }
       }.getOrElse(0L)
     }
@@ -578,15 +590,22 @@ protected trait Year2015Period2Calculator extends PeriodCalculator with DetailsC
   protected lazy val _unusedAllowance =
     if (isTriggered) {
       if (previous.unusedAAA > 0) {
+        Logger.debug(s"UA(te 1): 0L")
         0L
       } else if (isGroup3) {
+        Logger.debug(s"UA(te g3): ${_group3Unused.max(0)}")
         _group3Unused.max(0)
       } else if (period1.cumulativeMP < P1MPA && definedContribution < MPA) {
-        (previous.unusedAllowance - definedContribution).max(0)
+        val v = (previous.unusedAllowance - definedContribution).max(0)
+        Logger.debug(s"UA(te 2): ${v}")
+        v
       } else if (alternativeChargableAmount > defaultChargableAmount) {
+        Logger.debug(s"UA(te 3): ${previous.unusedAllowance}")
         previous.unusedAllowance
       } else {
-        (previous.unusedAllowance - definedContribution).max(0)
+        val v = (previous.unusedAllowance - definedContribution).max(0)
+        Logger.debug(s"UA(te 4): ${v}")
+        v
       }
     } else {
       (period1.unusedAllowance - basicDefinedBenefit).max(0)
