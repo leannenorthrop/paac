@@ -242,13 +242,16 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator with DetailsC
         detail("allowance.ccf.calculation.reason","aca_nte")
         v
       } else {
-        val unused = previous3YearsUnusedAllowanceList
-        val cyMinus3 = Try(unused(2)).getOrElse((0,0L))._2
+        val unusedList = previous3YearsUnusedAllowanceList
+        val cyMinus3 = Try(unusedList(2)).getOrElse((0,0L))._2
+        val cyMinus2 = Try(unusedList(1)).getOrElse((0,0L))._2
+        val cyMinus1 = Try(unusedList(0)).getOrElse((0,0L))._2
+
         val unusedAAA = actualAAAUnused.headOption.map(_._2).getOrElse(0L)
         val unusedAllowances = previousYear.map(_.summaryResult.availableAAWithCCF - cyMinus3).getOrElse(0L)
         val v = unusedAAA + unusedAllowances
         Logger.info(s"unusedAllowances = ${unusedAllowances}");
-        detail("allowance.ccf.calculation",s"unused_${year}:${currency(unusedAAA)};op:+;aaccf2:${currency(unusedAllowances)}")
+		detail("allowance.ccf.calculation",s"unused_${year}:${currency(unusedAAA)};op:+;unused_${year-1}:${currency(cyMinus1)};op:+;unused_${year-2}:${currency(cyMinus2)};")
         detail("allowance.ccf.calculation.reason","aca")
         v
       }
