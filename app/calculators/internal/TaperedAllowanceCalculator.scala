@@ -231,8 +231,14 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator with DetailsC
       v
     } else if (alternativeChargableAmount >= defaultChargableAmount) {
       if (!isMPAAApplicable) {
-        val v = _annualAllowanceCF - (preFlexiSavings + definedContribution)
-        detail("allowance.ccf.calculation",detail("allowance.cf.calculation")+"op:-;"+detail("pfs.calculation")+s"op:+;mp:${currency(definedContribution)}")
+        val unusedList = previous3YearsUnusedAllowanceList
+        val cyMinus3 = Try(unusedList(2)).getOrElse((0,0L))._2
+        val cyMinus2 = Try(unusedList(1)).getOrElse((0,0L))._2
+        val cyMinus1 = Try(unusedList(0)).getOrElse((0,0L))._2
+
+        val thisYearUnused = (_annualAllowanceCF - (preFlexiSavings + definedContribution) - (cyMinus1 + cyMinus2 + cyMinus3)).max(0)
+        val v = thisYearUnused + cyMinus1 + cyMinus2
+        detail("allowance.ccf.calculation",s"unused_${year}:${currency(thisYearUnused)};op:+;unused_${year-1}:${currency(cyMinus1)};op:+;unused_${year-2}:${currency(cyMinus2)}")
         detail("allowance.ccf.calculation.reason","aca_nte")
         v
       } else {

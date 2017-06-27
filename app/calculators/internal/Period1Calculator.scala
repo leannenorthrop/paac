@@ -81,16 +81,16 @@ trait Year2015Period1Calculator extends PeriodCalculator {
   protected lazy val _aaaCCF = if (isMPAAApplicable) {
       if (_isACA) {
         val aaa = (unusedAAA + _previous3YearsUnusedAllowance)
-        detail("allowance.alt.ccf.calculation",s"unused_2015:${currency(unusedAAA)};op:+;"+detail("allowance.unused3y.calculation"))
+        detail("allowance.alt.ccf.calculation",s"unused_2015:777${currency(unusedAAA)};op:+;"+detail("allowance.unused3y.calculation"))
         detail("allowance.alt.ccf.calculation.reason","aca")
         (aaa).max(0).min(_aaCCF)
       } else {
         val v = AAA - preTriggerSavings
         val aaa = ((v).min(P2AAA) + _previous3YearsUnusedAllowance)
         if (v < P2AAA)
-          detail("allowance.alt.ccf.calculation",s"aaa:${currency(AAA)};op:-;pts:${currency(preTriggerSavings)};op:+;"+detail("allowance.unused3y.calculation"))
+          detail("allowance.alt.ccf.calculation",s"aaa:999${currency(AAA)};op:-;pts:${currency(preTriggerSavings)};op:+;"+detail("allowance.unused3y.calculation"))
         else
-          detail("allowance.alt.ccf.calculation",s"aaa:${currency(P2AAA)};op:+;"+detail("allowance.unused3y.calculation"))
+          detail("allowance.alt.ccf.calculation",s"aaa:888${currency(P2AAA)};op:+;"+detail("allowance.unused3y.calculation"))
         detail("allowance.alt.ccf.calculation.reason","aca")
         (aaa).max(0)
       }
@@ -142,7 +142,7 @@ trait Year2015Period1Calculator extends PeriodCalculator {
   // Alternative Chargable Amount
   protected lazy val _alternativeChargableAmount = if (isMPAAApplicable) {
                                                      val v = mpist + dbist
-                                                     detail("aca.calculation",detail("mpist.calculation")+"op:+;"+detail("dbist.calculation"))
+                                                     detail("aca.calculation","sep:(;"+detail("mpist.calculation")+"sep:);op:+;sep:(;"+detail("dbist.calculation")+"sep:);")
                                                      v
                                                    } else {
                                                      detail("aca.calculation","mpist:0;")
@@ -239,7 +239,7 @@ trait Year2015Period1Calculator extends PeriodCalculator {
       0L
     } else {
       val v = (postFlexiSavings - (AA + _previous3YearsUnusedAllowance)).max(0L)
-      detail("dca.calculation",s"cyps:${currency(postFlexiSavings)};op:-;sep:(;aa:${currency(AA)};op:+;aaccf:${currency(_previous3YearsUnusedAllowance)};sep:);")
+      detail("dca.calculation",s"sep:(;cyps:${currency(postFlexiSavings)};op:-;sep:(;aa:${currency(AA)};sep:);op:+;sep:(;aaccf:${currency(_previous3YearsUnusedAllowance)};sep:);")
       v
     }
   override def defaultChargableAmount(): Long = _defaultChargableAmount
