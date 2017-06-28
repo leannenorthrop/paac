@@ -476,12 +476,13 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator with DetailsC
 
   protected lazy val _dbist =
     if (isMPAAApplicable) {
-      val v = (definedBenefit - (alternativeAA + _previousAvailableAAWithCCF)).max(0)
-      detail("dbist.calculation",s"sep:(;pfs:${currency(definedBenefit)};op:-;sep:(;aaa:${currency(alternativeAA)};op:+;aaccf:${currency(_previousAvailableAAWithCCF)};sep:);sep:);")
+      val aa = alternativeAA + _previousAvailableAAWithCCF
+      val v = (definedBenefit - aa).max(0)
+      detail("dbist.calculation",s"sep:(;pfs:${currency(definedBenefit)};op: - ;aaaa:${currency(aa)};sep:);")
       v
     } else {
       val v = (preFlexiSavings - _previousAvailableAAWithCCF).max(0)
-      detail("dbist.calculation",detail("pfs.calculation")+s"op:-;aaccf:${currency(_previousAvailableAAWithCCF)};")
+      detail("dbist.calculation",detail("pfs.calculation")+s"op: - ;aaccf:${currency(_previousAvailableAAWithCCF)};")
       v
     }
 
