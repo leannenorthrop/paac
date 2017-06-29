@@ -17,19 +17,34 @@
 package calculators.internal
 
 import models._
-import java.text.NumberFormat
 
 trait DetailsCalculator {
-  def details(): DetailsResult = detailsResult
+  /**
+   * Returns detailed calculations object for a single pension period.
+   */
+  def details: DetailsResult =
+    detailsResult
 
   /**
-  When value belongs to calculation then it should end with a semi-colon to support expansion
+  * Save a description or detail.
+  * When value belongs to calculation then it should end with a semi-colon to support expansion.
   */
-  protected def detail(key: String, value: String): Unit = detailsResult = detailsResult.copy(fields=detailsResult.fields :+ DetailLine(key, value))
-  protected def detail(key: String): String = detailsResult.fields.find(_.name == key).map(_.value).getOrElse("")
-  protected def fmt(value: Long): String = if (value == 0) currencyFormatter.format(0) else currencyFormatter.format(value/100)
-  protected def currency(value: Long): String = if (value == 0) currencyFormatter.format(0) else currencyFormatter.format(value/100)
+  def detail(key: String, value: String): Unit = {
+    val newFields = Seq(DetailLine(key, value),
+                        DetailLine(s"${key}.location", getLocation()))
+    this.detailsResult = detailsResult.copy(fields=detailsResult.fields ++ newFields)
+  }
 
-  private val currencyFormatter = NumberFormat.getNumberInstance(java.util.Locale.UK)
-  private var detailsResult = DetailsResult(Seq[DetailLine]())
+  /**
+   * Return single detail/description with supplied key name.
+   */
+  def detail(key: String): String =
+    detailsResult.fields.find(_.name == key).map(_.value).getOrElse("")
+
+  protected var detailsResult = DetailsResult(Seq[DetailLine]())
+
+  protected def getLocation(): String = {
+    val stack: Seq[java.lang.StackTraceElement] = new java.lang.Throwable().fillInStackTrace().getStackTrace
+    stack(4).toString
+  }
 }

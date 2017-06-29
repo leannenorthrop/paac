@@ -19,129 +19,123 @@ package calculators.internal
 import models._
 import calculators.internal.utilities._
 
+/**
+ * Basic calculator, used for calculations for pension periods prior to 2015.
+ * All values are in pence unless stated otherwise.
+ * In need of refactoring to simplify if else blocks into separated concerns.
+ */
 trait SimpleAllowanceCalculator extends SummaryCalculator with DetailsCalculator {
 
+  /** Abstract method to provide allowance as whole pounds value. */
   def annualAllowanceInPounds(): Long
+
+  /** Abstract method to provide inputs and results from previous pension periods. */
   def previousPeriods(): Seq[TaxYearResults]
+
+  /** Pension contributions for this pension period. */
   def contribution(): Contribution
 
+  /** Annual Pension ALlowance in pounds */
   def allowance(): Long = annualAllowanceInPounds
 
+  /**
+   *  Prior to 2015 combined Defined Contribution and
+   *  Defined Benefit Contributions. If used after 2015
+   *  then also combined DC and DB savings unless triggered
+   *  in which case only the DB.
+   */
   protected lazy val _definedBenefit = {
-    val year = contribution.taxPeriodStart.taxYear
-    if (year < 2015 || year == 2015 && !contribution.isTriggered) {
+    if (sumDbAndDc) {
       val v = contribution.definedBenefit + definedContribution
-      detail("savings.db.calculation",s"db:${fmt(contribution.definedBenefit)};op:+;mp:${fmt(definedContribution)}")
+      detail("savings.db.calculation",s"db:${currency(contribution.definedBenefit)};op: + ;mp:${currency(definedContribution)};")
       v
     }
     else {
+      detail("savings.db.calculation",s"db:${currency(contribution.definedBenefit)};")
       contribution.definedBenefit
     }
   }
-  def definedBenefit(): Long = {
-    detail("savings.db.result",fmt(_definedBenefit))
-    _definedBenefit
+  def sumDbAndDc(): Boolean = (contribution.taxPeriodStart.taxYear < 2015 ||
+                               contribution.taxPeriodStart.taxYear == 2015 && !contribution.isTriggered)
+
+  /** Defined benefit for this pension period. */
+  def definedBenefit(): Long = _definedBenefit
+
+  /** Defined contribution for this pension period. */
+  protected lazy val _definedContribution = {
+    detail("savings.dc",s"mp:${currency(contribution.moneyPurchase)};")
+    contribution.moneyPurchase
   }
 
-  protected lazy val _definedContribution = contribution.moneyPurchase
+  /** Defined contribution for this pension period */
+  def definedContribution(): Long = _definedContribution
 
-  def definedContribution(): Long = {
-    detail("savings.dc.result",fmt(_definedContribution))
-    _definedContribution
+  /** Annual allowance in pence */
+  protected lazy val _aa = {
+    val v = annualAllowanceInPounds*100L
+    detail("allowance.annual.result",s"aa:${currency(v)};")
+    v
   }
 
-  protected lazy val _aa = annualAllowanceInPounds*100L // convert allowance from pounds to pence
-  def annualAllowance(): Long = {
-    detail("allowance.annual.result",fmt(_aa))
-    _aa
-  }
+  /** Annual allowance in pence */
+  def annualAllowance(): Long = _aa
 
+  /** Pension savings in excess of annaul allowance (unused in ui) */
   protected lazy val _exceedingAllowance = (definedBenefit - annualAllowance).max(0)
   def exceedingAllowance(): Long = _exceedingAllowance
 
+  /** Annual allowance - savings (unused in ui) */
   protected lazy val _unusedAllowance = {
     val v = (annualAllowance - definedBenefit).max(0)
-    detail("allowance.unused.cy.calculation",s"aa:${fmt(annualAllowance)};op:-;mp:${fmt(definedBenefit)}")
+    detail("allowance.unused.cy.calculation",s"aa:${currency(annualAllowance)};op: - ;mp:${currency(definedBenefit)};")
     v
   }
-  def unusedAllowance(): Long = {
-    detail("allowance.unused.cy.result",fmt(_unusedAllowance))
-    _unusedAllowance
-  }
+  def unusedAllowance(): Long = _unusedAllowance
 
-  // total annual allowance possible
-  // LN TODO Update to consider 2015 2 periods if this is reused for 2016
-  protected lazy val _annualAllowanceCF = {
-    val v = previousPeriods.headOption match {
+  /** Total allowances available for this pension period. */
+  protected lazy val _annualAllowanceCF =
+    previousPeriods.headOption match {
       case Some(lastYear) => {
-        val v2 = lastYear.summaryResult.availableAAWithCCF + annualAllowance
-        detail("allowance.cf.calculation",s"aaccf:${fmt(lastYear.summaryResult.availableAAWithCCF)};op:+;aa:${fmt(annualAllowance)}")
+        val allowanceCarriedForward = lastYear.summaryResult.availableAAWithCCF
+        val v2 = allowanceCarriedForward + annualAllowance
+        detail("allowance.cf.calculation",s"aaccf:${currency(allowanceCarriedForward)};op: + ;aa:${currency(annualAllowance)};")
         v2
       }
       case _ => {
-        detail("allowance.cf.calculation",s"aa:${fmt(annualAllowance)}")
+        detail("allowance.cf.calculation",s"aa:${currency(annualAllowance)};")
         annualAllowance
       }
     }
-    v
-  }
-  def annualAllowanceCF(): Long = {
-    detail("allowance.cf.result",fmt(_annualAllowanceCF))
-    _annualAllowanceCF
+  def annualAllowanceCF(): Long = _annualAllowanceCF
+
+  /**
+   * Cumulative carry forwards is 2 previous years plus current year's unused annual allowance to
+   * become available for next's years allowances.
+   */
+  protected lazy val _annualAllowanceCCF = {
+    val year = contribution.taxPeriodStart.taxYear
+    ccfdetails(year, contribution, previousPeriods)(this,this)
+    actualUnused(this)(3)(previousPeriods,contribution)
   }
 
-  // cumulative carry forwards is 2 previous years plus current year's annual allowance - used allowance
-  protected lazy val _annualAllowanceCCF =
-    if (contribution.taxPeriodStart.year < 2011) {
-      // Prior to 2011 nothing was liable for tax charge and carry forwards are allowed
-      ccfdetails
-      actualUnused(this)(3)(previousPeriods,contribution)
-    } else {
-      if (exceedingAllowance > 0) {
-        val previousResults = previousPeriods.map(_.summaryResult).headOption.getOrElse(SummaryResult())
-        if (exceedingAllowance >= previousResults.availableAAWithCCF) {
-          detail("allowance.ccf.calculation",s"eaa:${fmt(exceedingAllowance)};op:>=;prev.year.unusedcf:${fmt(previousResults.availableAAWithCCF)}")
-          0L
-        } else {
-          ccfdetails
-          actualUnused(this)(3)(previousPeriods,contribution)
-        }
-      } else {
-        ccfdetails
-        actualUnused(this)(3)(previousPeriods,contribution)
-      }
-    }
-  def ccfdetails: Unit = {
-    val desc = actualUnusedList(this)(previousPeriods,contribution).slice(0,3) match {
-      case head :: Nil => s"unused_${head._1}:${fmt(head._2)}"
-      case head :: tail => tail.foldLeft(s"unused_${head._1}:${fmt(head._2)};")((str,pair)=>str + s"op:+;unused_${pair._1}:${fmt(pair._2)};")
-      case _ => ""
-    }
-    detail("allowance.ccf.calculation",desc)
-  }
-
-  def annualAllowanceCCF(): Long = {
-    detail("allowance.ccf.result",fmt(_annualAllowanceCCF))
-    _annualAllowanceCCF
-  }
+  def annualAllowanceCCF(): Long = _annualAllowanceCCF
 
   protected lazy val _chargableAmount =
-    if (contribution.taxPeriodStart.year < 2011) {
-      detail("chargable.calculation",s"no_tax_pre_2011:no_tax_pre_2011")
-      - 1
+    if (isBefore2011) {
+      detail("chargable.calculation",s"no_tax_pre_2011:no_tax_pre_2011;")
+      -1
     } else {
       val v = (definedBenefit - annualAllowanceCF).max(0)
-      detail("chargable.calculation",s"db:${fmt(definedBenefit)};op:-;unusedcf:${fmt(annualAllowanceCF)}")
+      detail("chargable.calculation",s"cs:${currency(definedBenefit)};op: - ;aaaa:${currency(annualAllowanceCF)};")
       v
     }
-  def chargableAmount(): Long = {
-    detail("chargable.result",fmt(_chargableAmount))
-    _chargableAmount
-  }
+
+  protected def isBefore2011: Boolean = contribution.taxPeriodStart.year < 2011
+
+  def chargableAmount(): Long =  _chargableAmount
 
   def summary(): Option[Summary] =
-    contribution.amounts.map {
-      _ =>
+    contribution.amounts.map { _ =>
       SummaryResult(chargableAmount,
                     exceedingAllowance,
                     annualAllowance,

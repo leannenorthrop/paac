@@ -73,45 +73,36 @@ protected trait Year2015Period2Calculator extends PeriodCalculator with DetailsC
         if (exceeding3 > year2014AA) {
           val exceeding4 = exceeding3 - year2014AA
           if (exceeding4 > 0) {
-            detail("_unusedccf.calculation",s"unused_2015:0")
+            detail("_unusedccf.calculation",s"cyunused:0")
             0
           } else {
-            detail("_unusedccf.calculation",s"unused_2015:${currency(exceeding4)}")
+            detail("_unusedccf.calculation",s"cyunused:${currency(exceeding4)}")
             (exceeding4)
           }
         } else {
           val v = (year2014AA - exceeding3)
-          detail("_unusedccf.calculation",s"unused_2015:${currency(v)}")
+          detail("_unusedccf.calculation",s"cyunused:${currency(v)}")
           v
         }
       } else {
         val v = (year2013AA - exceeding2) + year2014AA
-        detail("_unusedccf.calculation",s"unused_2015:${currency(v)}")
+        detail("_unusedccf.calculation",s"cyunused:${currency(v)}")
         v
       }
     } else {
       val v = (year2013AA + year2014AA)
-      detail("_unusedccf.calculation",s"unused_2015:${currency(v)}")
+      detail("_unusedccf.calculation",s"cyunused:${currency(v)}")
       v
     }
-  }
-
-  def ccfdetails: Unit = {
-    val desc = _previous3YearsUnusedAllowanceList.slice(0,2) match {
-      case head :: Nil => s"unused_${head._1}:${fmt(head._2)};"
-      case head :: tail => tail.foldLeft(s"unused_${head._1}:${fmt(head._2)};")((str,pair)=>str + s"op:+;unused_${pair._1}:${fmt(pair._2)};")
-      case _ => ""
-    }
-    detail("allowance.ccf.calculation.details",desc)
   }
 
   protected lazy val _aaCCF =
     if (!isTriggered) {
       val year2012AA = if (_previous3YearsUnusedAllowanceList.length >= 3) _previous3YearsUnusedAllowanceList(2)._2 else 0
       val v = (period1.availableAAWithCCF - basicDefinedBenefit - year2012AA).max(0)
-      ccfdetails
-      //detail("allowance.ccf.calculation",s"aaccf:${currency(period1.availableAAWithCCF)};op:-;db:${currency(basicDefinedBenefit)};op:-;unused_2015:${currency(year2012AA)};")
-      detail("allowance.ccf.calculation",s"unused_2015:${currency(unusedAllowance)};op:+;"+detail("allowance.ccf.calculation.details"))
+      ccfdetails(YEAR, contribution, previousPeriods)(this, this)
+      //detail("allowance.ccf.calculation",s"aaccf:${currency(period1.availableAAWithCCF)};op:-;db:${currency(basicDefinedBenefit)};op:-;cyunused:${currency(year2012AA)};")
+      detail("allowance.ccf.calculation",s"cyunused:${currency(unusedAllowance)};op:+;"+detail("allowance.ccf.calculation.details"))
       detail("allowance.ccf.calculation.reason","nte")
       v
     } else {
@@ -318,11 +309,11 @@ protected trait Year2015Period2Calculator extends PeriodCalculator with DetailsC
     if (isGroup3) {
       if (isPeriod1Triggered) {
         val v = (definedBenefit - (preTriggerFields(previousPeriods).get.unusedAAA + period1.availableAAWithCCF)).max(0)
-        detail("dbist.calculation",s"db:${currency(definedBenefit)};op:-;unusedaaacf:${currency(preTriggerFields(previousPeriods).get.unusedAAA)};op:+;unused_2015:${currency(period1.availableAAWithCCF)};")
+        detail("dbist.calculation",s"db:${currency(definedBenefit)};op:-;unusedaaacf:${currency(preTriggerFields(previousPeriods).get.unusedAAA)};op:+;cyunused:${currency(period1.availableAAWithCCF)};")
         v
       } else {
         val v = (preFlexiSavings - period1.availableAAWithCCF).max(0)
-        detail("dbist.calculation",detail("pfs.calculation")+s"op:-;unused_2015:${currency(period1.availableAAWithCCF)};")
+        detail("dbist.calculation",detail("pfs.calculation")+s"op:-;cyunused:${currency(period1.availableAAWithCCF)};")
         v
       }
     } else {
@@ -505,25 +496,25 @@ protected trait Year2015Period2Calculator extends PeriodCalculator with DetailsC
 
   protected lazy val previous2YearsUnusedAllowance: Long = {
     // we only want previous values so create dummy contribution which does not affect the calculation
-    val c = Contribution(2015, Some(InputAmounts(0L,0L)))
+    val c = Contribution(YEAR, Some(InputAmounts(0L,0L)))
     val pp = previousPeriods.dropWhile(_.input.isPeriod2)
-    actualUnusedList(this)(pp, c).dropWhile(_._1 == 2015).slice(0,2).foldLeft(0L)(_ + _._2)
+    actualUnusedList(this)(pp, c).dropWhile(_._1 == YEAR).slice(0,2).foldLeft(0L)(_ + _._2)
   }
 
   protected lazy val _previous3YearsUnusedAllowance = {
     // we only want previous values so create dummy contribution which does not affect the calculation
-    val c = Contribution(2015, Some(InputAmounts(0L,0L)))
+    val c = Contribution(YEAR, Some(InputAmounts(0L,0L)))
     val pp = previousPeriods.dropWhile(_.input.isPeriod2)
-    Logger.debug(s"""Pre-3Years Unused: ${actualUnusedList(this)(pp, c).dropWhile(_._1 == 2015).slice(0,3).mkString("\n")}""")
-    actualUnusedList(this)(pp, c).dropWhile(_._1 == 2015).slice(0,3).foldLeft(0L)(_ + _._2)
+    Logger.debug(s"""Pre-3Years Unused: ${actualUnusedList(this)(pp, c).dropWhile(_._1 == YEAR).slice(0,3).mkString("\n")}""")
+    actualUnusedList(this)(pp, c).dropWhile(_._1 == YEAR).slice(0,3).foldLeft(0L)(_ + _._2)
   }
 
   protected lazy val _previous3YearsUnusedAllowanceList = {
     // we only want previous values so create dummy contribution which does not affect the calculation
-    val c = Contribution(2015, Some(InputAmounts(0L,0L)))
+    val c = Contribution(YEAR, Some(InputAmounts(0L,0L)))
     val pp = previousPeriods.dropWhile(_.input.isPeriod2)
-    Logger.debug(s"""Pre-3Years Unused: ${actualUnusedList(this)(pp, c).dropWhile(_._1 == 2015).slice(0,3).mkString("\n")}""")
-    actualUnusedList(this)(pp, c).dropWhile(_._1 == 2015)
+    Logger.debug(s"""Pre-3Years Unused: ${actualUnusedList(this)(pp, c).dropWhile(_._1 == YEAR).slice(0,3).mkString("\n")}""")
+    actualUnusedList(this)(pp, c).dropWhile(_._1 == YEAR)
   }
 
   // Post Flexi Access Savings

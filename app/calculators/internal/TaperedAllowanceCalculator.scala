@@ -30,7 +30,6 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator with DetailsC
   private val DEAFULT_TAPER_START = 150000
   private val DEAFULT_TAPER_END = 210000
   private val DEAFULT_AA = 40000
-  private var detailsResult = DetailsResult(Seq[DetailLine]())
 
   def previousPeriods(): Seq[TaxYearResults]
   def contribution(): Contribution
@@ -180,106 +179,109 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator with DetailsC
     }
     else {
       if (_isPreviousTriggered) {
-        val v = (postFlexiSavings - (annualAllowance + _previousAvailableAAWithCCF)).max(0L)
-        detail("dca.calculation",
-          detail("afs.calculation") + "op: - ;" + detail("aa.calculation") + s"op: + ;aaccf:${currency(_previousAvailableAAWithCCF)};")
+        val aaaa = annualAllowance + _previousAvailableAAWithCCF
+        val v = (postFlexiSavings - aaaa).max(0L)
+        detail("dca.calculation", s"cs:${currency(postFlexiSavings)};op: - ;aaaa:${currency(aaaa)};")
         detail("dca.calculation.reason","pte")
         v
       } else {
-        val v = ((postFlexiSavings + preFlexiSavings) - (annualAllowance + _previousAvailableAAWithCCF)).max(0L)
-        detail("dca.calculation",
-          detail("afs.calculation") + "op: + ;" + detail("pfs.calculation") + "op: - ;"
-          + detail("aa.calculation") + s"op: + ;aaccf:${currency(_previousAvailableAAWithCCF)};")
+        val aaaa = annualAllowance + _previousAvailableAAWithCCF
+        val v = ((postFlexiSavings + preFlexiSavings) - aaaa).max(0L)
+        detail("dca.calculation", s"cs:${currency(postFlexiSavings)};op: - ;aaaa:${currency(aaaa)};")
         detail("dca.calculation.reason","te")
         v
       }
     }
 
-  def ccfdetails: Unit = {
-    val desc = previous3YearsUnusedAllowanceList.slice(0,2) match {
-      case head :: Nil => s"unused_${head._1}:${fmt(head._2)}"
-      case head :: tail => tail.foldLeft(s"unused_${head._1}:${fmt(head._2)};")((str,pair)=>str + s"op:+;unused_${pair._1}:${fmt(pair._2)};")
-      case _ => ""
-    }
-    detail("allowance.ccf.calculation.details",desc)
+  protected def unusedAllowances: (Long, Long, Long) = {
+     val unused = previous3YearsUnusedAllowanceList
+     val cyMinus1 = Try(unused(0)).getOrElse((0,0L))._2
+     val cyMinus2 = Try(unused(1)).getOrElse((0,0L))._2
+     val cyMinus3 = Try(unused(2)).getOrElse((0,0L))._2
+     (cyMinus1, cyMinus2, cyMinus3)
   }
 
-  protected lazy val _annualAllowanceCCF = {
-    if (!isTriggered) {
-      val unused = previous3YearsUnusedAllowanceList
-      val cyMinus1 = Try(unused(0)).getOrElse((0,0L))._2
-      val cyMinus2 = Try(unused(1)).getOrElse((0,0L))._2
-      val cyMinus3 = Try(unused(2)).getOrElse((0,0L))._2
-      val v = if (annualAllowance - definedBenefit < 0) {
-        val excess = definedBenefit - annualAllowance
-        if (cyMinus3 - excess < 0) {
-          val v2 = (cyMinus1 + cyMinus2 + (cyMinus3 - excess)).max(0)
-          if (cyMinus2 + (cyMinus3 - excess) < 0) {
-            detail("allowance.ccf.calculation",s"unused_${year}:0;op:+;unused_${year-1}:${currency(v2)};op:+;unused_${year-2}:${currency(0)};")
-          } else {
-            detail("allowance.ccf.calculation",
-                   s"unused_${year}:0;op: + ;unused_${year-1}:${currency(cyMinus1)};" +
-                   s"op:+;unused_${year-2}:${currency((cyMinus3 - excess).max(0))};")
-          }
-          detail("allowance.ccf.calculation.reason","nte_1")
-          v2
-        } else {
-          detail("allowance.ccf.calculation",s"unused_${year}:0;op:+;unused_${year-1}:${currency(cyMinus1)};op:+;unused_${year-2}:${currency(cyMinus2)};")
-          detail("allowance.ccf.calculation.reason","nte_2")
-          cyMinus1 + cyMinus2
-        }
-      } else {
-        detail("allowance.ccf.calculation",
-               s"unused_${year}:${currency((annualAllowance - definedBenefit).max(0))};op:+;" +
-               s"unused_${year-1}:${currency(cyMinus1)};op:+;unused_${year-2}:${currency(cyMinus2)};")
-        detail("allowance.ccf.calculation.reason","nte_3")
-        cyMinus1 + cyMinus2 + (annualAllowance - definedBenefit)
-      }
-      v
-    } else if (alternativeChargableAmount >= defaultChargableAmount) {
-      if (!isMPAAApplicable) {
-        val unusedList = previous3YearsUnusedAllowanceList
-        val cyMinus3 = Try(unusedList(2)).getOrElse((0,0L))._2
-        val cyMinus2 = Try(unusedList(1)).getOrElse((0,0L))._2
-        val cyMinus1 = Try(unusedList(0)).getOrElse((0,0L))._2
+  protected def unusedAllowancesCY: Long = {
+    val (cyMinus1, cyMinus2, cyMinus3) = unusedAllowances
+    detail("allowance.ccf.calculation",
+           s"cyunused:${currency((annualAllowance - definedBenefit).max(0))};op:+;" +
+           s"unused_${year-1}:${currency(cyMinus1)};op:+;unused_${year-2}:${currency(cyMinus2)};")
+    detail("allowance.ccf.calculation.reason","nte_3")
+    cyMinus1 + cyMinus2 + (annualAllowance - definedBenefit)
+  }
 
-        val thisYearUnused = (_annualAllowanceCF - (preFlexiSavings + definedContribution) - (cyMinus1 + cyMinus2 + cyMinus3)).max(0)
-        val v = thisYearUnused + cyMinus1 + cyMinus2
-        detail("allowance.ccf.calculation",
-               s"unused_${year}:${currency(thisYearUnused)};op: + ;" +
-               s"unused_${year-1}:${currency(cyMinus1)};op:+;unused_${year-2}:${currency(cyMinus2)}")
-        detail("allowance.ccf.calculation.reason","aca_nte")
-        v
-      } else {
-        val unusedList = previous3YearsUnusedAllowanceList
-        val cyMinus3 = Try(unusedList(2)).getOrElse((0,0L))._2
-        val cyMinus2 = Try(unusedList(1)).getOrElse((0,0L))._2
-        val cyMinus1 = Try(unusedList(0)).getOrElse((0,0L))._2
+  protected def unusedAllowancesCY1And2: Long = {
+    val (cyMinus1, cyMinus2, cyMinus3) = unusedAllowances
+    detail("allowance.ccf.calculation",s"cyunused:0;op:+;unused_${year-1}:${currency(cyMinus1)};op:+;unused_${year-2}:${currency(cyMinus2)};")
+    detail("allowance.ccf.calculation.reason","nte_2")
+    cyMinus1 + cyMinus2
+  }
 
-        val unusedAAA = actualAAAUnused.headOption.map(_._2).getOrElse(0L)
-        val unusedAllowances = previousYear.map(_.summaryResult.availableAAWithCCF - cyMinus3).getOrElse(0L)
-        val v = unusedAAA + unusedAllowances
-        Logger.info(s"unusedAllowances = ${unusedAllowances}");
-        detail("allowance.ccf.calculation",
-               s"unused_${year}:${currency(unusedAAA)};op: + ;unused_${year-1}:${currency(cyMinus1)};op: + ;unused_${year-2}:${currency(cyMinus2)};")
-        detail("allowance.ccf.calculation.reason","aca")
-        v
-      }
+  protected def unusedAllowancesReducedCY3: Long = {
+    val (cyMinus1, cyMinus2, cyMinus3) = unusedAllowances
+    val v2 = (cyMinus1 + cyMinus2 + (cyMinus3 - unusedExcess)).max(0)
+    if (cyMinus2 + (cyMinus3 - unusedExcess) < 0) {
+      detail("allowance.ccf.calculation",
+             s"cyunused:0;op:+;unused_${year-1}:${currency(v2)};op:+;unused_${year-2}:${currency(0)};")
+    } else {
+      detail("allowance.ccf.calculation",
+             s"cyunused:0;op: + ;unused_${year-1}:${currency(cyMinus1)};" +
+             s"op: + ;unused_${year-2}:${currency((cyMinus3 - unusedExcess).max(0))};")
     }
-    else {
-      if (_unusedAllowance > 0) {
-        val v = _unusedAllowance
+    detail("allowance.ccf.calculation.reason","nte_1")
+    v2
+  }
+
+  protected def unusedAllowancesNotMPA: Long = {
+    val (cyMinus1, cyMinus2, cyMinus3) = unusedAllowances
+    val thisYearUnused = (_annualAllowanceCF - (preFlexiSavings + definedContribution) - (cyMinus1 + cyMinus2 + cyMinus3)).max(0)
+    val v = thisYearUnused + cyMinus1 + cyMinus2
+    detail("allowance.ccf.calculation",
+           s"cyunused:${currency(thisYearUnused)};op: + ;" +
+           s"unused_${year-1}:${currency(cyMinus1)};op:+;unused_${year-2}:${currency(cyMinus2)}")
+    detail("allowance.ccf.calculation.reason","aca_nte")
+    v
+  }
+
+  protected def unusedAllowancesMPA: Long = {
+    val (cyMinus1, cyMinus2, cyMinus3) = unusedAllowances
+    val unusedAAA = actualAAAUnused.headOption.map(_._2).getOrElse(0L)
+    val unusedAllowances2 = previousYear.map(_.summaryResult.availableAAWithCCF - cyMinus3).getOrElse(0L)
+    val v = unusedAAA + unusedAllowances2
+    detail("allowance.ccf.calculation",
+           s"unused_${year}:${currency(unusedAAA)};op: + ;unused_${year-1}:${currency(cyMinus1)};op: + ;unused_${year-2}:${currency(cyMinus2)};")
+    detail("allowance.ccf.calculation.reason","aca")
+    v
+  }
+
+  protected def unusedExcess: Long = definedBenefit - annualAllowance
+
+  protected def acaApplies: Boolean = alternativeChargableAmount >= defaultChargableAmount
+
+  protected def savingsExceed: Boolean = annualAllowance - definedBenefit < 0
+
+  protected def cy3Reduced: Boolean = unusedAllowances._3 - unusedExcess < 0
+
+  protected def cyUnused: Boolean = _unusedAllowance > 0
+
+  protected lazy val _annualAllowanceCCF =
+    isTriggered match {
+      case false if (savingsExceed && cy3Reduced) => unusedAllowancesReducedCY3
+      case false if savingsExceed => unusedAllowancesCY1And2
+      case false => unusedAllowancesCY
+      case true if (acaApplies && isMPAAApplicable) => unusedAllowancesMPA
+      case true if acaApplies => unusedAllowancesNotMPA
+      case true if cyUnused => {
         detail("allowance.ccf.calculation",detail("allowance.unused.cy.calculation"))
         detail("allowance.ccf.calculation.reason","dca_1")
-        v
-      } else {
-        val v = (_unusedAllowance - _exceedingAllowance).max(0L)
+        _unusedAllowance
+      }
+      case _ => {
         detail("allowance.ccf.calculation",detail("allowance.unused.cy.calculation") + "op: - ;" + detail("xa.calculation"))
         detail("allowance.ccf.calculation.reason","dca_2")
-        v
+        (_unusedAllowance - _exceedingAllowance).max(0L)
       }
     }
-  }
 
   protected lazy val _alternativeAACF = {
     val v = _alternativeAA + previous3YearsUnusedAAAllowance
@@ -390,24 +392,24 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator with DetailsC
     }
   }
 
+  protected def taperReduction(income: Long): Double =
+    Math.floor(((income - _taperStart)/100L)/2D)*100L
+
   protected lazy val _taperedAllowance =
     if (isTaperingApplicable) {
       income match {
         case i if i > _taperStart && i < _taperEnd => {
-          val reduction = Math.floor(((i - _taperStart)/100L)/2D)*100L
-          val v = (_annualAllowance - reduction).toLong
+          val v = (_annualAllowance - taperReduction(i)).toLong
           detail("aa.calculation",
-                 s"aa:${currency(_annualAllowance)};op: - ;sep:(;" +
-                 s"sep:(;income:${currency(i)};op: - ;tlt:${currency(_taperStart)};sep:);op: ÷ ;taperamount:2;sep:);")
+                 s"aa:${currency(_annualAllowance)};op: - ;" +
+                 s"taper:${currency(taperReduction(i).toLong)};")
           detail("aa.calculation.reason","taper")
           v
         }
         case i if i >= _taperEnd => {
-          val reduction = Math.floor(((i - _taperStart)/100L)/2D)*100L
-          val v = (_annualAllowance - reduction).toLong
           detail("aa.calculation",
-                 s"aa:${currency(_annualAllowance)};op: - ;sep:(;sep:(;income:${currency(i)};op: - ;" +
-                 s"tlt:${currency(_taperStart)};sep:);op:÷;taperamount:2;sep:);")
+                 s"aa:${currency(_annualAllowance)};op: - ;" +
+                 s"taper:${currency(_taa)};")
           detail("aa.calculation.reason","taper")
           _taa
         }
@@ -426,7 +428,7 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator with DetailsC
   protected lazy val _alternativeChargableAmount =
     if (isMPAAApplicable && isTriggered) {
       val v = mpist + dbist
-      detail("aca.calculation",detail("mpist.calculation") + "op: + ;" + detail("dbist.calculation"))
+      detail("aca.calculation","sep:(;" + detail("mpist.calculation") + "sep:);op: + ;sep:(;" + detail("dbist.calculation") + "sep:);")
       detail("aca.calculation.reason","mpa")
       v
     }
@@ -450,7 +452,7 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator with DetailsC
     }.map{
       (r)=>
       val v = r.input.definedBenefit + r.input.moneyPurchase
-      detail("pfs.calculation",s"db:${currency(r.input.definedBenefit)};op:+;mp:${currency(r.input.moneyPurchase)};")
+      detail("pfs.calculation",s"sep:(;db:${currency(r.input.definedBenefit)};op: + ;mp:${currency(r.input.moneyPurchase)};sep:);")
       v
     }.getOrElse {
       if (!isTriggered) {
@@ -504,7 +506,7 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator with DetailsC
   protected lazy val _mpist =
     if (isMPAAApplicable) {
       val v = (definedContribution - moneyPurchaseAA).max(0)
-      detail("mpist.calculation",s"mp:${currency(definedContribution)};op:-;mpaa:${currency(moneyPurchaseAA)};")
+      detail("mpist.calculation",s"mp:${currency(definedContribution)};op: - ;mpaa:${currency(moneyPurchaseAA)};")
       v
     } else {
       detail("mpist.calculation",s"mpist:0;")
