@@ -89,11 +89,9 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator with DetailsC
 
   protected lazy val actualAAAUnused = actualAAAUnusedList(this)(previousPeriods,contribution)
 
-  protected lazy val config: Map[String,Int] =
-    PaacConfiguration.forYear(contribution.taxPeriodStart.taxYear)
+  protected lazy val config: Map[String,Int] = PaacConfiguration.forYear(year)
 
-  protected lazy val previousYear =
-    previousPeriods.find(isYear(contribution.taxPeriodStart.taxYear-1))
+  protected lazy val previousYear = previousPeriods.find(isYear(year-1))
 
   protected lazy val previous3YearsUnusedAllowanceList: List[YearActualUnusedPair] = {
     // we only want previous values so create dummy contribution which does not affect the calculation
