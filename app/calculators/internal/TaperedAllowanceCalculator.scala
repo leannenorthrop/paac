@@ -186,12 +186,22 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator with DetailsC
       }
     }
 
+  protected def unusedAllowancesList: List[Long] = {
+    val (v1, v2, v3) = unusedAllowances
+    List(v1, v2, v3)
+  }
+
   protected def unusedAllowances: (Long, Long, Long) = {
      val unused = previous3YearsUnusedAllowanceList
      val cyMinus1 = Try(unused(0)).getOrElse((0,0L))._2
      val cyMinus2 = Try(unused(1)).getOrElse((0,0L))._2
      val cyMinus3 = Try(unused(2)).getOrElse((0,0L))._2
      (cyMinus1, cyMinus2, cyMinus3)
+  }
+
+  protected def unusedAAAllowancesList: List[Long] = {
+    val (v1, v2, v3) = unusedAAAllowances
+    List(v1, v2, v3)
   }
 
   protected def unusedAAAllowances: (Long, Long, Long) = {
@@ -244,14 +254,28 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator with DetailsC
     v
   }
 
+  protected lazy val previous3YearsIsACA: List[Boolean] =
+    previousPeriods.dropWhile(_._1 >= year).slice(0,3).map {
+      _.summaryResult match {
+        case e: ExtendedSummaryFields if e.isACA => true
+        case _ => false
+      }
+    }.toList
+
   protected def unusedAllowancesMPA: Long = {
-    val (cyMinus1, cyMinus2, cyMinus3) = unusedAllowances
-    val unusedAAA = actualAAAUnused.headOption.map(_._2).getOrElse(0L)
-    val unusedAllowances2 = previousYear.map(_.summaryResult.availableAAWithCCF - cyMinus3).getOrElse(0L)
-    val v = unusedAAA + unusedAllowances2
+    def thisYearUnusedAllowance: Long =
+      actualAAAUnused.headOption.map(_._2).getOrElse(0L)
+    def previousUnusedAllowances: List[Long] =
+      unusedAllowancesList
+        .zip(unusedAAAllowancesList)
+        .zip(previous3YearsIsACA)
+        .map( p => if (p._2) p._1._2 else p._1._1)
+
+    val (cyMinus1:Long, cyMinus2:Long) = (previousUnusedAllowances(0), previousUnusedAllowances(1))
+    val v = thisYearUnusedAllowance + cyMinus1 + cyMinus2
     detail("allowance.ccf.calculation",
-           s"unused_${year}:${currency(unusedAAA)};op: + ;unused_${year-1}:${currency(cyMinus1)};op: + ;unused_${year-2}:${currency(cyMinus2)};")
-    detail("allowance.ccf.calculation.reason","aca")
+      s"cyunused:${currency(thisYearUnusedAllowance)};op: + ;" +
+      s"unused_${year-1}:${currency(cyMinus1)};op: + ;unused_${year-2}:${currency(cyMinus2)};")
     v
   }
 
