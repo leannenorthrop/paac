@@ -90,41 +90,37 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator with DetailsC
   protected lazy val actualAAAUnused = actualAAAUnusedList(this)(previousPeriods,contribution)
 
   protected lazy val config: Map[String,Int] =
-    PaacConfiguration.forYear(year)
+    PaacConfiguration.forYear(contribution.taxPeriodStart.taxYear)
 
   protected lazy val previousYear =
-    previousPeriods.find(isYear(year-1))
+    previousPeriods.find(isYear(contribution.taxPeriodStart.taxYear-1))
 
   protected lazy val previous3YearsUnusedAllowanceList: List[YearActualUnusedPair] = {
     // we only want previous values so create dummy contribution which does not affect the calculation
-    val c = Contribution(year, Some(InputAmounts(0L,0L)))
-    val pp = previousPeriods.dropWhile(_._1 >= year)
+    val taxYear = contribution.taxPeriodStart.taxYear
+    val c = Contribution(taxYear, Some(InputAmounts(0L,0L)))
+    val pp = previousPeriods.dropWhile(_._1 >= taxYear)
     val calc = BasicAllowanceCalculator(0,pp,c)
-    val unused = actualUnusedList(calc)(pp, c).dropWhile(_._1 == year).slice(0,3)
+    Logger.debug(actualUnusedList(calc)(pp, c).mkString("  "))
+    val unused = actualUnusedList(calc)(pp, c).dropWhile(_._1 == taxYear).slice(0,3)
+    Logger.debug(s"""$year 3 Years Unused: ${unused.mkString(", ")}""")
     unused
   }
 
   protected lazy val previous3YearsUnusedAllowance: Long = previous3YearsUnusedAllowanceList.foldLeft(0L)(_ + _._2)
 
-  protected lazy val previous3YearsUnusedAAAllowance: Long =
-    previous3YearsUnusedAAAllowanceList.foldLeft(0L)(_ + _._2) + _previousAvailableAAWithCCF
-
-  protected lazy val previous3YearsIsACA: List[Boolean] =
-    List(false, false, false)
-    /* FIX!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    previousPeriods.dropWhile(_._1 >= year).slice(0,3).map {
-      _.summaryResult match {
-        case ExtendedSummaryFields(_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,isACA,_,_) => isACA
-        case _ => false
-      }
-    }.toList*/
-
-  protected lazy val previous3YearsUnusedAAAllowanceList: List[YearActualUnusedPair] = {
+  protected lazy val previous3YearsUnusedAAAllowance: Long = {
     // we only want previous values so create dummy contribution which does not affect the calculation
-    val c = Contribution(year, Some(InputAmounts(0L,0L)))
-    val pp = previousPeriods.dropWhile(_._1 == year)
+    val taxYear = contribution.taxPeriodStart.taxYear
+    val c = Contribution(taxYear, Some(InputAmounts(0L,0L)))
+    val pp = previousPeriods.dropWhile(_._1 == taxYear)
     val calc = BasicAllowanceCalculator(0,pp,c)
-    actualAAAUnused.dropWhile(_._1 >= year).slice(0,3)
+    val unused = actualAAAUnused.dropWhile(_._1 >= taxYear).slice(0,3)
+    Logger.debug(s"""$year ${"*"*80}""")
+    Logger.debug(s"""$year 3 Years Unused AAA: ${unused.mkString(", ")}""")
+    Logger.debug(s"""$year 3 Years Unused AA: ${_previousAvailableAAWithCCF}""")
+    Logger.debug(s"""$year ${"*"*80}""")
+    unused.foldLeft(0L)(_ + _._2) + _previousAvailableAAWithCCF
   }
 
   protected lazy val _acaCF = {
@@ -205,14 +201,6 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator with DetailsC
      (cyMinus1, cyMinus2, cyMinus3)
   }
 
-  protected def unusedAAAllowances: (Long, Long, Long) = {
-     val unused = previous3YearsUnusedAAAllowanceList
-     val cyMinus1 = Try(unused(0)).getOrElse((0,0L))._2
-     val cyMinus2 = Try(unused(1)).getOrElse((0,0L))._2
-     val cyMinus3 = Try(unused(2)).getOrElse((0,0L))._2
-     (cyMinus1, cyMinus2, cyMinus3)
-  }
-
   protected def unusedAllowancesCY: Long = {
     val (cyMinus1, cyMinus2, cyMinus3) = unusedAllowances
     detail("allowance.ccf.calculation",
@@ -256,22 +244,13 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator with DetailsC
   }
 
   protected def unusedAllowancesMPA: Long = {
-    def thisYearUnusedAllowance: Long = actualAAAUnused.headOption.map(_._2).getOrElse(0L)
-    def previousUnusedAllowances: List[Any] = {
-      unusedAllowances.productIterator.toList
-        .zip(unusedAAAllowances.productIterator.toList)
-        .zip(previous3YearsIsACA.productIterator.toList)
-        .map{
-          case (Tuple2(aa,aaa),true) => aaa
-          case (Tuple2(aa,aaa),false) => aa
-        }
-    }
-
-    val (cyMinus1:Int, cyMinus2:Int) = (previousUnusedAllowances(0), previousUnusedAllowances(1))
-    val v = thisYearUnusedAllowance + cyMinus1 + cyMinus2
+    val (cyMinus1, cyMinus2, cyMinus3) = unusedAllowances
+    val unusedAAA = actualAAAUnused.headOption.map(_._2).getOrElse(0L)
+    val unusedAllowances2 = previousYear.map(_.summaryResult.availableAAWithCCF - cyMinus3).getOrElse(0L)
+    val v = unusedAAA + unusedAllowances2
     detail("allowance.ccf.calculation",
-      s"cyunused:${currency(thisYearUnusedAllowance)};op: + ;" +
-      s"unused_${year-1}:${currency(cyMinus1)};op: + ;unused_${year-2}:${currency(cyMinus2)};")
+           s"unused_${year}:${currency(unusedAAA)};op: + ;unused_${year-1}:${currency(cyMinus1)};op: + ;unused_${year-2}:${currency(cyMinus2)};")
+    detail("allowance.ccf.calculation.reason","aca")
     v
   }
 
@@ -543,6 +522,7 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator with DetailsC
 
   protected lazy val _annualAllowance: Long = config.get("annual").getOrElse(DEAFULT_AA) * 100L
 
+  // Is ACA Applicable
   protected lazy val _isACA = isTriggered && acaApplies
 }
 // scalastyle:on number.of.methods
