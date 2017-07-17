@@ -104,19 +104,17 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator with DetailsC
 
   protected lazy val previous3YearsUnusedAllowance: Long = previous3YearsUnusedAllowanceList.foldLeft(0L)(_ + _._2)
 
-  protected lazy val previous3YearsUnusedAAAllowance: Long = {
+  protected lazy val previous3YearsUnusedAAAllowanceList: List[YearActualUnusedPair] = {
     // we only want previous values so create dummy contribution which does not affect the calculation
-    val taxYear = contribution.taxPeriodStart.taxYear
-    val c = Contribution(taxYear, Some(InputAmounts(0L,0L)))
-    val pp = previousPeriods.dropWhile(_._1 == taxYear)
-    val calc = BasicAllowanceCalculator(0,pp,c)
-    val unused = actualAAAUnused.dropWhile(_._1 >= taxYear).slice(0,3)
-    Logger.debug(s"""$year ${"*"*80}""")
-    Logger.debug(s"""$year 3 Years Unused AAA: ${unused.mkString(", ")}""")
-    Logger.debug(s"""$year 3 Years Unused AA: ${_previousAvailableAAWithCCF}""")
-    Logger.debug(s"""$year ${"*"*80}""")
-    unused.foldLeft(0L)(_ + _._2) + _previousAvailableAAWithCCF
+    val c = Contribution(year, Some(InputAmounts(0L,0L)))
+    val pp = previousPeriods.dropWhile(_._1 >= year)
+	  val calc = BasicAllowanceCalculator(0,pp,c)
+	  val unused = actualAAAUnused.dropWhile(_._1 == year).slice(0,3)
+    unused
   }
+
+  protected lazy val previous3YearsUnusedAAAllowance: Long =
+		previous3YearsUnusedAAAllowanceList.foldLeft(0L)(_ + _._2) + _previousAvailableAAWithCCF
 
   protected lazy val _acaCF = {
     val previousACACF = previousYear.flatMap(maybeExtended(_).map(_.acaCF)).getOrElse(0L)
@@ -190,6 +188,14 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator with DetailsC
 
   protected def unusedAllowances: (Long, Long, Long) = {
      val unused = previous3YearsUnusedAllowanceList
+     val cyMinus1 = Try(unused(0)).getOrElse((0,0L))._2
+     val cyMinus2 = Try(unused(1)).getOrElse((0,0L))._2
+     val cyMinus3 = Try(unused(2)).getOrElse((0,0L))._2
+     (cyMinus1, cyMinus2, cyMinus3)
+  }
+
+  protected def unusedAAAllowances: (Long, Long, Long) = {
+     val unused = previous3YearsUnusedAAAllowanceList
      val cyMinus1 = Try(unused(0)).getOrElse((0,0L))._2
      val cyMinus2 = Try(unused(1)).getOrElse((0,0L))._2
      val cyMinus3 = Try(unused(2)).getOrElse((0,0L))._2
