@@ -95,13 +95,10 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator with DetailsC
 
   protected lazy val previous3YearsUnusedAllowanceList: List[YearActualUnusedPair] = {
     // we only want previous values so create dummy contribution which does not affect the calculation
-    val taxYear = contribution.taxPeriodStart.taxYear
-    val c = Contribution(taxYear, Some(InputAmounts(0L,0L)))
-    val pp = previousPeriods.dropWhile(_._1 >= taxYear)
-    val calc = BasicAllowanceCalculator(0,pp,c)
-    Logger.debug(actualUnusedList(calc)(pp, c).mkString("  "))
-    val unused = actualUnusedList(calc)(pp, c).dropWhile(_._1 == taxYear).slice(0,3)
-    Logger.debug(s"""$year 3 Years Unused: ${unused.mkString(", ")}""")
+    val c = Contribution(year, Some(InputAmounts(0L,0L)))
+    val pp = previousPeriods.dropWhile(_._1 >= year)
+	  val calc = BasicAllowanceCalculator(0,pp,c)
+	  val unused = actualUnusedList(calc)(pp, c).dropWhile(_._1 == year).slice(0,3)
     unused
   }
 
