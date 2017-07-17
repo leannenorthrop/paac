@@ -44,7 +44,9 @@ trait DetailsCalculator {
   protected var detailsResult = DetailsResult(Seq[DetailLine]())
 
   protected def getLocation(): String = {
+    val classIndex = 4
     val stack: Seq[java.lang.StackTraceElement] = new java.lang.Throwable().fillInStackTrace().getStackTrace
-    stack(4).toString
+    s"""see local file ${stack(classIndex).getFileName()} at ${stack(classIndex).getLineNumber()}
+        or https://github.com/hmrc/paac/blob/master/app/calculators/internal/${stack(classIndex).getFileName()}#L${stack(classIndex).getLineNumber()}"""
   }
 }
