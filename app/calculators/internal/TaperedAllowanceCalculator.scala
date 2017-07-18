@@ -531,7 +531,7 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator with DetailsC
   protected lazy val _mpist =
     if (isMPAAApplicable) {
       val v = (definedContribution - moneyPurchaseAA).max(0)
-      detail("mpist.calculation",s"mp:${currency(definedContribution)};op: - ;mpaa:${currency(moneyPurchaseAA)};")
+      detail("mpist.calculation",s"ta:${currency(definedContribution)};op: - ;mpaa:${currency(moneyPurchaseAA)};")
       v
     } else {
       detail("mpist.calculation",s"mpist:0;")

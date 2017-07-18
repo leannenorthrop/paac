@@ -98,7 +98,7 @@ trait SimpleAllowanceCalculator extends SummaryCalculator with DetailsCalculator
       case Some(lastYear) => {
         val allowanceCarriedForward = lastYear.summaryResult.availableAAWithCCF
         val v2 = allowanceCarriedForward + annualAllowance
-        detail("allowance.cf.calculation",s"aaccf:${currency(allowanceCarriedForward)};op: + ;aa:${currency(annualAllowance)};")
+        detail("allowance.cf.calculation",s"aa:${currency(annualAllowance)};op: + ;aaccf:${currency(allowanceCarriedForward)};")
         v2
       }
       case _ => {
