@@ -97,8 +97,8 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator with DetailsC
     // we only want previous values so create dummy contribution which does not affect the calculation
     val c = Contribution(year, Some(InputAmounts(0L,0L)))
     val pp = previousPeriods.dropWhile(_._1 >= year)
-	  val calc = BasicAllowanceCalculator(0,pp,c)
-	  val unused = actualUnusedList(calc)(pp, c).dropWhile(_._1 == year).slice(0,3)
+    val calc = BasicAllowanceCalculator(0,pp,c)
+    val unused = actualUnusedList(calc)(pp, c).dropWhile(_._1 == year).slice(0,3)
     unused
   }
 
@@ -108,13 +108,13 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator with DetailsC
     // we only want previous values so create dummy contribution which does not affect the calculation
     val c = Contribution(year, Some(InputAmounts(0L,0L)))
     val pp = previousPeriods.dropWhile(_._1 >= year)
-	  val calc = BasicAllowanceCalculator(0,pp,c)
-	  val unused = actualAAAUnused.dropWhile(_._1 == year).slice(0,3)
+    val calc = BasicAllowanceCalculator(0,pp,c)
+    val unused = actualAAAUnused.dropWhile(_._1 == year).slice(0,3)
     unused
   }
 
   protected lazy val previous3YearsUnusedAAAllowance: Long =
-		previous3YearsUnusedAAAllowanceList.foldLeft(0L)(_ + _._2) + _previousAvailableAAWithCCF
+    previous3YearsUnusedAAAllowanceList.foldLeft(0L)(_ + _._2) + _previousAvailableAAWithCCF
 
   protected lazy val _acaCF = {
     val previousACACF = previousYear.flatMap(maybeExtended(_).map(_.acaCF)).getOrElse(0L)
@@ -309,8 +309,15 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator with DetailsC
     }
 
   protected lazy val _alternativeAACF = {
-    val v = _alternativeAA + previous3YearsUnusedAAAllowance
-    detail("allowance.alt.cf.calculation",s"aaa:${currency(_alternativeAA)};op:+;aaccf:${currency(previous3YearsUnusedAAAllowance)}")
+    def previousUnusedAllowances: List[Long] =
+      previous3YearsUnusedAllowanceList
+        .map(_._2)
+        .zip(previous3YearsUnusedAAAllowanceList.map(_._2))
+        .zip(previous3YearsIsACA)
+        .map( p => if (p._2) p._1._2 else p._1._1)
+    val prev = previousUnusedAllowances.slice(0,3).foldLeft(0L)(_ + _)
+    val v = _alternativeAA + prev
+    detail("allowance.alt.cf.calculation",s"aaa:${currency(_alternativeAA)};op:+;aaccf:${currency(prev)}")
     detail("allowance.alt.cf.calculation.reason","post_2018")
     v
   }
