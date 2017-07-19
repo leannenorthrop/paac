@@ -231,13 +231,13 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator with DetailsC
   protected def unusedAllowancesReducedCY3: Long = {
     val (cyMinus1, cyMinus2, cyMinus3) = unusedAllowances
     val v2 = (cyMinus1 + cyMinus2 + (cyMinus3 - unusedExcess)).max(0)
-    if (cyMinus2 + (cyMinus3 - unusedExcess) < 0) {
+    if ((cyMinus2 + (cyMinus3 - unusedExcess)) < 0) {
       detail("allowance.ccf.calculation",
              s"cyunused:0;op:+;unused_${year-1}:${currency(v2)};op:+;unused_${year-2}:${currency(0)};")
     } else {
       detail("allowance.ccf.calculation",
              s"cyunused:0;op: + ;unused_${year-1}:${currency(cyMinus1)};" +
-             s"op: + ;unused_${year-2}:${currency((cyMinus3 - unusedExcess).max(0))};")
+             s"op: + ;unused_${year-2}:${currency(cyMinus2 + (cyMinus3 - unusedExcess))};")
     }
     detail("allowance.ccf.calculation.reason","nte_1")
     v2
