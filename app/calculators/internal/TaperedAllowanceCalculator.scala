@@ -316,8 +316,8 @@ trait TaperedAllowanceCalculator extends ExtendedSummaryCalculator with DetailsC
         .zip(previous3YearsIsACA)
         .map( p => if (p._2) p._1._2 else p._1._1)
     val prev = previousUnusedAllowances.slice(0,3).foldLeft(0L)(_ + _)
-    val v = annualAllowance + prev
-    detail("allowance.alt.cf.calculation",s"aaa:${currency(annualAllowance)};op:+;aaccf:${currency(prev)}")
+    val v = _alternativeAA + prev
+    detail("allowance.alt.cf.calculation",s"aaa:${currency(alternativeAA)};op:+;aaccf:${currency(prev)}")
     detail("allowance.alt.cf.calculation.reason","post_2018")
     v
   }
