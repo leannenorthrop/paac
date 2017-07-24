@@ -43,9 +43,9 @@ trait PensionAllowanceCalculator {
         cs.toList.map { c =>
           if (notMemberInP1 && isP1) {
             c.copy(amounts=c.amounts.map{
-              case InputAmounts(Some(_), Some(_), i, t) => InputAmounts(Some(2000000L), Some(2000000L), i, t)
-              case InputAmounts(Some(_), None, i, t) => InputAmounts(Some(4000000L), None, i, t)
-              case InputAmounts(None, Some(_), i, t) => InputAmounts(None, Some(4000000L), i, t)
+              case InputAmounts(Some(_), Some(_), i, t) => InputAmounts(Some(4000000L), Some(4000000L), i, t)
+              case InputAmounts(Some(_), None, i, t) => InputAmounts(Some(8000000L), None, i, t)
+              case InputAmounts(None, Some(_), i, t) => InputAmounts(None, Some(8000000L), i, t)
               case a @ _ => a
             })
           } else {
