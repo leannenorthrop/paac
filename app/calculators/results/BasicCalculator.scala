@@ -18,6 +18,7 @@ package calculators.results
 
 import models._
 import calculators.internal.BasicAllowanceCalculator
+import scala.util.{Try, Success, Failure}
 
 /**
  Base trait for calculators that calculate results and create summary objects
@@ -27,13 +28,21 @@ protected trait BasicCalculator extends FactoryCalculator {
 
   def allowance(contribution:Contribution): Long = getAnnualAllowanceInPounds * 100L
 
-  def summary(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Option[Summary] = if (!contribution.isEmpty)
-      if (isSupported(contribution) && contribution.definedBenefit >= 0) {
-        BasicAllowanceCalculator(getAnnualAllowanceInPounds, previousPeriods, contribution).summary
-      } else {
-        None
+  def calculate(implicit previousPeriods:Seq[TaxYearResults],
+                         contribution: Contribution): Try[(Summary, DetailsResult)] = Try(
+      if (!contribution.isEmpty)
+        if (isSupported(contribution) && contribution.definedBenefit >= 0) {
+          val calculator = BasicAllowanceCalculator(getAnnualAllowanceInPounds, previousPeriods, contribution)
+          val results = (calculator.summary, calculator.details)
+          results match {
+            case (None, _) => throw new RuntimeException("Calculation failed")
+            case _ => (results._1.get, results._2)
+          }
+        } else {
+          throw new IllegalArgumentException("Not supported")
+        }
+      else {
+        throw new IllegalArgumentException("Contribution is empty")
       }
-    else {
-      None
-    }
+  )
 }

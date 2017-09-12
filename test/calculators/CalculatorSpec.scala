@@ -20,6 +20,7 @@ import uk.gov.hmrc.play.test.UnitSpec
 import models._
 import org.scalatest._
 import calculators.results._
+import scala.util.{Try, Success, Failure}
 
 class CalculatorSpec extends UnitSpec {
   "Calculator" should {
@@ -32,7 +33,7 @@ class CalculatorSpec extends UnitSpec {
 
       // check
       result.allowance(contribution) shouldBe 0L
-      result.summary(Seq[TaxYearResults](), contribution) shouldBe None
+      result.calculate(Seq[TaxYearResults](), contribution).isFailure shouldBe true
     }
 
     "create pre 2014" in {

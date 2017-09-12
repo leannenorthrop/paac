@@ -22,4 +22,4 @@ dist
 *Ensime*
 *.ensime_cache*
 tools-original
-tags
+tags*

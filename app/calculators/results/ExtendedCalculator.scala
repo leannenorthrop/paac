@@ -17,45 +17,27 @@
 package calculators.results
 
 import models._
-import play.api.Logger
 import calculators.internal.ExtendedSummaryCalculator
+import scala.util.{Try, Success, Failure}
 
 protected trait ExtendedCalculator extends BasicCalculator {
   protected def getCalculator(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): ExtendedSummaryCalculator
-  override def summary(implicit previousPeriods:Seq[TaxYearResults], contribution: Contribution): Option[Summary] = {
-    if (isSupported(contribution)) {
-      val calculator = getCalculator
-      // $COVERAGE-OFF$
-      Logger.debug(s"${this.getClass} isACA = ${calculator.isACA} ACA = ${calculator.alternativeChargableAmount} DCA = ${calculator.defaultChargableAmount} AA = ${calculator.annualAllowance} AAA = ${calculator.alternativeAA} AACCF = ${calculator.annualAllowanceCCF}")
-      // $COVERAGE-ON$
-      Some(ExtendedSummaryFields(calculator.chargableAmount,
-                                 calculator.exceedingAllowance,
-                                 if (calculator.isMPAAApplicable) 0L else calculator.annualAllowance,
-                                 calculator.unusedAllowance,
-                                 calculator.annualAllowanceCF,
-                                 calculator.annualAllowanceCCF,
-                                 calculator.unusedAAA,
-                                 calculator.unusedMPAA,
-                                 calculator.moneyPurchaseAA,
-                                 calculator.alternativeAA,
-                                 calculator.dbist,
-                                 calculator.mpist,
-                                 calculator.alternativeChargableAmount,
-                                 calculator.defaultChargableAmount,
-                                 calculator.cumulativeMP,
-                                 calculator.cumulativeDB,
-                                 calculator.exceedingMPAA,
-                                 calculator.exceedingAAA,
-                                 calculator.preFlexiSavings,
-                                 calculator.postFlexiSavings,
-                                 calculator.isMPAAApplicable,
-                                 calculator.acaCF,
-                                 calculator.dcaCF,
-                                 calculator.isACA,
-                                 calculator.availableAAAWithCF,
-                                 calculator.availableAAAWithCCF))
-    } else {
-      None
-    }
-  }
+
+  override def calculate(implicit previousPeriods:Seq[TaxYearResults],
+                         contribution: Contribution): Try[(Summary, DetailsResult)] = Try(
+      if (!contribution.isEmpty)
+        if (isSupported(contribution) && contribution.definedBenefit >= 0) {
+          val calculator = getCalculator(previousPeriods, contribution)
+          val results = (calculator.summary, calculator.details)
+          results match {
+            case (None, _) => throw new RuntimeException("Calculation failed")
+            case (Some(r),d) => (r, d)
+          }
+        } else {
+          throw new IllegalArgumentException("Not supported")
+        }
+      else {
+        throw new IllegalArgumentException("Contribution is empty")
+      }
+  )
 }

@@ -18,6 +18,7 @@ package calculators.internal
 
 import models._
 import play.api.Logger
+import java.text.NumberFormat
 
 // scalastyle:off magic.number
 package object utilities {
@@ -266,13 +267,13 @@ package object utilities {
   */
   implicit def convert(result: TaxYearResults): SummaryResultsTuple = {
     result match {
-      case TaxYearResults(input, summary) => (result.input.taxPeriodStart.year, summary.exceedingAAAmount, summary.unusedAllowance)
+      case TaxYearResults(input, summary,_) => (result.input.taxPeriodStart.year, summary.exceedingAAAmount, summary.unusedAllowance)
     }
   }
 
   def convertAAA(result: TaxYearResults): SummaryResultsTuple = {
     result match {
-      case TaxYearResults(input, summary) => (result.input.taxPeriodStart.year, summary.exceedingAAA, summary.unusedAAA)
+      case TaxYearResults(input, summary,_) => (result.input.taxPeriodStart.year, summary.exceedingAAA, summary.unusedAAA)
     }
   }
 
@@ -324,5 +325,24 @@ package object utilities {
       }
     }._2
   }
+
+  def ccfdetails(year:Int, contribution: Contribution, previousPeriods: Seq[TaxYearResults])
+                (implicit calc: SummaryCalculator, store: DetailsCalculator): Unit = {
+    val desc = actualUnusedList(calc)(previousPeriods,contribution).slice(0,3) match {
+      case head :: Nil if head._1 == year =>
+        s"cyunused:${currency(head._2)}"
+      case head :: Nil =>
+        s"unused_${head._1}:${currency(head._2)}"
+      case head :: tail if head._1 == year =>
+        tail.foldLeft(s"cyunused:${currency(head._2)};")((str,pair)=>str + s"op: + ;unused_${pair._1}:${currency(pair._2)};")
+      case head :: tail =>
+        tail.foldLeft(s"unused_${head._1}:${currency(head._2)};")((str,pair)=>str + s"op: +;unused_${pair._1}:${currency(pair._2)};")
+      case _ => ""
+    }
+    store.detail("allowance.ccf.calculation",desc)
+  }
+
+  def currency(value: Long): String = if (value == 0) currencyFormatter.format(0) else currencyFormatter.format(value/100)
+  private lazy val currencyFormatter = NumberFormat.getNumberInstance(java.util.Locale.UK)
 }
 // scalastyle:on magic.number

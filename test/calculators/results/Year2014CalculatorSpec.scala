@@ -21,6 +21,7 @@ import models._
 import org.scalatest._
 import org.scalatest.prop._
 import org.scalacheck.Gen
+import scala.util.{Try, Success, Failure}
 
 class Year2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks {
   "Year2014Calculator" should {
@@ -87,8 +88,8 @@ class Year2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks
 
       forAll(invalidContributions) { (contribution: Contribution) =>
         whenever (contribution.taxPeriodStart.year != 2014) {
-          val results = Year2014Calculator.summary(Seq[TaxYearResults](), contribution)
-          results shouldBe None
+          val results = Year2014Calculator.calculate(Seq[TaxYearResults](), contribution)
+          results.isFailure shouldBe true
         }
       }
     }
@@ -98,8 +99,8 @@ class Year2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks
 
       forAll(validContributions) { (contribution: Contribution) =>
         whenever (contribution.taxPeriodStart.year == 2014) {
-          val results = Year2014Calculator.summary(Seq[TaxYearResults](), contribution)
-          results should not be None
+          val results = Year2014Calculator.calculate(Seq[TaxYearResults](), contribution)
+          results.isFailure should not be true
         }
       }
     }
@@ -109,18 +110,18 @@ class Year2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks
 
       forAll(validContributions) { (contribution: Contribution) =>
         whenever (contribution.taxPeriodStart.year == 2014) {
-          val results = Year2014Calculator.summary(Seq[TaxYearResults](), contribution)
-          results shouldBe None
+          val results = Year2014Calculator.calculate(Seq[TaxYearResults](), contribution)
+          results.isFailure shouldBe true
         }
       }
     }
 
     "return expected summary results for 2014 year when 0 defined benefit given" in {
       // do it
-      val results = Year2014Calculator.summary(Seq[TaxYearResults](), Contribution(2014, 0))
+      val results = Year2014Calculator.calculate(Seq[TaxYearResults](), Contribution(2014, 0)).get._1
 
       // check it
-      results shouldBe Some(SummaryResult(0,0,4000000,4000000,4000000,4000000,0))
+      results shouldBe SummaryResult(0,0,4000000,4000000,4000000,4000000,0)
     }
 
     "return annual allowance of 4000000 pence for all valid amounts" in {
@@ -128,8 +129,8 @@ class Year2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks
 
       forAll(validContributions) { (contribution: Contribution) =>
         whenever (contribution.amounts.get.definedBenefit.get >= 0) {
-          val results = Year2014Calculator.summary(Seq[TaxYearResults](), contribution)
-          results.get.availableAllowance shouldBe 4000000L
+          val results = Year2014Calculator.calculate(Seq[TaxYearResults](), contribution)
+          results.get._1.availableAllowance shouldBe 4000000L
         }
       }
     }
@@ -140,15 +141,15 @@ class Year2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks
 
         forAll(validContributions) { (contribution: Contribution) =>
           whenever (contribution.amounts.get.definedBenefit.get < 4000000) {
-            val results = Year2014Calculator.summary(Seq[TaxYearResults](), contribution)
-            results.get.exceedingAAAmount shouldBe 0
+            val results = Year2014Calculator.calculate(Seq[TaxYearResults](), contribution)
+            results.get._1.exceedingAAAmount shouldBe 0
           }
         }
       }
 
       "return correct amount of 0 Exceeding Annual Allowance for value of 4000000" in {
-        val results = Year2014Calculator.summary(Seq[TaxYearResults](), Contribution(2014, 4000000))
-        results.get.exceedingAAAmount shouldBe 0
+        val results = Year2014Calculator.calculate(Seq[TaxYearResults](), Contribution(2014, 4000000))
+        results.get._1.exceedingAAAmount shouldBe 0
       }
 
       "return correct amount of 0 Exceeding Annual Allowance for values over 4000000" in {
@@ -156,10 +157,10 @@ class Year2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks
 
         forAll(validContributions) { (contribution: Contribution) =>
           whenever (contribution.amounts.get.definedBenefit.get > 4000000) {
-            val results = Year2014Calculator.summary(Seq[TaxYearResults](), contribution)
-            results.get.exceedingAAAmount should not be 0
+            val results = Year2014Calculator.calculate(Seq[TaxYearResults](), contribution)
+            results.get._1.exceedingAAAmount should not be 0
             val db = contribution.amounts.get.definedBenefit.get
-            results.get.exceedingAAAmount shouldBe (db - 4000000L).max(0)
+            results.get._1.exceedingAAAmount shouldBe (db - 4000000L).max(0)
           }
         }
       }
@@ -169,15 +170,15 @@ class Year2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks
 
         forAll(validContributions) { (contribution: Contribution) =>
           whenever (contribution.amounts.get.definedBenefit.get < 4000000) {
-            val results = Year2014Calculator.summary(Seq[TaxYearResults](), contribution)
-            results.get.chargableAmount shouldBe 0
+            val results = Year2014Calculator.calculate(Seq[TaxYearResults](), contribution)
+            results.get._1.chargableAmount shouldBe 0
           }
         }
       }
 
       "return correct amount of 0 chargable amount for value of 4000000" in {
-        val results = Year2014Calculator.summary(Seq[TaxYearResults](), Contribution(2014, 4000000))
-        results.get.chargableAmount shouldBe 0
+        val results = Year2014Calculator.calculate(Seq[TaxYearResults](), Contribution(2014, 4000000))
+        results.get._1.chargableAmount shouldBe 0
       }
 
       "return correct amount of non-0 chargable amount for values over 4000000" in {
@@ -185,10 +186,10 @@ class Year2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks
 
         forAll(validContributions) { (contribution: Contribution) =>
           whenever (contribution.amounts.get.definedBenefit.get > 4000000) {
-            val results = Year2014Calculator.summary(Seq[TaxYearResults](), contribution)
-            results.get.chargableAmount should not be 0
+            val results = Year2014Calculator.calculate(Seq[TaxYearResults](), contribution)
+            results.get._1.chargableAmount should not be 0
             val db = contribution.amounts.get.definedBenefit.get
-            results.get.chargableAmount shouldBe (db - 4000000L).max(0)
+            results.get._1.chargableAmount shouldBe (db - 4000000L).max(0)
           }
         }
       }
@@ -198,17 +199,17 @@ class Year2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks
 
         forAll(validContributions) { (contribution: Contribution) =>
           whenever (contribution.amounts.get.definedBenefit.get < 4000000) {
-            val results = Year2014Calculator.summary(Seq[TaxYearResults](), contribution)
-            results.get.unusedAllowance should not be 0
+            val results = Year2014Calculator.calculate(Seq[TaxYearResults](), contribution)
+            results.get._1.unusedAllowance should not be 0
             val db = contribution.amounts.get.definedBenefit.get
-            results.get.unusedAllowance shouldBe (4000000L - db).max(0)
+            results.get._1.unusedAllowance shouldBe (4000000L - db).max(0)
           }
         }
       }
 
       "return correct amount of 0 unused allowance for value of 4000000" in {
-        val results = Year2014Calculator.summary(Seq[TaxYearResults](), Contribution(2014, 4000000))
-        results.get.unusedAllowance shouldBe 0
+        val results = Year2014Calculator.calculate(Seq[TaxYearResults](), Contribution(2014, 4000000))
+        results.get._1.unusedAllowance shouldBe 0
       }
 
       "return correct amount of 0 unused allowance for values over 4000000" in {
@@ -216,8 +217,8 @@ class Year2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks
 
         forAll(validContributions) { (contribution: Contribution) =>
           whenever (contribution.amounts.get.definedBenefit.get > 4000000) {
-            val results = Year2014Calculator.summary(Seq[TaxYearResults](), contribution)
-            results.get.unusedAllowance shouldBe 0
+            val results = Year2014Calculator.calculate(Seq[TaxYearResults](), contribution)
+            results.get._1.unusedAllowance shouldBe 0
           }
         }
       }
@@ -236,12 +237,12 @@ class Year2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks
         val previous = List.tabulate(ty-2008)(n => TaxYearResults(Contribution(ty,0L), SummaryResult(availableAllowance=5000000,unusedAllowance=5000000)))
 
         // do test
-        val results = Year2014Calculator.summary(previous, contribution)
+        val results = Year2014Calculator.calculate(previous, contribution)
 
         // check results
         results should not be None
 
-        val summaryResult = results.get
+        val summaryResult = results.get._1
         val definedBenefit = contribution.amounts.get.definedBenefit.get
         // TODO Get to the bottom of these properties!
         //withClue("Chargable amount"){summaryResult.chargableAmount shouldBe (definedBenefit-19000000L).max(0)}
@@ -252,4 +253,4 @@ class Year2014CalculatorSpec extends UnitSpec with GeneratorDrivenPropertyChecks
       }
     }
   }
-} 
+}

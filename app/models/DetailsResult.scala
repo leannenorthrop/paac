@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 
-package calculators.internal
+package models
 
-trait SummaryCalculator {
-  def allowance(): Long
-  def definedBenefit(): Long
-  def definedContribution(): Long
-  def annualAllowance(): Long
-  def exceedingAllowance(): Long
-  def unusedAllowance(): Long
-  def annualAllowanceCF(): Long
-  def annualAllowanceCCF(): Long
-  def chargableAmount(): Long
+import play.api.libs.json._
 
-  def summary(): Option[models.Summary]
+case class DetailLine(name: String, value: String)
+case class DetailsResult(fields: Seq[DetailLine])
+
+object DetailsResult {
+  implicit val detailWrites = Json.writes[DetailLine]
+
+  implicit val detailReads = Json.reads[DetailLine]
+
+  implicit val detailResultsWrites = Json.writes[DetailsResult]
+
+  implicit val detailResultsReads = Json.reads[DetailsResult]
 }

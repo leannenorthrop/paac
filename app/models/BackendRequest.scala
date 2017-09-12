@@ -27,6 +27,7 @@ sealed trait BackendRequest {
   def contributions(): List[Contribution]
   def startFromYear():  Option[Int]
   def missingYearsAreRegistered():  Option[Boolean]
+  def notMemberInP1():  Option[Boolean]
 }
 
 /**
@@ -34,7 +35,8 @@ sealed trait BackendRequest {
  */
 case class CalculationRequest(contributions: List[Contribution],
                               startFromYear: Option[Int] = None,
-                              missingYearsAreRegistered: Option[Boolean] = None) extends BackendRequest {
+                              missingYearsAreRegistered: Option[Boolean] = None,
+                              notMemberInP1: Option[Boolean] = None) extends BackendRequest {
 }
 
 /**
@@ -44,22 +46,25 @@ object BackendRequest {
   implicit val requestWrites: Writes[BackendRequest] = (
     (JsPath \ "contributions").write[List[Contribution]] and
     (JsPath \ "startFromYear").write[Option[Int]] and
-    (JsPath \ "missingYearsAreRegistered").write[Option[Boolean]]
+    (JsPath \ "missingYearsAreRegistered").write[Option[Boolean]] and
+    (JsPath \ "notMemberInP1").write[Option[Boolean]]
   )(BackendRequest.apply _)
 
   implicit val requestReads: Reads[BackendRequest] = (
     (JsPath \ "contributions").read[List[Contribution]] and
     (JsPath \ "startFromYear").readNullable[Int](min(PensionPeriod.EARLIEST_YEAR_SUPPORTED)) and
-    (JsPath \ "missingYearsAreRegistered").readNullable[Boolean]
+    (JsPath \ "missingYearsAreRegistered").readNullable[Boolean] and
+    (JsPath \ "notMemberInP1").readNullable[Boolean]
   )(BackendRequest.unapply _)
 
-  def apply(request: BackendRequest): (List[Contribution], Option[Int], Option[Boolean]) = {
-    (request.contributions, request.startFromYear, request.missingYearsAreRegistered)
+  def apply(request: BackendRequest): (List[Contribution], Option[Int], Option[Boolean], Option[Boolean]) = {
+    (request.contributions, request.startFromYear, request.missingYearsAreRegistered, request.notMemberInP1)
   }
 
   def unapply(contributions: List[Contribution],
               startFromYear: Option[Int],
-              missingYearsAreRegistered: Option[Boolean]): BackendRequest = {
-    CalculationRequest(contributions, startFromYear, missingYearsAreRegistered)
+              missingYearsAreRegistered: Option[Boolean],
+              notMemberInP1: Option[Boolean]): BackendRequest = {
+    CalculationRequest(contributions, startFromYear, missingYearsAreRegistered, notMemberInP1)
   }
 }
